@@ -19,6 +19,99 @@
       selected[command] ();
     }, // cbClick
   }; // button[is=command-button]
+
+  selectors.push ('image-editor');
+  elementProps["image-editor"] = {
+    pcInit: function () {
+      this.ieCanvas = document.createElement ('canvas');
+      this.appendChild (this.ieCanvas);
+      this.ieCanvas2d = this.ieCanvas.getContext ('2d');
+
+      this.classList.remove ('has-image');
+      this.addEventListener ('click', (ev) => {
+        if (!this.classList.contains ('has-image')) {
+          // XXX We don't have tests of this behavior...
+          this.selectImageFromFile ();
+        }
+      });
+    }, // pcInit
+
+    cbCommands: {
+      selectImageFromFile: {},
+    },
+
+    selectImageByURL: function (url) {
+      return new Promise ((ok, ng) => {
+        var img = document.createElement ('img');
+        img.src = url;
+        img.onload = function () {
+          ok (img);
+        };
+        img.onerror = ng;
+      }).then ((img) => {
+      // XXX max dimension
+        this.ieCanvas.width = img.naturalWidth;
+        this.ieCanvas.height = img.naturalHeight;
+        this.ieCanvas2d.drawImage (img, 0, 0, img.naturalWidth, img.naturalHeight);
+        this.classList.add ('has-image');
+      });
+    }, // selectImageByURL
+    ieSetImageFile: function (file) {
+      var url = URL.createObjectURL (file);
+      return this.selectImageByURL (url).then (() => {
+        URL.revokeObjectURL (url);
+      }, (e) => {
+        URL.revokeObjectURL (url);
+        throw e;
+      });
+    }, // ieSetImageFile
+    // XXX We don't have tests of this method >_<
+    selectImageFromFile: function () {
+      if (this.ieFileCancel) this.ieFileCancel ();
+      return new Promise ((ok, ng) => {
+        var input = document.createElement ('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        this.ieFileCancel = () => {
+          ng (new DOMException ("The user does not choose a file", "AbortError"));
+          delete this.ieFileCancel;
+        };
+        input.onchange = () => {
+          if (input.files[0]) {
+            ok (this.ieSetImageFile (input.files[0]));
+          } else {
+            // This is unlikely called.  There is no way to hook on "cancel".
+            this.ieFileCancel ();
+          }
+        };
+        input.click ();
+      });
+    }, // selectImageFromFile
+    
+    // XXX getDimension
+
+    ieCanvasToBlob: function (type, quality) {
+      return new Promise ((ok) => {
+        if (this.ieCanvas.toBlob) {
+          return this.ieCanvas.toBlob (ok, type, quality);
+        } else {
+          var decoded = atob (this.ieCanvas.toDataURL (type, quality).split (',')[1]);
+          var byteLength = decoded.length;
+          var view = new Uint8Array (byteLength);
+          for (var i = 0; i < byteLength; i++) {
+            view[i] = decoded.charCodeAt (i);
+          }
+          ok (new Blob ([view], {type: type || 'image/png'}));
+        }
+      });
+    }, // ieCanvasToBlob
+    getPNGBlob: function () {
+      return this.ieCanvasToBlob ('image/png');
+    }, // getPNGBlob
+    getJPEGBlob: function () {
+      return this.ieCanvasToBlob ('image/jpeg');
+    }, // getJPEGBlob
+  }; // image-editor
   
   var op = function (e) {
     if (e.pcUpgraded) return;

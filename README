@@ -1,3 +1,6 @@
+HTML page components
+~~~~~~~~~~~~~~~~~~~~
+
 * <button is=command-button>
 
 A |button| element whose |is| attribute value is |command-button|
@@ -20,3 +23,56 @@ setting these two values:
 
   element.cbCommands[name]   An object.  It can have any property.
   element[name]  A function.  This is the method implementing the command.
+
+* <image-editor>
+
+An |image-editor| element represents an image editor.
+
+An element can have an image.  Initially, it has no image.  If and
+only if the element has an image, it has |has-image| class.
+
+There are these methods:
+
+  selectImageByURL (url : String) : Promise
+
+    Selects an image specified by the URL /url/.  It returns a promise
+    which is fulfilled once the image has been loaded.  It is rejected
+    if the image cannot be loaded.
+
+  selectImageFromFile () : Promise
+
+    Selects an image by showing a user interface to choose a file.  It
+    returns a promise which is fulfilled once the image has been
+    loaded.  It is rejected if the image cannot be loaded.  This is a
+    |command-button| command.
+
+  getPNGBlob () : Promise
+
+    Serializes the element's image as a PNG file.  It returns a
+    promise which is fulfilled with a Blob of that file.
+
+  getJPEGBlob () : Promise
+
+    Serializes the element's image as a JPEG file.  It returns a
+    promise which is fulfilled with a Blob of that file.
+
+* Author
+
+Wakaba <wakaba@suikawiki.org>.
+
+* License
+
+Copyright 2017 Wakaba <wakaba@suikawiki.org>.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Affero General Public License for more details.
+
+You does not have received a copy of the GNU Affero General Public
+License along with this program, see <https://www.gnu.org/licenses/>.

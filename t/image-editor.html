@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body id=for-screenshot>
+  <test-code name=parsed1>
+    /*
+      <image-editor></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    this.assert.equal (e.classList.contains ('has-image'), false);
+
+    // Depending on default style sheet
+    this.assert.equal (e.clientWidth, 300);
+    this.assert.equal (e.clientHeight, 150);
+    this.assert.equal (getComputedStyle (e).cursor, 'pointer');
+
+    // selectImageFromFile is exported
+    this.assert.equal (!!e.selectImageFromFile, true);
+    this.assert.equal (!!e.cbCommands.selectImageFromFile, true);
+  </test-code>
+
+  <test-code name=selectImageByURL>
+    /*
+      <image-editor></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    return e.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.classList.contains ('has-image'), true);
+
+      // Depending on default style sheet
+      this.assert.equal (e.clientWidth, 183);
+      this.assert.equal (e.clientHeight, 175);
+      this.assert.equal (getComputedStyle (e).cursor, 'auto');
+    });
+  </test-code>
+
+  <test-code name=selectImageByURL_badURL>
+    /*
+      <image-editor></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    return e.selectImageByURL (Math.random ()).then (() => {
+      throw "selectImageByURL does not reject";
+    }, () => {
+      this.assert.equal (e.classList.contains ('has-image'), false);
+
+      // Depending on default style sheet
+      this.assert.equal (e.clientWidth, 300);
+      this.assert.equal (e.clientHeight, 150);
+      this.assert.equal (getComputedStyle (e).cursor, 'pointer');
+    });
+  </test-code>
+
+
+  <test-code name=getPNGBlob>
+    /*
+      <image-editor></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    return e.selectImageByURL ("image.png").then (() => {
+      return e.getPNGBlob ();
+    }).then ((blob) => {
+      var url = URL.createObjectURL (blob);
+      return fetch (url).then ((res) => {
+        return res.arrayBuffer ();
+      }).then ((ab) => {
+        var data = new Uint8Array (ab);
+        this.assert.equal (data[0], 0x89, "PNG signature [0]");
+        this.assert.equal (data[1], 0x50);
+        this.assert.equal (data[2], 0x4E);
+        this.assert.equal (data[3], 0x47);
+        this.assert.equal (data[4], 0x0D);
+        this.assert.equal (data[5], 0x0A);
+        this.assert.equal (data[6], 0x1A);
+        this.assert.equal (data[7], 0x0A);
+
+        return new Promise ((ok, ng) => {
+          var img = document.createElement ('img');
+          img.onload = ok;
+          img.onerror = ng;
+          img.src = url;
+        });
+      }).then ((loadEv) => {
+        var img = loadEv.target;
+        this.assert.equal (img.naturalWidth, 183, "Generated image's width");
+        this.assert.equal (img.naturalHeight, 175, "Generated image's height");
+      });
+    });
+  </test-code>
+
+  <test-code name=getJPEGBlob>
+    /*
+      <image-editor></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    return e.selectImageByURL ("image.png").then (() => {
+      return e.getJPEGBlob ();
+    }).then ((blob) => {
+      var url = URL.createObjectURL (blob);
+      return fetch (url).then ((res) => {
+        return res.arrayBuffer ();
+      }).then ((ab) => {
+        var data = new Uint8Array (ab);
+        this.assert.equal (data[0], 0xFF, "JPEG signature [0]");
+        this.assert.equal (data[1], 0xD8);
+        this.assert.equal (data[2], 0xFF);
+
+        return new Promise ((ok, ng) => {
+          var img = document.createElement ('img');
+          img.onload = ok;
+          img.onerror = ng;
+          img.src = url;
+        });
+      }).then ((loadEv) => {
+        var img = loadEv.target;
+        this.assert.equal (img.naturalWidth, 183, "Generated image's width");
+        this.assert.equal (img.naturalHeight, 175, "Generated image's height");
+      });
+    });
+  </test-code>
+
+
+  <script src=runtests.js></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->
