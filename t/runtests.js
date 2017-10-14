@@ -44,10 +44,13 @@
             this.assert.throws (() => { throw error }, expected, name);
           }, // assertWindowError
         };
-        return Promise.resolve ().then (function () {
+        return scriptLoaded.then (function () {
           context.assert = assert;
           return code.apply (context);
-        }).then (assert.async ());
+        }).then (assert.async (), function (e) {
+          assert.equal (true, false, "Should not be rejected");
+          assert.equal (e, null, "Exception");
+        });
       });
     });
   });
