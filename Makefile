@@ -3,6 +3,7 @@ all:
 WGET = wget
 CURL = curl
 GIT = git
+PERL = ./perl
 
 updatenightly: local/bin/pmbp.pl
 	$(CURL) -s -S -L -f https://gist.githubusercontent.com/wakaba/34a71d3137a52abb562d/raw/gistfile1.txt | sh
@@ -32,8 +33,6 @@ pmbp-install: pmbp-upgrade
             --create-perl-command-shortcut @prove
 
 ## ------ Tests ------
-
-PROVE = ./prove
 
 test: test-deps test-main
 
