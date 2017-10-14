@@ -68,7 +68,7 @@ sub execute_test_html_file {
               clonedHead.removeChild(e);
             });
             var clonedBody = document.querySelector("body").cloneNode(true);
-            ["#qunit-testrunner-toolbar", "#qunit-testresult"].forEach(function (selector) {
+            ["#qunit-testrunner-toolbar", "#qunit-testresult", "script"].forEach(function (selector) {
               var elem = clonedBody.querySelector(selector);
               elem.parentElement.removeChild(elem);
             });

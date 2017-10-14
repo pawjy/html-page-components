@@ -1,4 +1,9 @@
 (function () {
+  var link0 = document.createElement ('link');
+  link0.rel = "stylesheet";
+  link0.href = "https://code.jquery.com/qunit/qunit-2.2.0.css";
+  document.head.appendChild (link0);
+
   var link = document.createElement ('link');
   link.rel = "stylesheet";
   link.href = "test.css";

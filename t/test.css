@@ -1,7 +1,8 @@
-@import "https://code.jquery.com/qunit/qunit-2.2.0.css";
+@import "../css/default.css";
 
 test-code {
-  display: none;
+  position: absolute;
+  visibility: hidden;
 }
 
 /*
