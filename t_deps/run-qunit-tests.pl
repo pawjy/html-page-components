@@ -7,11 +7,55 @@ use JSON::PS;
 use Promise;
 use Web::URL;
 use Web::Driver::Client::Connection;
-
-# Notes
-# * This file is derived from https://github.com/wakaba/timejs/blob/f57d8d998caf3ff4b0988bd50044e59f05efab28/t/run-qunit-tests.pl
+use AnyEvent::Socket;
+use Web::Transport::PSGIServerConnection;
 
 my $root_path = path (__FILE__)->parent->parent;
+
+{
+  use Socket;
+  my $EphemeralStart = 1024;
+  my $EphemeralEnd = 5000;
+
+  sub is_listenable_port ($) {
+    my $port = $_[0];
+    return 0 unless $port;
+    
+    my $proto = getprotobyname('tcp');
+    socket(my $server, PF_INET, SOCK_STREAM, $proto) || die "socket: $!";
+    setsockopt($server, SOL_SOCKET, SO_REUSEADDR, pack("l", 1)) || die "setsockopt: $!";
+    bind($server, sockaddr_in($port, INADDR_ANY)) || return 0;
+    listen($server, SOMAXCONN) || return 0;
+    close($server);
+    return 1;
+  } # is_listenable_port
+
+  my $using = {};
+  sub find_listenable_port () {
+    for (1..10000) {
+      my $port = int rand($EphemeralEnd - $EphemeralStart);
+      next if $using->{$port}++;
+      return $port if is_listenable_port $port;
+    }
+    die "Listenable port not found";
+  } # find_listenable_port
+}
+
+my $HTTPHost = '0';
+my $HTTPPort = find_listenable_port;
+my $PSGIApp = sub {
+  my $env = $_[0];
+  if ($env->{REQUEST_URI} =~ m{\A((?:/[A-Za-z0-9_-][.A-Za-z0-9_-]*)+)(?:\?|\z)}) {
+    my $path = $root_path->child ($1);
+    return [200, [], [$path->slurp]] if $path->is_file;
+  }
+  return [404, [], []];
+};
+my $HTTPServer = tcp_server $HTTPHost, $HTTPPort, sub {
+  Web::Transport::PSGIServerConnection->new_from_app_and_ae_tcp_server_args
+        ($PSGIApp, [@_]);
+};
+my $BrowserHTTPHost = $ENV{TEST_HTTP_HOST} || $HTTPHost;
 
 sub run_tests {
   my $test_wd_url = $ENV{TEST_WD_URL} || die 'Environment variable `TEST_WD_URL` must be set`';
@@ -20,11 +64,14 @@ sub run_tests {
   my $wd_desired_capabilities = defined $ENV{TEST_WD_DESIRED_CAPABILITIES} ?
       json_bytes2perl $ENV{TEST_WD_DESIRED_CAPABILITIES} : {};
 
+  my $pattern = qr/@{[$ENV{TEST_METHOD} || ".*"]}/;
+
   $test_results_path->mkpath;
   my $exit_code = 0;
   for my $path ($root_path->child ('t')->children (qr/\.html\z/)) {
-    my $url = "file:///project/${path}${query_string}";
+    my $url = "http://$BrowserHTTPHost:$HTTPPort/${path}${query_string}";
     my $result_path = $test_results_path->child ($path->basename);
+    next unless $path =~ /$pattern/o;
     print "# $path\n";
     my $pass = execute_test_html_file ($test_wd_url, $wd_desired_capabilities, $url, $result_path);
     if ($pass) {
@@ -80,6 +127,17 @@ sub execute_test_html_file {
           die "File open failed: $test_result_file_path" if not defined $fh;
           print $fh $result->{value}->{testResultsHtmlString};
           undef $fh;
+        }, sub {
+          my $error = $_[0];
+          return $session->screenshot->then (sub {
+            my $image = $_[0];
+
+            my $fh = IO::File->new("$test_result_file_path.png", ">");
+            die "File open failed: $test_result_file_path" if not defined $fh;
+            print $fh $image;
+            undef $fh;
+            die $error;
+          });
         });
       })->then (sub {
         # If test HTML document has an element for screenshot (which is element with id `for-screenshot`),

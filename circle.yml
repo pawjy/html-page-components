@@ -13,6 +13,8 @@ dependencies:
     - docker pull quay.io/wakaba/chromedriver:chromium :
         background: true
         timeout: 600
+    - ip route | awk '/docker0/ { print $NF }' > docker0-ip.txt:
+        parallel: true
 
     - make deps:
         timeout: 600
@@ -20,9 +22,9 @@ dependencies:
 test:
   override:
     # Firefox
-    - docker run --name firefoxdriver -v $(pwd):/project -d --net=host -t quay.io/wakaba/firefoxdriver:stable /fx:
+    - docker run --name firefoxdriver -v $(pwd):/project -d --net=host --add-host=dockerhost:`cat docker0-ip.txt` -t quay.io/wakaba/firefoxdriver:stable /fx:
         parallel: true
-    - TEST_WD_URL=http://localhost:9516 TEST_RESULTS_DIR=$CIRCLE_ARTIFACTS/test_results/firefox make test :
+    - TEST_WD_URL=http://localhost:9516 TEST_RESULTS_DIR=$CIRCLE_ARTIFACTS/test_results/firefox TEST_HTTP_HOST=dockerhost make test :
         timeout: 600
         parallel: true
     - docker logs firefoxdriver:
@@ -30,9 +32,9 @@ test:
     - docker kill firefoxdriver:
         parallel: true
     # Chrome
-    - docker run --name chromedriver -v $(pwd):/project -d --net=host -t quay.io/wakaba/chromedriver:chromium /cd:
+    - docker run --name chromedriver -v $(pwd):/project -d --net=host --add-host=dockerhost:`cat docker0-ip.txt` -t quay.io/wakaba/chromedriver:chromium /cd:
         parallel: true
-    - TEST_WD_URL=http://localhost:9515 TEST_RESULTS_DIR=$CIRCLE_ARTIFACTS/test_results/chromium make test :
+    - TEST_WD_URL=http://localhost:9515 TEST_RESULTS_DIR=$CIRCLE_ARTIFACTS/test_results/chromium TEST_HTTP_HOST=dockerhost make test :
         timeout: 600
         parallel: true
     - docker logs chromedriver:
