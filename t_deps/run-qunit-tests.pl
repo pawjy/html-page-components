@@ -63,26 +63,20 @@ sub execute_test_html_file {
           }).then(function () {
             var bannerElem = document.querySelector("#qunit-banner");
             var allTestsPassed = bannerElem.classList.contains("qunit-pass");
-            var clonedHead = document.querySelector("head").cloneNode(true);
-            Array.prototype.forEach.call(clonedHead.querySelectorAll("script"), function (e) {
-              clonedHead.removeChild(e);
-            });
-            var clonedBody = document.querySelector("body").cloneNode(true);
-            ["#qunit-testrunner-toolbar", "#qunit-testresult", "script"].forEach(function (selector) {
-              var elem = clonedBody.querySelector(selector);
-              elem.parentElement.removeChild(elem);
+            var html = document.documentElement.cloneNode (true);
+            html.querySelectorAll ('script, #qunit-testrunner-toolbar, #qunit-testresult').forEach (function (e) {
+              e.remove ();
             });
             return {
               allTestsPassed: allTestsPassed,
-              testResultsHtmlString:
-                  "<!DOCTYPE html>\n<html>\n" + clonedHead.outerHTML + "\n" + clonedBody.outerHTML + "\n</html>\n"
+              testResultsHtmlString: "<!DOCTYPE html>" + html.outerHTML,
             };
           });
         })->then (sub {
           my $result = $_[0];
           $all_tests_passed = $result->{value}->{allTestsPassed};
 
-          my $fh = IO::File->new($test_result_file_path, ">:encoding(utf8)");
+          my $fh = IO::File->new($test_result_file_path, ">:encoding(utf-8)");
           die "File open failed: $test_result_file_path" if not defined $fh;
           print $fh $result->{value}->{testResultsHtmlString};
           undef $fh;
