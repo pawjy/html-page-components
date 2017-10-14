@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+  <test-code name=parsed1>
+    /*
+      <object onclick=" window.testClicked = true "></object>
+      <button is=command-button
+          data-selector="test-code[name=parsed1] object"
+          data-command=onclick>B</button>
+    */
+    document.querySelector ("test-code[name=parsed1] object").cbCommands = {onclick: {}};
+    this.assert.equal (window.testClicked, undefined);
+    document.querySelector ("test-code[name=parsed1] button").click (); // sync
+    this.assert.equal (window.testClicked, true);
+  </test-code>
+
+  <test-code name=dynamic>
+    var testClicked = false;
+    var object = document.createElement ('object');
+    object.onclick = function () { testClicked = true };
+    object.cbCommands = {onclick: {}};
+    this.currentScript.appendChild (object);
+    var button = document.createElement ('button');
+    button.setAttribute ('is', 'command-button');
+    button.setAttribute ('data-selector', 'test-code[name=dynamic] object');
+    button.setAttribute ('data-command', 'onclick');
+    this.currentScript.appendChild (button);
+    return this.wait ().then (() => {
+      this.assert.equal (testClicked, false);
+      button.click (); // sync
+      this.assert.equal (testClicked, true);
+    });
+  </test-code>
+
+  <test-code name=commandnotexported>
+    /*
+      <object onclick=" window.testClicked2 = true "></object>
+      <button is=command-button
+          data-selector="test-code[name=commandnotexported] object"
+          data-command=onclick>B</button>
+    */
+    this.assert.equal (window.testClicked2, undefined, "before");
+    this.assertWindowError (() => {
+      document.querySelector ("test-code[name=commandnotexported] button").click (); // sync
+    }, new Error ("Command |onclick| not defined"));
+    this.assert.equal (window.testClicked2, undefined, "after");
+  </test-code>
+
+  <test-code name=commandnotfound>
+    /*
+      <object onclick=" window.testClicked3 = true "></object>
+      <button is=command-button
+          data-selector="test-code[name=commandnotfound] object"
+          data-command=badCommand>B</button>
+    */
+    this.assert.equal (window.testClicked3, undefined, "before");
+    this.assertWindowError (() => {
+      document.querySelector ("test-code[name=commandnotfound] button").click (); // sync
+    }, new Error ("Command |badCommand| not defined"));
+    this.assert.equal (window.testClicked3, undefined, "after");
+  </test-code>
+
+  <test-code name=selectednotfound>
+    /*
+      <button is=command-button
+          data-selector="test-code[name=selectednotfound] object"
+          data-command=badCommand>B</button>
+    */
+    this.assert.equal (window.testClicked4, undefined, "before");
+    this.assertWindowError (() => {
+      document.querySelector ("test-code[name=selectednotfound] button").click (); // sync
+    }, new Error ("Selector |test-code[name=selectednotfound] object| does not match any element in the document"));
+    this.assert.equal (window.testClicked4, undefined, "after");
+  </test-code>
+
+  <script src=runtests.js></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->

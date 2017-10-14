@@ -1,0 +1,22 @@
+* <button is=command-button>
+
+A |button| element whose |is| attribute value is |command-button|
+represents a command button.  (Be aware that this implementation does
+not support mutation of |is| attribute; it must be set to a value
+before the element's insertion into the document.)
+
+The element must has a |data-selector| attribute.  Its value is a
+group of selectors that selects an element in the document.
+
+The element must has a |data-command| attribute whose value is the
+name of the command.
+
+When the element is clicked, the command specified by the
+|data-command| attribute value of the element selected by the
+|data-selector| attribute value is invoked.
+
+A command whose name is /name/ for element /element/ can be defined by
+setting these two values:
+
+  element.cbCommands[name]   An object.  It can have any property.
+  element[name]  A function.  This is the method implementing the command.
