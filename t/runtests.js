@@ -41,7 +41,7 @@
             var onerror = window.onerror;
             var error = undefined;
             window.onerror = function (a, b, c, d, e) {
-              error = e;
+              error = e || arguments;
               return true;
             };
             code ();
