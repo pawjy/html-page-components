@@ -35,6 +35,58 @@
         }
       });
 
+      // XXX We don't have tests of DnD...
+      var setDropEffect = function (dt) {
+        var hasFile = false;
+        var items = dt.items;
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].kind === "file") {
+            hasFile = true;
+            break;
+          }
+        }
+        if (hasFile) {
+          dt.dropEffect = "copy";
+          return false;
+        } else {
+          dt.dropEffect = "none";
+          return true;
+        }
+      }; // setDropEffect
+      var targetted = 0;
+      this.addEventListener ('dragenter', (ev) => {
+        if (this.classList.contains ('has-image')) return;
+
+        targetted++;
+        if (!setDropEffect (ev.dataTransfer)) {
+          this.classList.add ('drop-target');
+          ev.preventDefault ();
+        }
+      });
+      this.addEventListener ('dragover', (ev) => {
+        if (this.classList.contains ('has-image')) return;
+
+        if (!setDropEffect (ev.dataTransfer)) ev.preventDefault ();
+      });
+      this.addEventListener ('dragleave', (ev) => {
+        if (this.classList.contains ('has-image')) return;
+
+        targetted--;
+        if (targetted <= 0) {
+          this.classList.remove ('drop-target');
+        }
+      });
+      this.addEventListener ('drop', (ev) => {
+        if (this.classList.contains ('has-image')) return;
+        
+        this.classList.remove ('drop-target');
+        targetted = 0;
+        
+        var file = ev.dataTransfer.files[0];
+        if (file) this.ieSetImageFile (file);
+        ev.preventDefault ();
+      });
+
       this.width = this.ieCanvas.width;
       this.height = this.ieCanvas.height;
       this.dispatchEvent (new Event ('resize'));

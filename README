@@ -29,7 +29,12 @@ setting these two values:
 An |image-editor| element represents an image editor.
 
 An element can have an image.  Initially, it has no image.  If and
-only if the element has an image, it has |has-image| class.
+only if the element has an image, it has |has-image| class.  When the
+element has no image, the user can click the element to open a user
+interface to select a image (i.e. manually invoking the
+|selectImageFromFile| method).  In addition, the user can drop an
+image file to the element.  When the user is dragging an image file
+over the element, the |drop-target| class is set to the element.
 
 There are these object properties:
 
