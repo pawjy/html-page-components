@@ -7,14 +7,21 @@
 <body id=for-screenshot>
   <test-code name=parsed1>
     /*
-      <image-editor></image-editor>
+      <image-editor onresize="
+        window.parsed1Width = this.width;
+        window.parsed1Height = this.height;
+      "></image-editor>
     */
     var e = this.currentScript.querySelector ("image-editor");
     this.assert.equal (e.classList.contains ('has-image'), false);
+    this.assert.equal (e.width, 300);
+    this.assert.equal (e.height, 150);
+    this.assert.equal (window.parsed1Width, e.width);
+    this.assert.equal (window.parsed1Height, e.height);
 
     // Depending on default style sheet
-    this.assert.equal (e.clientWidth, 300);
-    this.assert.equal (e.clientHeight, 150);
+    this.assert.equal (e.clientWidth, e.width);
+    this.assert.equal (e.clientHeight, e.height);
     this.assert.equal (getComputedStyle (e).cursor, 'pointer');
 
     // selectImageFromFile is exported
@@ -27,12 +34,22 @@
       <image-editor></image-editor>
     */
     var e = this.currentScript.querySelector ("image-editor");
+    var resizeWidth;
+    var resizeHeight;
+    e.onresize = function () {
+      resizeWidth = e.width;
+      resizeHeight = e.height;
+    };
     return e.selectImageByURL ("image.png").then (() => {
       this.assert.equal (e.classList.contains ('has-image'), true);
+      this.assert.equal (resizeWidth, 183);
+      this.assert.equal (resizeHeight, 175);
+      this.assert.equal (e.width, resizeWidth);
+      this.assert.equal (e.height, resizeHeight);
 
       // Depending on default style sheet
-      this.assert.equal (e.clientWidth, 183);
-      this.assert.equal (e.clientHeight, 175);
+      this.assert.equal (e.clientWidth, resizeWidth);
+      this.assert.equal (e.clientHeight, resizeHeight);
       this.assert.equal (getComputedStyle (e).cursor, 'auto');
     });
   </test-code>
@@ -51,6 +68,24 @@
       this.assert.equal (e.clientWidth, 300);
       this.assert.equal (e.clientHeight, 150);
       this.assert.equal (getComputedStyle (e).cursor, 'pointer');
+    });
+  </test-code>
+
+  <test-code name=selectImageByURL-twice>
+    /*
+      <image-editor></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var resized = false;
+    return e.selectImageByURL ("image.png").then (() => {
+      e.onresize = function () {
+        resized = true;
+      };
+      return e.selectImageByURL ("image.png");
+    }).then (() => {
+      this.assert.equal (resized, false);
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
     });
   </test-code>
 

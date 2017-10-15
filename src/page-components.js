@@ -34,6 +34,10 @@
           this.selectImageFromFile ();
         }
       });
+
+      this.width = this.ieCanvas.width;
+      this.height = this.ieCanvas.height;
+      this.dispatchEvent (new Event ('resize'));
     }, // pcInit
 
     cbCommands: {
@@ -49,11 +53,13 @@
         };
         img.onerror = ng;
       }).then ((img) => {
-      // XXX max dimension
-        this.ieCanvas.width = img.naturalWidth;
-        this.ieCanvas.height = img.naturalHeight;
-        this.ieCanvas2d.drawImage (img, 0, 0, img.naturalWidth, img.naturalHeight);
+        // XXX max dimension
+        var resized = (this.width !== img.naturalWidth || this.height !== img.naturalHeight);
+        this.width = this.ieCanvas.width = img.naturalWidth;
+        this.height = this.ieCanvas.height = img.naturalHeight;
+        this.ieCanvas2d.drawImage (img, 0, 0, this.width, this.height);
         this.classList.add ('has-image');
+        if (resized) this.dispatchEvent (new Event ('resize'));
       });
     }, // selectImageByURL
     ieSetImageFile: function (file) {
@@ -87,8 +93,6 @@
         input.click ();
       });
     }, // selectImageFromFile
-    
-    // XXX getDimension
 
     ieCanvasToBlob: function (type, quality) {
       return new Promise ((ok) => {

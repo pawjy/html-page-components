@@ -31,6 +31,18 @@ An |image-editor| element represents an image editor.
 An element can have an image.  Initially, it has no image.  If and
 only if the element has an image, it has |has-image| class.
 
+There are these object properties:
+
+  height
+
+    The element's height, in pixels.  It is set to the element's
+    image's height when an image is selected.
+
+  width
+
+    The element's width, in pixels.  It is set to the element's
+    iamge's width when an image is selected.
+
 There are these methods:
 
   selectImageByURL (url : String) : Promise
@@ -55,6 +67,11 @@ There are these methods:
 
     Serializes the element's image as a JPEG file.  It returns a
     promise which is fulfilled with a Blob of that file.
+
+The |resize| event is fired at the element when the element is
+initialized and whenever the element's width or height has been
+changed.  Note that the event is not fired when a new image is
+selected but both width and height are unchanged.
 
 * Author
 
