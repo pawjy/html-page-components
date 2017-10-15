@@ -2,9 +2,12 @@ image-editor:not([hidden]) {
   display: inline-block;
 }
 
+image-editor[clickmode=selectImage] {
+  cursor: pointer;
+}
+
 image-editor:not(.has-image) {
   position: relative;
-  cursor: pointer;
 }
 image-editor:not(.has-image)::before {
   position: absolute;

@@ -28,64 +28,10 @@
       this.ieCanvas2d = this.ieCanvas.getContext ('2d');
 
       this.classList.remove ('has-image');
-      this.addEventListener ('click', (ev) => {
-        if (!this.classList.contains ('has-image')) {
-          // XXX We don't have tests of this behavior...
-          this.selectImageFromFile ();
-        }
-      });
 
-      // XXX We don't have tests of DnD...
-      var setDropEffect = function (dt) {
-        var hasFile = false;
-        var items = dt.items;
-        for (var i = 0; i < items.length; i++) {
-          if (items[i].kind === "file") {
-            hasFile = true;
-            break;
-          }
-        }
-        if (hasFile) {
-          dt.dropEffect = "copy";
-          return false;
-        } else {
-          dt.dropEffect = "none";
-          return true;
-        }
-      }; // setDropEffect
-      var targetted = 0;
-      this.addEventListener ('dragenter', (ev) => {
-        if (this.classList.contains ('has-image')) return;
-
-        targetted++;
-        if (!setDropEffect (ev.dataTransfer)) {
-          this.classList.add ('drop-target');
-          ev.preventDefault ();
-        }
-      });
-      this.addEventListener ('dragover', (ev) => {
-        if (this.classList.contains ('has-image')) return;
-
-        if (!setDropEffect (ev.dataTransfer)) ev.preventDefault ();
-      });
-      this.addEventListener ('dragleave', (ev) => {
-        if (this.classList.contains ('has-image')) return;
-
-        targetted--;
-        if (targetted <= 0) {
-          this.classList.remove ('drop-target');
-        }
-      });
-      this.addEventListener ('drop', (ev) => {
-        if (this.classList.contains ('has-image')) return;
-        
-        this.classList.remove ('drop-target');
-        targetted = 0;
-        
-        var file = ev.dataTransfer.files[0];
-        if (file) this.ieSetImageFile (file);
-        ev.preventDefault ();
-      });
+      this.ieSetClickMode ('none');
+      this.ieSetClickMode ('selectImage');
+      this.ieSetDnDMode ('selectImage');
 
       this.width = this.ieCanvas.width;
       this.height = this.ieCanvas.height;
@@ -96,6 +42,91 @@
     cbCommands: {
       selectImageFromFile: {},
     },
+
+    ieSetClickMode: function (mode) {
+      if (mode === this.getAttribute ('clickmode')) return;
+      if (mode === 'selectImage') {
+        this.setAttribute ('clickmode', mode);
+        // XXX We don't have tests of this behavior...
+        this.ieClickListener = (ev) => this.selectImageFromFile ();
+        this.addEventListener ('click', this.ieClickListener);
+      } else if (mode === 'none') { 
+        this.setAttribute ('clickmode', mode);
+        if (this.ieClickListener) {
+          this.removeEventListener ('click', this.ieClickListener);
+          delete this.ieClickListener;
+        }
+      } else {
+        throw new Error ("Bad mode |"+mode+"|");
+      }
+    }, // ieSetClickMode
+    ieSetDnDMode: function (mode) {
+      if (this.ieDnDMode === mode) return;
+      if (mode === 'selectImage') {
+        this.ieDnDMode = mode;
+        var setDropEffect = function (dt) {
+          var hasFile = false;
+          var items = dt.items;
+          for (var i = 0; i < items.length; i++) {
+            if (items[i].kind === "file") {
+              hasFile = true;
+              break;
+            }
+          }
+          if (hasFile) {
+            dt.dropEffect = "copy";
+            return false;
+          } else {
+            dt.dropEffect = "none";
+            return true;
+          }
+        }; // setDropEffect
+        var targetted = 0;
+        this.ieDnDdragenterHandler = (ev) => {
+          targetted++;
+          if (!setDropEffect (ev.dataTransfer)) {
+            this.classList.add ('drop-target');
+            ev.preventDefault ();
+          }
+        };
+        this.ieDnDdragoverHandler = (ev) => {
+          if (!setDropEffect (ev.dataTransfer)) ev.preventDefault ();
+        };
+        this.ieDnDdragleaveHandler = (ev) => {
+          targetted--;
+          if (targetted <= 0) {
+            this.classList.remove ('drop-target');
+          }
+        };
+        this.ieDnDdropHandler = (ev) => {
+          this.classList.remove ('drop-target');
+          targetted = 0;
+        
+          var file = ev.dataTransfer.files[0];
+          if (file) this.ieSetImageFile (file);
+          ev.preventDefault ();
+        };
+        // XXX We don't have tests of DnD...
+        this.addEventListener ('dragenter', this.ieDnDdragenterHandler);
+        this.addEventListener ('dragover', this.ieDnDdragoverHandler);
+        this.addEventListener ('dragleave', this.ieDnDdragleaveHandler);
+        this.addEventListener ('drop', this.ieDnDdropHandler);
+      } else if (mode === 'none') {
+        this.ieDnDMode = mode;
+        if (this.ieDnDdragenterHandler) {
+          this.removeEventListener ('dragenter', this.ieDnDdragenterHandler);
+          this.removeEventListener ('dragover', this.ieDnDdragoverHandler);
+          this.removeEventListener ('dragleave', this.ieDnDdragleaveHandler);
+          this.removeEventListener ('drop', this.ieDnDdropHandler);
+          delete this.ieDnDdragenterHandler;
+          delete this.ieDnDdragoverHandler;
+          delete this.ieDnDdragleaveHandler;
+          delete this.ieDnDdropHandler;
+        }
+      } else {
+        throw new Error ("Bad mode |"+mode+"|");
+      }
+    }, // ieSetDnDMode
 
     selectImageByURL: function (url) {
       return new Promise ((ok, ng) => {
@@ -112,6 +143,8 @@
         this.height = this.ieCanvas.height = img.naturalHeight;
         this.ieCanvas2d.drawImage (img, 0, 0, this.width, this.height);
         this.classList.add ('has-image');
+        this.ieSetClickMode ('none');
+        this.ieSetDnDMode ('none');
         if (resized) this.dispatchEvent (new Event ('resize'));
         this.dispatchEvent (new Event ('change'));
       });

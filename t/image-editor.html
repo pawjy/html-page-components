@@ -31,6 +31,8 @@
     this.assert.equal (!!e.selectImageFromFile, true);
     this.assert.equal (!!e.cbCommands.selectImageFromFile, true);
 
+    this.assert.equal (e.getAttribute ('clickmode'), 'selectImage');
+
     this.assert.deepEqual (window.parsed1Events, ['resize', 'change']);
   </test-code>
 
@@ -56,6 +58,11 @@
       this.assert.equal (e.clientWidth, resizeWidth);
       this.assert.equal (e.clientHeight, resizeHeight);
       this.assert.equal (getComputedStyle (e).cursor, 'auto');
+
+      this.assert.equal (e.getAttribute ('clickmode'), 'none');
+      e.click (); // nothing happens
+      this.assert.equal (e.width, resizeWidth);
+      this.assert.equal (e.height, resizeHeight);
     });
   </test-code>
 
