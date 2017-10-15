@@ -40,6 +40,10 @@
     }, // pcInit
 
     cbCommands: {
+      startCaptureMode: {},
+      endCaptureMode: {},
+      selectImageFromCaptureModeAndEndCaptureMode: {},
+      
       selectImageFromFile: {},
     },
 
@@ -128,6 +132,86 @@
       }
     }, // ieSetDnDMode
 
+    // XXX not tested
+    startCaptureMode: function (opts) {
+      if (this.ieEndCaptureMode) return;
+      this.ieEndCaptureMode = () => {};
+
+      opts = opts || {};
+      var videoWidth = opts.width || this.width;
+      var videoHeight = opts.height || this.height;
+      var TimeoutError = function () {
+        this.name = "TimeoutError";
+        this.message = "Camera timeout";
+      };
+      var run = () => {
+        return navigator.mediaDevices.getUserMedia ({video: {
+          width: videoWidth, height: videoHeight,
+          facingMode: opts.facingMode, // |user| or |environment|
+        }, audio: false}).then ((stream) => {
+          var video;
+          var cancelTimer;
+          this.ieEndCaptureMode = function () {
+            stream.getVideoTracks ()[0].stop ();
+            delete this.ieCaptureNow;
+            if (video) video.remove ();
+            clearTimeout (cancelTimer);
+            delete this.ieEndCaptureMode;
+          };
+
+          return new Promise ((ok, ng) => {
+            video = document.createElement ('video');
+            video.classList.add ('capture');
+            video.onloadedmetadata = (ev) => {
+              if (!this.ieEndCaptureMode) return;
+
+              video.play ();
+              this.ieCaptureNow = function () {
+                return this.ieSelectImageByElement (video, videoWidth, videoHeight);
+              };
+              ok ();
+              clearTimeout (cancelTimer);
+            };
+            video.srcObject = stream;
+            this.appendChild (video);
+            cancelTimer = setTimeout (() => {
+              ng (new TimeoutError);
+              if (this.ieEndCaptureMode) this.ieEndCaptureMode ();
+            }, 500);
+          });
+        });
+      }; // run
+      var tryCount = 0;
+      var tryRun = () => {
+        return run ().catch ((e) => {
+          // Some browser with some camera device sometimes (but not
+          // always) fails to fire loadedmetadata...
+          if (e instanceof TimeoutError && tryCount++ < 10) {
+            return tryRun ();
+          } else {
+            throw e;
+          }
+        });
+      };
+      tryRun ();
+    }, // startCaptureMode
+    endCaptureMode: function () {
+      if (this.ieEndCaptureMode) this.ieEndCaptureMode ();
+    }, // endCaptureMode
+
+    ieSelectImageByElement: function (element, width, height) {
+      // XXX max dimension
+      var resized = (this.width !== width || this.height !== height);
+      this.width = this.ieCanvas.width = width;
+      this.height = this.ieCanvas.height = height;
+      this.ieCanvas2d.drawImage (element, 0, 0, width, height);
+      this.classList.add ('has-image');
+      this.ieSetClickMode ('none');
+      this.ieSetDnDMode ('none');
+      if (resized) this.dispatchEvent (new Event ('resize'));
+      this.dispatchEvent (new Event ('change'));
+      return Promise.resolve ();
+    }, // ieSelectImageByElement
     selectImageByURL: function (url) {
       return new Promise ((ok, ng) => {
         var img = document.createElement ('img');
@@ -137,16 +221,7 @@
         };
         img.onerror = ng;
       }).then ((img) => {
-        // XXX max dimension
-        var resized = (this.width !== img.naturalWidth || this.height !== img.naturalHeight);
-        this.width = this.ieCanvas.width = img.naturalWidth;
-        this.height = this.ieCanvas.height = img.naturalHeight;
-        this.ieCanvas2d.drawImage (img, 0, 0, this.width, this.height);
-        this.classList.add ('has-image');
-        this.ieSetClickMode ('none');
-        this.ieSetDnDMode ('none');
-        if (resized) this.dispatchEvent (new Event ('resize'));
-        this.dispatchEvent (new Event ('change'));
+        return this.ieSelectImageByElement (img, img.naturalWidth, img.naturalHeight);
       });
     }, // selectImageByURL
     ieSetImageFile: function (file) {
@@ -180,6 +255,15 @@
         input.click ();
       });
     }, // selectImageFromFile
+    // XXX not tested
+    selectImageFromCaptureModeAndEndCaptureMode: function () {
+      if (!this.ieCaptureNow) {
+        return Promise.reject (new Error ("Capturing is not available"));
+      }
+      return this.ieCaptureNow ().then (() => {
+        this.endCaptureMode ();
+      });
+    }, // selectImageFromCaptureModeAndEndCaptureMode
 
     ieCanvasToBlob: function (type, quality) {
       return new Promise ((ok) => {

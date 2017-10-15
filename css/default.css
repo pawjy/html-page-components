@@ -1,14 +1,12 @@
 image-editor:not([hidden]) {
   display: inline-block;
+  position: relative;
 }
 
 image-editor[clickmode=selectImage] {
   cursor: pointer;
 }
 
-image-editor:not(.has-image) {
-  position: relative;
-}
 image-editor:not(.has-image)::before {
   position: absolute;
   display: block;
@@ -25,6 +23,15 @@ image-editor.drop-target {
     linear-gradient(45deg, var(--background-box-color) 25%, transparent 25%, transparent 75%, var(--background-box-color) 75%, var(--background-box-color));
   background-position: 0px 0px, 30px 30px;
   background-size: 60px 60px;
+}
+
+image-editor > video.capture {
+  position: absolute;
+  display: block;
+  top: 0;
+  left: 0;
+  background: white;
+  color: black;
 }
 
 image-editor > canvas {

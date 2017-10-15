@@ -1,6 +1,19 @@
 HTML page components
 ~~~~~~~~~~~~~~~~~~~~
 
+* Files
+
+The |src/page-components.js| file implements elements described in
+this document.
+
+The |css/default.css| file describes the default style for these
+elements.  Though the file itself is not required to be loaded itself,
+some of style rules in the file are effectively required for these
+elements rendered as intended.
+
+  <link rel=stylesheet href=css/default.css>
+  <script src=src/page-components.js async></script>
+
 * <button is=command-button>
 
 A |button| element whose |is| attribute value is |command-button|
@@ -63,6 +76,26 @@ There are these methods:
     Selects an image by showing a user interface to choose a file.  It
     returns a promise which is fulfilled once the image has been
     loaded.  It is rejected if the image cannot be loaded.  This is a
+    |command-button| command.
+
+  startCaptureMode ()
+
+    Starts the element's camera capture mode, if not yet and if
+    possible.  While the element is in the camera capture mode, a
+    |video| element with class |capture| is inserted in the element.
+    This is a |command-button| command.
+
+  endCaptureMode ()
+
+    Ends the element's camera capture mode, if the element is in that
+    mode.  This is a |command-button| command.
+
+  selectImageFromCaptureModeAndEndCaptureMode () : Promise
+
+    Selects the current snapshot of the camera as the element's image.
+    It returns a promise which is fulfilled once the image has been
+    loaded.  It is rejected if the image cannot be loaded.  It
+    implicitly invokes |endCaptureMode| after selection.  This is a
     |command-button| command.
 
   getPNGBlob () : Promise
