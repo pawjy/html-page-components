@@ -38,6 +38,7 @@
       this.width = this.ieCanvas.width;
       this.height = this.ieCanvas.height;
       this.dispatchEvent (new Event ('resize'));
+      this.dispatchEvent (new Event ('change'));
     }, // pcInit
 
     cbCommands: {
@@ -60,6 +61,7 @@
         this.ieCanvas2d.drawImage (img, 0, 0, this.width, this.height);
         this.classList.add ('has-image');
         if (resized) this.dispatchEvent (new Event ('resize'));
+        this.dispatchEvent (new Event ('change'));
       });
     }, // selectImageByURL
     ieSetImageFile: function (file) {

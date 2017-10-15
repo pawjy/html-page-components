@@ -73,6 +73,9 @@ initialized and whenever the element's width or height has been
 changed.  Note that the event is not fired when a new image is
 selected but both width and height are unchanged.
 
+The |change| event is fired at the element when the element is
+initialized and whenever the element's image is selected.
+
 * Author
 
 Wakaba <wakaba@suikawiki.org>.

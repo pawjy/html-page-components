@@ -10,6 +10,9 @@
       <image-editor onresize="
         window.parsed1Width = this.width;
         window.parsed1Height = this.height;
+        window.parsed1Events = ['resize'];
+      " onchange="
+        window.parsed1Events.push ('change');
       "></image-editor>
     */
     var e = this.currentScript.querySelector ("image-editor");
@@ -27,6 +30,8 @@
     // selectImageFromFile is exported
     this.assert.equal (!!e.selectImageFromFile, true);
     this.assert.equal (!!e.cbCommands.selectImageFromFile, true);
+
+    this.assert.deepEqual (window.parsed1Events, ['resize', 'change']);
   </test-code>
 
   <test-code name=selectImageByURL>
@@ -76,14 +81,17 @@
       <image-editor></image-editor>
     */
     var e = this.currentScript.querySelector ("image-editor");
-    var resized = false;
+    var events = [];
     return e.selectImageByURL ("image.png").then (() => {
       e.onresize = function () {
-        resized = true;
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
       };
       return e.selectImageByURL ("image.png");
     }).then (() => {
-      this.assert.equal (resized, false);
+      this.assert.deepEqual (events, ['change']);
       this.assert.equal (e.width, 183);
       this.assert.equal (e.height, 175);
     });
