@@ -23,18 +23,23 @@
   selectors.push ('image-editor');
   elementProps["image-editor"] = {
     pcInit: function () {
-      this.ieCanvas = document.createElement ('canvas');
-      this.appendChild (this.ieCanvas);
-      this.ieCanvas2d = this.ieCanvas.getContext ('2d');
+      // Element's base image
+      this.ieBaseCanvas = document.createElement ('canvas');
+      this.ieBaseCanvas.classList.add ('base');
+      this.appendChild (this.ieBaseCanvas);
+
+      // Element's overlay image
+      this.ieOverlayCanvas = document.createElement ('canvas');
+      this.ieOverlayCanvas.classList.add ('overlay');
+      this.appendChild (this.ieOverlayCanvas);
 
       this.classList.remove ('has-image');
-
       this.ieSetClickMode ('none');
       this.ieSetClickMode ('selectImage');
       this.ieSetDnDMode ('selectImage');
 
-      this.width = this.ieCanvas.width;
-      this.height = this.ieCanvas.height;
+      this.width = this.ieBaseCanvas.width;
+      this.height = this.ieBaseCanvas.height;
       this.dispatchEvent (new Event ('resize'));
       this.dispatchEvent (new Event ('change'));
     }, // pcInit
@@ -202,12 +207,15 @@
     ieSelectImageByElement: function (element, width, height) {
       // XXX max dimension
       var resized = (this.width !== width || this.height !== height);
-      this.width = this.ieCanvas.width = width;
-      this.height = this.ieCanvas.height = height;
-      this.ieCanvas2d.drawImage (element, 0, 0, width, height);
+      this.width = this.ieBaseCanvas.width = this.ieOverlayCanvas.width = width;
+      this.height = this.ieBaseCanvas.height = this.ieOverlayCanvas.height = height;
+      var context = this.ieOverlayCanvas.getContext ('2d');
+      context.drawImage (element, 0, 0, width, height);
+      
       this.classList.add ('has-image');
       this.ieSetClickMode ('none');
       this.ieSetDnDMode ('none');
+      
       if (resized) this.dispatchEvent (new Event ('resize'));
       this.dispatchEvent (new Event ('change'));
       return Promise.resolve ();
@@ -267,10 +275,16 @@
 
     ieCanvasToBlob: function (type, quality) {
       return new Promise ((ok) => {
-        if (this.ieCanvas.toBlob) {
-          return this.ieCanvas.toBlob (ok, type, quality);
+        var canvas = document.createElement ('canvas');
+        canvas.width = this.ieBaseCanvas.width;
+        canvas.height = this.ieBaseCanvas.height;
+        var context = canvas.getContext ('2d');
+        context.drawImage (this.ieBaseCanvas, 0, 0, canvas.width, canvas.height);
+        context.drawImage (this.ieOverlayCanvas, 0, 0, canvas.width, canvas.height);
+        if (canvas.toBlob) {
+          return canvas.toBlob (ok, type, quality);
         } else {
-          var decoded = atob (this.ieCanvas.toDataURL (type, quality).split (',')[1]);
+          var decoded = atob (canvas.toDataURL (type, quality).split (',')[1]);
           var byteLength = decoded.length;
           var view = new Uint8Array (byteLength);
           for (var i = 0; i < byteLength; i++) {

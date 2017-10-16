@@ -41,11 +41,25 @@ setting these two values:
 
 An |image-editor| element represents an image editor.
 
-An element can have an image.  Initially, it has no image.  If and
-only if the element has an image, it has |has-image| class.  When the
-element has no image, the user can click the element to open a user
-interface to select a image (i.e. manually invoking the
-|selectImageFromFile| method).  In this mode, the |clickmode|
+An element has *base image* and *overlay image*.  They are initially
+transparent images.  The base image is represented by a |canvas|
+element child with the class |base|.  The overlay image is represented
+by a |canavs| element child with the class |overlay|.  An element has
+*width* and *height*.  The element's width, the element's base image's
+width, and the element's overlay image's width are initially set to
+the same value.  The element's height, the element's base image's
+height, and the element's overlay image's height are initially set to
+the same value.
+
+When an image is *selected* for the element, the selected image is set
+to the overlay image, the element's width is set to the image's
+width. and the element's height is set to the image's height.
+
+Once an image is selected for the element, the element *has an image*.
+While an element has an image, the element has the |has-image| class.
+While the element has no image, the user can click the element to open
+a user interface to select a image (i.e. manually invoking the
+|selectImageFromFile| method).  In this state, the |clickmode|
 attribute of the element is set to |selectImage|.  In addition, the
 user can drop an image file to the element.  When the user is dragging
 an image file over the element, the |drop-target| class is set to the
@@ -55,32 +69,30 @@ There are these object properties:
 
   height
 
-    The element's height, in pixels.  It is set to the element's
-    image's height when an image is selected.
+    The element's height, in pixels.
 
   width
 
-    The element's width, in pixels.  It is set to the element's
-    iamge's width when an image is selected.
+    The element's width, in pixels.
 
 There are these methods:
 
   selectImageByURL (url : String) : Promise
 
-    Selects an image specified by the URL /url/.  It returns a promise
-    which is fulfilled once the image has been loaded.  It is rejected
-    if the image cannot be loaded.
+    Selects an image specified by the URL /url/ for the element.  It
+    returns a promise which is fulfilled once the image has been
+    loaded.  It is rejected if the image cannot be loaded.
 
   selectImageFromFile () : Promise
 
-    Selects an image by showing a user interface to choose a file.  It
-    returns a promise which is fulfilled once the image has been
-    loaded.  It is rejected if the image cannot be loaded.  This is a
-    |command-button| command.
+    Selects an image for the element by showing a user interface to
+    choose a file.  It returns a promise which is fulfilled once the
+    image has been loaded.  It is rejected if the image cannot be
+    loaded.  This is a |command-button| command.
 
   startCaptureMode ()
 
-    Starts the element's camera capture mode, if not yet and if
+    Starts the element's *camera capture mode*, if not yet and if
     possible.  While the element is in the camera capture mode, a
     |video| element with class |capture| is inserted in the element.
     This is a |command-button| command.
@@ -92,29 +104,29 @@ There are these methods:
 
   selectImageFromCaptureModeAndEndCaptureMode () : Promise
 
-    Selects the current snapshot of the camera as the element's image.
-    It returns a promise which is fulfilled once the image has been
+    Selects the current snapshot of the camera for the element.  It
+    returns a promise which is fulfilled once the image has been
     loaded.  It is rejected if the image cannot be loaded.  It
     implicitly invokes |endCaptureMode| after selection.  This is a
     |command-button| command.
 
   getPNGBlob () : Promise
 
-    Serializes the element's image as a PNG file.  It returns a
-    promise which is fulfilled with a Blob of that file.
+    Serializes the element as a PNG file.  It returns a promise which
+    is fulfilled with a Blob of that file.
 
   getJPEGBlob () : Promise
 
-    Serializes the element's image as a JPEG file.  It returns a
-    promise which is fulfilled with a Blob of that file.
+    Serializes the element as a JPEG file.  It returns a promise which
+    is fulfilled with a Blob of that file.
 
 The |resize| event is fired at the element when the element is
 initialized and whenever the element's width or height has been
-changed.  Note that the event is not fired when a new image is
-selected but both width and height are unchanged.
+changed.  Note that the event is not fired when an image is selected
+for the element but both width and height are unchanged.
 
 The |change| event is fired at the element when the element is
-initialized and whenever the element's image is selected.
+initialized and whenever an image is selected for the element.
 
 * Author
 

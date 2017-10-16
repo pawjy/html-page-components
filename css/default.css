@@ -25,6 +25,13 @@ image-editor.drop-target {
   background-size: 60px 60px;
 }
 
+image-editor > canvas.overlay {
+  position: absolute;
+  display: block;
+  top: 0;
+  left: 0;
+}
+
 image-editor > video.capture {
   position: absolute;
   display: block;
