@@ -39,33 +39,31 @@ setting these two values:
 
 * <image-editor>
 
-An |image-editor| element represents an image editor.
+An |image-editor| element represents an editable image.  Its content
+can be one or more |image-layer| elements, representing *layers* in
+the image.  The order of child elements (in tree order) is the layers'
+compound order, where an earlier element has smaller z-index.
 
-An element has *base image* and *overlay image*.  They are initially
-transparent images.  The base image is represented by a |canvas|
-element child with the class |base|.  The overlay image is represented
-by a |canavs| element child with the class |overlay|.  An element has
-*width* and *height*.  The element's width, the element's base image's
-width, and the element's overlay image's width are initially set to
-the same value.  The element's height, the element's base image's
-height, and the element's overlay image's height are initially set to
-the same value.
+A *layer* can be an image or a placeholder (which is a transparent
+image for the purpose of composition).  A *layer* has *width* and
+*height*.  A |canvas| element is inserted into a |image-layer|
+element.  Initially, a layer is a placeholder.  When a layer is *set*
+to an image, its width and height are set to the image's width and
+height, respectively.
 
-When an image is *selected* for the element, the selected image is set
-to the overlay image, the element's width is set to the image's
-width. and the element's height is set to the image's height.
-
-Once an image is selected for the element, the element *has an image*.
-While an element has an image, the element has the |has-image| class.
-While the element has no image, the user can click the element to open
-a user interface to select a image (i.e. manually invoking the
-|selectImageFromFile| method).  In this state, the |clickmode|
-attribute of the element is set to |selectImage|.  In addition, the
-user can drop an image file to the element.  When the user is dragging
+While a layer is a image, the element has the |has-image| class.
+While a layer is a placeholder, the user can click the element to open
+a user interface to set a image (i.e. manually invoking the
+|selectImageFromFile| method).  In addition, the user can drop an
+image file to the element to set the image.  When the user is dragging
 an image file over the element, the |drop-target| class is set to the
 element.
 
-There are these object properties:
+An |image-editor| element has *width* and *height*.  It is set to the
+width and height of the most recently inserted layer's width and
+height, respectively.
+
+An |image-editor| element has these object properties:
 
   height
 
@@ -75,20 +73,32 @@ There are these object properties:
 
     The element's width, in pixels.
 
-There are these methods:
+An |image-editor| element has these methods:
+
+  getPNGBlob () : Promise
+
+    Serializes the element as a PNG file.  It returns a promise which
+    is fulfilled with a Blob of that file.
+
+  getJPEGBlob () : Promise
+
+    Serializes the element as a JPEG file.  It returns a promise which
+    is fulfilled with a Blob of that file.
+
+An |image-layer| element has these methods:
 
   selectImageByURL (url : String) : Promise
 
-    Selects an image specified by the URL /url/ for the element.  It
-    returns a promise which is fulfilled once the image has been
-    loaded.  It is rejected if the image cannot be loaded.
+    Set the layer to an image specified by the URL /url/.  It returns
+    a promise which is fulfilled once the image has been loaded.  It
+    is rejected if the image cannot be loaded.
 
   selectImageFromFile () : Promise
 
-    Selects an image for the element by showing a user interface to
-    choose a file.  It returns a promise which is fulfilled once the
-    image has been loaded.  It is rejected if the image cannot be
-    loaded.  This is a |command-button| command.
+    Set the layer to an image for the element by showing a user
+    interface to choose a file.  It returns a promise which is
+    fulfilled once the image has been loaded.  It is rejected if the
+    image cannot be loaded.  This is a |command-button| command.
 
   startCaptureMode ()
 
@@ -104,29 +114,19 @@ There are these methods:
 
   selectImageFromCaptureModeAndEndCaptureMode () : Promise
 
-    Selects the current snapshot of the camera for the element.  It
+    Set the layer to the current snapshot of the camera image.  It
     returns a promise which is fulfilled once the image has been
     loaded.  It is rejected if the image cannot be loaded.  It
-    implicitly invokes |endCaptureMode| after selection.  This is a
-    |command-button| command.
+    implicitly invokes |endCaptureMode|.  This is a |command-button|
+    command.
 
-  getPNGBlob () : Promise
+The |resize| event is fired at an |image-editor| or |image-layer|
+element when it is initialized and at an |image-layer| element
+whenever the itss width or height has been changed.
 
-    Serializes the element as a PNG file.  It returns a promise which
-    is fulfilled with a Blob of that file.
-
-  getJPEGBlob () : Promise
-
-    Serializes the element as a JPEG file.  It returns a promise which
-    is fulfilled with a Blob of that file.
-
-The |resize| event is fired at the element when the element is
-initialized and whenever the element's width or height has been
-changed.  Note that the event is not fired when an image is selected
-for the element but both width and height are unchanged.
-
-The |change| event is fired at the element when the element is
-initialized and whenever an image is selected for the element.
+The |change| event is fired at an |image-layer| element when the
+element is initialized and whenever the layer is set to an image or
+placeholder.
 
 * Author
 

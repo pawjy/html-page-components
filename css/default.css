@@ -3,11 +3,22 @@ image-editor:not([hidden]) {
   position: relative;
 }
 
-image-editor[clickmode=selectImage] {
+image-editor > image-layer:not([hidden]) {
+  display: inline-block;
+}
+
+image-editor > image-layer:not(:first-of-type) {
+  position: absolute;
+  display: block;
+  top: 0;
+  left: 0;
+}
+
+image-editor > image-layer:not(.has-image) {
   cursor: pointer;
 }
 
-image-editor:not(.has-image)::before {
+image-editor > image-layer:not(.has-image)::before {
   position: absolute;
   display: block;
   content: url(noimage.svg);
@@ -15,7 +26,7 @@ image-editor:not(.has-image)::before {
   height: 100%;
 }
 
-image-editor.drop-target {
+image-editor > image-layer.drop-target {
   --background-box-color: rgb(153, 153, 243);
   background-color: transparent;
   background-image:
@@ -25,14 +36,7 @@ image-editor.drop-target {
   background-size: 60px 60px;
 }
 
-image-editor > canvas.overlay {
-  position: absolute;
-  display: block;
-  top: 0;
-  left: 0;
-}
-
-image-editor > video.capture {
+image-editor > image-layer > video.capture {
   position: absolute;
   display: block;
   top: 0;
@@ -41,7 +45,7 @@ image-editor > video.capture {
   color: black;
 }
 
-image-editor > canvas {
+image-editor > image-layer > canvas {
   vertical-align: bottom;
 }
 

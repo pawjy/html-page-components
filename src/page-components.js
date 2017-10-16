@@ -2,6 +2,18 @@
   var selectors = [];
   var elementProps = {};
 
+  var upgrade = function (e) {
+    if (e.pcUpgraded) return;
+    e.pcUpgraded = true;
+
+    var props = elementProps[e.localName];
+    Object.keys (props).forEach (function (k) {
+      e[k] = props[k];
+    });
+
+    e.pcInit ();
+  }; // upgrade
+  
   selectors.push ('button[is=command-button]');
   elementProps.button = {
     pcInit: function () {
@@ -23,25 +35,83 @@
   selectors.push ('image-editor');
   elementProps["image-editor"] = {
     pcInit: function () {
-      // Element's base image
-      this.ieBaseCanvas = document.createElement ('canvas');
-      this.ieBaseCanvas.classList.add ('base');
-      this.appendChild (this.ieBaseCanvas);
+      this.ieResize ({width: 300, height: 150});
+      Promise.resolve ().then ((e) => {
+        this.dispatchEvent (new Event ('resize', {bubbles: true}));
+      });
 
-      // Element's overlay image
-      this.ieOverlayCanvas = document.createElement ('canvas');
-      this.ieOverlayCanvas.classList.add ('overlay');
-      this.appendChild (this.ieOverlayCanvas);
+      new MutationObserver (function (mutations) {
+        mutations.forEach (function (m) {
+          Array.prototype.forEach.call (m.addedNodes, function (e) {
+            if (e.nodeType === e.ELEMENT_NODE &&
+                e.localName === 'image-layer') {
+              upgrade (e);
+            }
+          });
+        });
+      }).observe (this, {childList: true});
+      Array.prototype.slice.call (this.children).forEach ((e) => {
+        if (e.localName === 'image-layer') {
+          Promise.resolve (e).then (upgrade);
+        }
+      });
+    }, // pcInit
+
+    ieResize: function (ce) {
+      // XXX dimension
+      this.width = ce.width;
+      this.height = ce.height;
+      this.style.width = this.width + 'px';
+      this.style.height = this.height + 'px';
+    }, // ieResize
+
+    ieCanvasToBlob: function (type, quality) {
+      return new Promise ((ok) => {
+        var canvas = document.createElement ('canvas');
+        canvas.width = this.width;
+        canvas.height = this.height;
+        var context = canvas.getContext ('2d');
+        Array.prototype.slice.call (this.children).forEach ((e) => {
+          if (e.localName === 'image-layer') {
+            context.drawImage (e.ieCanvas, 0, 0, canvas.width, canvas.height); // XXX dimension
+          }
+        });
+        if (canvas.toBlob) {
+          return canvas.toBlob (ok, type, quality);
+        } else {
+          var decoded = atob (canvas.toDataURL (type, quality).split (',')[1]);
+          var byteLength = decoded.length;
+          var view = new Uint8Array (byteLength);
+          for (var i = 0; i < byteLength; i++) {
+            view[i] = decoded.charCodeAt (i);
+          }
+          ok (new Blob ([view], {type: type || 'image/png'}));
+        }
+      });
+    }, // ieCanvasToBlob
+    getPNGBlob: function () {
+      return this.ieCanvasToBlob ('image/png');
+    }, // getPNGBlob
+    getJPEGBlob: function () {
+      return this.ieCanvasToBlob ('image/jpeg');
+    }, // getJPEGBlob
+  }; // image-editor
+
+  elementProps["image-layer"] = {
+    pcInit: function () {
+      this.ieCanvas = document.createElement ('canvas');
+      this.appendChild (this.ieCanvas);
 
       this.classList.remove ('has-image');
       this.ieSetClickMode ('none');
       this.ieSetClickMode ('selectImage');
       this.ieSetDnDMode ('selectImage');
 
-      this.width = this.ieBaseCanvas.width;
-      this.height = this.ieBaseCanvas.height;
-      this.dispatchEvent (new Event ('resize'));
-      this.dispatchEvent (new Event ('change'));
+      this.width = this.ieCanvas.width;
+      this.height = this.ieCanvas.height;
+      if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize (this);
+      this.dispatchEvent (new Event ('resize', {bubbles: true}));
+      this.dispatchEvent (new Event ('change', {bubbles: true}));
     }, // pcInit
 
     cbCommands: {
@@ -53,14 +123,14 @@
     },
 
     ieSetClickMode: function (mode) {
-      if (mode === this.getAttribute ('clickmode')) return;
+      if (mode === this.ieClickMode) return;
       if (mode === 'selectImage') {
-        this.setAttribute ('clickmode', mode);
+        this.ieClickMode = mode;
         // XXX We don't have tests of this behavior...
         this.ieClickListener = (ev) => this.selectImageFromFile ();
         this.addEventListener ('click', this.ieClickListener);
       } else if (mode === 'none') { 
-        this.setAttribute ('clickmode', mode);
+        this.ieClickMode = mode;
         if (this.ieClickListener) {
           this.removeEventListener ('click', this.ieClickListener);
           delete this.ieClickListener;
@@ -138,13 +208,12 @@
     }, // ieSetDnDMode
 
     // XXX not tested
-    startCaptureMode: function (opts) {
+    startCaptureMode: function () {
       if (this.ieEndCaptureMode) return;
       this.ieEndCaptureMode = () => {};
 
-      opts = opts || {};
-      var videoWidth = opts.width || this.width;
-      var videoHeight = opts.height || this.height;
+      var videoWidth = this.width;
+      var videoHeight = this.height;
       var TimeoutError = function () {
         this.name = "TimeoutError";
         this.message = "Camera timeout";
@@ -152,7 +221,7 @@
       var run = () => {
         return navigator.mediaDevices.getUserMedia ({video: {
           width: videoWidth, height: videoHeight,
-          facingMode: opts.facingMode, // |user| or |environment|
+          //XXX facingMode: opts.facingMode, // |user| or |environment|
         }, audio: false}).then ((stream) => {
           var video;
           var cancelTimer;
@@ -207,17 +276,20 @@
     ieSelectImageByElement: function (element, width, height) {
       // XXX max dimension
       var resized = (this.width !== width || this.height !== height);
-      this.width = this.ieBaseCanvas.width = this.ieOverlayCanvas.width = width;
-      this.height = this.ieBaseCanvas.height = this.ieOverlayCanvas.height = height;
-      var context = this.ieOverlayCanvas.getContext ('2d');
+      this.width = this.ieCanvas.width = width;
+      this.height = this.ieCanvas.height = height;
+      var context = this.ieCanvas.getContext ('2d');
       context.drawImage (element, 0, 0, width, height);
       
       this.classList.add ('has-image');
       this.ieSetClickMode ('none');
       this.ieSetDnDMode ('none');
       
-      if (resized) this.dispatchEvent (new Event ('resize'));
-      this.dispatchEvent (new Event ('change'));
+      if (resized) {
+        if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize (this);
+        this.dispatchEvent (new Event ('resize', {bubbles: true}));
+      }
+      this.dispatchEvent (new Event ('change', {bubbles: true}));
       return Promise.resolve ();
     }, // ieSelectImageByElement
     selectImageByURL: function (url) {
@@ -272,60 +344,20 @@
         this.endCaptureMode ();
       });
     }, // selectImageFromCaptureModeAndEndCaptureMode
-
-    ieCanvasToBlob: function (type, quality) {
-      return new Promise ((ok) => {
-        var canvas = document.createElement ('canvas');
-        canvas.width = this.ieBaseCanvas.width;
-        canvas.height = this.ieBaseCanvas.height;
-        var context = canvas.getContext ('2d');
-        context.drawImage (this.ieBaseCanvas, 0, 0, canvas.width, canvas.height);
-        context.drawImage (this.ieOverlayCanvas, 0, 0, canvas.width, canvas.height);
-        if (canvas.toBlob) {
-          return canvas.toBlob (ok, type, quality);
-        } else {
-          var decoded = atob (canvas.toDataURL (type, quality).split (',')[1]);
-          var byteLength = decoded.length;
-          var view = new Uint8Array (byteLength);
-          for (var i = 0; i < byteLength; i++) {
-            view[i] = decoded.charCodeAt (i);
-          }
-          ok (new Blob ([view], {type: type || 'image/png'}));
-        }
-      });
-    }, // ieCanvasToBlob
-    getPNGBlob: function () {
-      return this.ieCanvasToBlob ('image/png');
-    }, // getPNGBlob
-    getJPEGBlob: function () {
-      return this.ieCanvasToBlob ('image/jpeg');
-    }, // getJPEGBlob
-  }; // image-editor
+  }; // image-layer
   
-  var op = function (e) {
-    if (e.pcUpgraded) return;
-    e.pcUpgraded = true;
-
-    var props = elementProps[e.localName];
-    Object.keys (props).forEach (function (k) {
-      e[k] = props[k];
-    });
-
-    e.pcInit ();
-  };
   var selector = selectors.join (',');
-  var mo = new MutationObserver (function (mutations) {
+  new MutationObserver (function (mutations) {
     mutations.forEach (function (m) {
       Array.prototype.forEach.call (m.addedNodes, function (e) {
         if (e.nodeType === e.ELEMENT_NODE) {
-          if (e.matches && e.matches (selector)) op (e);
-          Array.prototype.forEach.call (e.querySelectorAll (selector), op);
+          if (e.matches && e.matches (selector)) upgrade (e);
+          Array.prototype.forEach.call (e.querySelectorAll (selector), upgrade);
         }
       });
     });
-  });
-  mo.observe (document, {childList: true, subtree: true});
-  Array.prototype.forEach.call (document.querySelectorAll (selector), op);
+  }).observe (document, {childList: true, subtree: true});
+  Array.prototype.forEach.call (document.querySelectorAll (selector), upgrade);
 }) ();
 
 /*
