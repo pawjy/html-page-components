@@ -35,7 +35,7 @@
   selectors.push ('image-editor');
   elementProps["image-editor"] = {
     pcInit: function () {
-      this.ieResize ({width: 300, height: 150});
+      this.ieResize ();
       Promise.resolve ().then ((e) => {
         this.dispatchEvent (new Event ('resize', {bubbles: true}));
       });
@@ -59,10 +59,18 @@
 
     ieResize: function (ce) {
       // XXX dimension
-      this.width = ce.width;
-      this.height = ce.height;
-      this.style.width = this.width + 'px';
-      this.style.height = this.height + 'px';
+      var width = 0;
+      var height = 0;
+      Array.prototype.slice.call (this.children).forEach ((e) => {
+        if (e.width > width) width = e.width;
+        if (e.height > height) height = e.height;
+      });
+      width = width || 300;
+      height = height || 150;
+      this.width = width;
+      this.height = height;
+      this.style.width = width + 'px';
+      this.style.height = height + 'px';
     }, // ieResize
 
     ieCanvasToBlob: function (type, quality) {
@@ -73,7 +81,7 @@
         var context = canvas.getContext ('2d');
         Array.prototype.slice.call (this.children).forEach ((e) => {
           if (e.localName === 'image-layer') {
-            context.drawImage (e.ieCanvas, 0, 0, canvas.width, canvas.height); // XXX dimension
+            context.drawImage (e.ieCanvas, 0, 0, e.width, e.height);
           }
         });
         if (canvas.toBlob) {
@@ -109,7 +117,7 @@
 
       this.width = this.ieCanvas.width;
       this.height = this.ieCanvas.height;
-      if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize (this);
+      if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ();
       this.dispatchEvent (new Event ('resize', {bubbles: true}));
       this.dispatchEvent (new Event ('change', {bubbles: true}));
     }, // pcInit
@@ -286,7 +294,7 @@
       this.ieSetDnDMode ('none');
       
       if (resized) {
-        if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize (this);
+        if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ();
         this.dispatchEvent (new Event ('resize', {bubbles: true}));
       }
       this.dispatchEvent (new Event ('change', {bubbles: true}));

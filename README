@@ -60,8 +60,8 @@ an image file over the element, the |drop-target| class is set to the
 element.
 
 An |image-editor| element has *width* and *height*.  It is set to the
-width and height of the most recently inserted layer's width and
-height, respectively.
+width and height of the maximum of the layers' width and height,
+respectively.
 
 An |image-editor| element has these object properties:
 

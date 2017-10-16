@@ -7,7 +7,7 @@ image-editor > image-layer:not([hidden]) {
   display: inline-block;
 }
 
-image-editor > image-layer:not(:first-of-type) {
+image-editor > image-layer {
   position: absolute;
   display: block;
   top: 0;
