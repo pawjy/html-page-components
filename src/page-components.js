@@ -128,6 +128,9 @@
       selectImageFromCaptureModeAndEndCaptureMode: {},
       
       selectImageFromFile: {},
+
+      rotateClockwise: {},
+      rotateCounterclockwise: {},
     },
 
     ieSetClickMode: function (mode) {
@@ -352,6 +355,31 @@
         this.endCaptureMode ();
       });
     }, // selectImageFromCaptureModeAndEndCaptureMode
+
+
+    ieRotateByDegree: function (degree) {
+      var canvas = document.createElement ('canvas');
+      this.width = canvas.width = this.ieCanvas.height;
+      this.height = canvas.height = this.ieCanvas.width;
+      var context = canvas.getContext ('2d');
+      context.translate (canvas.width / 2, canvas.height / 2);
+      context.rotate (degree * 2 * Math.PI / 360);
+      context.drawImage (this.ieCanvas, -canvas.height / 2, -canvas.width / 2);
+      context.resetTransform ();
+      this.replaceChild (canvas, this.ieCanvas);
+      this.ieCanvas = canvas;
+      if (canvas.height !== canvas.width) {
+        if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ();
+        this.dispatchEvent (new Event ('resize', {bubbles: true}));
+        this.dispatchEvent (new Event ('change', {bubbles: true}));
+      }
+    }, // ieRotateByDegree
+    rotateClockwise: function () {
+      return this.ieRotateByDegree (90);
+    }, // rotateClockwise
+    rotateCounterclockwise: function () {
+      return this.ieRotateByDegree (-90);
+    }, // rotateCounterclockwise
   }; // image-layer
   
   var selector = selectors.join (',');

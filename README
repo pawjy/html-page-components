@@ -120,6 +120,16 @@ An |image-layer| element has these methods:
     implicitly invokes |endCaptureMode|.  This is a |command-button|
     command.
 
+  rotateClockwise ()
+
+    Rotate the layer π/2 radian clockwise.  This is a
+    |command-button| command.
+
+  rotateCounterclockwise ()
+
+    Rotate the layer 3π/2 radian clockwise.  This is a
+    |command-button| command.
+
 The |resize| event is fired at an |image-editor| or |image-layer|
 element when it is initialized and at an |image-layer| element
 whenever the itss width or height has been changed.

@@ -162,6 +162,84 @@
     });
   </test-code>
 
+  <test-code name=rotateClockwise>
+    /*
+      <image-editor><image-layer></image-layer><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var g = e.querySelector ('image-layer:nth-child(2)');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      return g.selectImageByURL ("image2.png");
+    }).then (() => {
+      this.assert.equal (e.width, 220);
+      this.assert.equal (e.height, 175);
+
+      e.onresize = function () {
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
+      };
+      
+      g.rotateClockwise ();
+
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 220);
+      this.assert.equal (g.width, 60);
+      this.assert.equal (g.height, 220);
+      this.assert.deepEqual (events, ['resize', 'change']);
+      
+      g.rotateClockwise ();
+
+      this.assert.equal (e.width, 220);
+      this.assert.equal (e.height, 175);
+      this.assert.equal (g.width, 220);
+      this.assert.equal (g.height, 60);
+      this.assert.deepEqual (events, ['resize', 'change', 'resize', 'change']);
+    });
+  </test-code>
+
+  <test-code name=rotateCounterclockwise>
+    /*
+      <image-editor><image-layer></image-layer><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var g = e.querySelector ('image-layer:nth-child(2)');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      return g.selectImageByURL ("image2.png");
+    }).then (() => {
+      this.assert.equal (e.width, 220);
+      this.assert.equal (e.height, 175);
+
+      e.onresize = function () {
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
+      };
+      
+      g.rotateCounterclockwise ();
+
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 220);
+      this.assert.equal (g.width, 60);
+      this.assert.equal (g.height, 220);
+      this.assert.deepEqual (events, ['resize', 'change']);
+      
+      g.rotateCounterclockwise ();
+
+      this.assert.equal (e.width, 220);
+      this.assert.equal (e.height, 175);
+      this.assert.equal (g.width, 220);
+      this.assert.equal (g.height, 60);
+      this.assert.deepEqual (events, ['resize', 'change', 'resize', 'change']);
+    });
+  </test-code>
+
 
   <test-code name=getPNGBlob>
     /*
