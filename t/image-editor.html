@@ -44,7 +44,7 @@
     */
     var e = this.currentScript.querySelector ("image-editor");
     var f = e.querySelector ("image-layer");
-    this.assert.equal (f.classList.contains ('has-image'), false);
+    this.assert.equal (f.classList.contains ('placeholder'), true);
     this.assert.equal (e.width, 300);
     this.assert.equal (e.height, 150);
     this.assert.equal (f.width, e.width);
@@ -58,10 +58,42 @@
     this.assert.equal (e.clientHeight, e.height);
     this.assert.equal (f.clientWidth, f.width);
     this.assert.equal (f.clientHeight, f.height);
-    this.assert.equal (getComputedStyle (f).cursor, 'pointer');
+    this.assert.equal (getComputedStyle (f).cursor, 'auto');
 
     // selectImageFromFile is exported
     this.assert.equal (!!f.cbCommands.selectImageFromFile, true);
+  </test-code>
+
+  <test-code name=parsed1WithPlaceholder>
+    /*
+      <image-editor onresize="
+        window.parsed1WPWidths = window.parsed1WPWidths || [];
+        window.parsed1WPHeights = window.parsed1WPHeights || [];
+        window.parsed1WPEvents = window.parsed1WPEvents || [];
+        window.parsed1WPWidths.push (event.target.width);
+        window.parsed1WPHeights.push (event.target.height);
+        window.parsed1WPEvents.push ('resize');
+      " onchange="
+        window.parsed1WPEvents.push ('change');
+      "><image-layer useplaceholderui></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ("image-layer");
+    this.assert.equal (f.classList.contains ('placeholder'), true);
+    this.assert.equal (e.width, 300);
+    this.assert.equal (e.height, 150);
+    this.assert.equal (f.width, e.width);
+    this.assert.equal (f.height, e.height);
+    this.assert.deepEqual (window.parsed1WPWidths, [e.width, f.width]);
+    this.assert.deepEqual (window.parsed1WPHeights, [e.height, f.height]);
+    this.assert.deepEqual (window.parsed1WPEvents, ['resize', 'resize', 'change']);
+
+    // Depending on default style sheet
+    this.assert.equal (e.clientWidth, e.width);
+    this.assert.equal (e.clientHeight, e.height);
+    this.assert.equal (f.clientWidth, f.width);
+    this.assert.equal (f.clientHeight, f.height);
+    this.assert.equal (getComputedStyle (f).cursor, 'pointer');
   </test-code>
 
   <test-code name=selectImageByURL>
@@ -77,7 +109,7 @@
       resizeHeight = e.height;
     };
     return f.selectImageByURL ("image.png").then (() => {
-      this.assert.equal (f.classList.contains ('has-image'), true);
+      this.assert.equal (f.classList.contains ('placeholder'), false);
       this.assert.equal (resizeWidth, 183);
       this.assert.equal (resizeHeight, 175);
       this.assert.equal (e.width, resizeWidth);
@@ -96,14 +128,14 @@
 
   <test-code name=selectImageByURL_badURL>
     /*
-      <image-editor><image-layer></image-layer></image-editor>
+      <image-editor><image-layer useplaceholderui></image-layer></image-editor>
     */
     var e = this.currentScript.querySelector ("image-editor");
     var f = e.querySelector ('image-layer');
     return f.selectImageByURL (Math.random ()).then (() => {
       throw "selectImageByURL does not reject";
     }, () => {
-      this.assert.equal (f.classList.contains ('has-image'), false);
+      this.assert.equal (f.classList.contains ('placeholder'), true);
 
       // Depending on default style sheet
       this.assert.equal (e.clientWidth, 300);
@@ -353,6 +385,35 @@
     });
   </test-code>
 
+  <test-code name=useplaceholderuiAttributeRemoved>
+    /*
+      <image-editor><image-layer useplaceholderui></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    return Promise.resolve ().then (() => {
+      // Depending on default style sheet
+      this.assert.equal (e.clientWidth, 300);
+      this.assert.equal (e.clientHeight, 150);
+      this.assert.equal (getComputedStyle (f).cursor, 'pointer');
+      
+      f.removeAttribute ('useplaceholderui');
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (f.classList.contains ('placeholder'), true);
+
+      // Depending on default style sheet
+      this.assert.equal (e.clientWidth, 300);
+      this.assert.equal (e.clientHeight, 150);
+      this.assert.equal (getComputedStyle (f).cursor, 'auto');
+      
+      f.setAttribute ('useplaceholderui', '');
+      return this.wait ();
+    }).then (() => {
+      // Depending on default style sheet
+      this.assert.equal (getComputedStyle (f).cursor, 'pointer');
+    });
+  </test-code>
 
   <script src=runtests.js></script>
 </body>

@@ -14,11 +14,11 @@ image-editor > image-layer {
   left: 0;
 }
 
-image-editor > image-layer:not(.has-image) {
+image-editor > image-layer[useplaceholderui].placeholder {
   cursor: pointer;
 }
 
-image-editor > image-layer:not(.has-image)::before {
+image-editor > image-layer[useplaceholderui].placeholder::before {
   position: absolute;
   display: block;
   content: url(noimage.svg);

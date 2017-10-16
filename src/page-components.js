@@ -118,21 +118,18 @@
       this.ieCanvas = document.createElement ('canvas');
       this.appendChild (this.ieCanvas);
 
-      this.classList.remove ('has-image');
-      this.ieSetClickMode ('none');
-      this.ieSetClickMode ('selectImage');
-      this.ieSetDnDMode ('selectImage');
-      this.ieSetMoveMode ('none');
+      this.ieTogglePlaceholder (true);
 
       // XXX not tested
       var mo = new MutationObserver (function (mutations) {
         mutations.forEach ((mutation) => {
-          if (mutation.attributeName === 'movable') {
-            this.ieSetMoveMode (this.hasAttribute ('movable') ? 'editOffset' : 'none');
+          if (mutation.attributeName === 'movable' ||
+              mutation.attributeName === 'useplaceholder') {
+            this.ieTogglePlaceholder (null);
           }
         });
       });
-      mo.observe (this, {attributeFilter: ['movable']});
+      mo.observe (this, {attributeFilter: ['movable', 'useplaceholder']});
 
       this.top = 0;
       this.left = 0;
@@ -364,6 +361,27 @@
       if (this.ieEndCaptureMode) this.ieEndCaptureMode ();
     }, // endCaptureMode
 
+    ieTogglePlaceholder: function (newValue) {
+      if (newValue === null) newValue = this.classList.contains ("placeholder");
+      if (newValue) { // is placeholder
+        this.classList.add ('placeholder');
+        if (this.hasAttribute ('useplaceholderui')) {
+          this.ieSetClickMode ('selectImage');
+          this.ieSetDnDMode ('selectImage');
+          this.ieSetMoveMode ('none');
+        } else {
+          this.ieSetClickMode ('none');
+          this.ieSetDnDMode ('none');
+          this.ieSetMoveMode (this.hasAttribute ('movable') ? 'editOffset' : 'none');
+        }
+      } else { // is image
+        this.classList.remove ('placeholder');
+        this.ieSetClickMode ('none');
+        this.ieSetDnDMode ('none');
+        this.ieSetMoveMode (this.hasAttribute ('movable') ? 'editOffset' : 'none');
+      }
+    }, // ieTogglePlaceholder      
+
     ieSelectImageByElement: function (element, width, height) {
       // XXX max dimension
       var resized = (this.width !== width || this.height !== height);
@@ -371,11 +389,8 @@
       this.height = this.ieCanvas.height = height;
       var context = this.ieCanvas.getContext ('2d');
       context.drawImage (element, 0, 0, width, height);
-      
-      this.classList.add ('has-image');
-      this.ieSetClickMode ('none');
-      this.ieSetDnDMode ('none');
-      this.ieSetMoveMode (this.hasAttribute ('movable') ? 'editOffset' : 'none');
+
+      this.ieTogglePlaceholder (false);
       
       if (resized) {
         if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ({});

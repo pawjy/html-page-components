@@ -51,9 +51,10 @@ element.  Initially, a layer is a placeholder.  When a layer is *set*
 to an image, its width and height are set to the image's width and
 height, respectively.
 
-While a layer is a image, the element has the |has-image| class.
-While a layer is a placeholder, the user can click the element to open
-a user interface to set a image (i.e. manually invoking the
+The |placeholder| class is set to the element while it is a
+placeholder.  If a placeholder layer has a |useplaceholderui|
+attribute specified, the user can click the element to open a user
+interface to set a image (i.e. manually invoking the
 |selectImageFromFile| method).  In addition, the user can drop an
 image file to the element to set the image.  When the user is dragging
 an image file over the element, the |drop-target| class is set to the
