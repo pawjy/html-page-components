@@ -36,7 +36,7 @@
         var code = new Function (e.textContent);
         var context = {
           currentScript: e,
-          wait: () => new Promise ((ok) => setTimeout (ok, 0)),
+          wait: (n) => new Promise ((ok) => setTimeout (ok, n || 0)),
           assertWindowError: function (code, expected, name) {
             var onerror = window.onerror;
             var error = undefined;

@@ -35,7 +35,7 @@
   selectors.push ('image-editor');
   elementProps["image-editor"] = {
     pcInit: function () {
-      this.ieResize ();
+      this.ieResize ({});
       Promise.resolve ().then ((e) => {
         this.dispatchEvent (new Event ('resize', {bubbles: true}));
       });
@@ -57,20 +57,28 @@
       });
     }, // pcInit
 
-    ieResize: function (ce) {
+    ieResize: function (opts) {
       // XXX dimension
       var width = 0;
       var height = 0;
       Array.prototype.slice.call (this.children).forEach ((e) => {
-        if (e.width > width) width = e.width;
-        if (e.height > height) height = e.height;
+        var w = e.left + e.width;
+        var h = e.top + e.height;
+        if (w > width) width = w;
+        if (h > height) height = h;
       });
       width = width || 300;
       height = height || 150;
+      var resize = opts.resizeEvent && (this.width !== width || this.height !== height);
       this.width = width;
       this.height = height;
       this.style.width = width + 'px';
       this.style.height = height + 'px';
+      if (resize) {
+        Promise.resolve ().then (() => {
+          this.dispatchEvent (new Event ('resize', {bubbles: true}));
+        });
+      }
     }, // ieResize
 
     ieCanvasToBlob: function (type, quality) {
@@ -80,8 +88,8 @@
         canvas.height = this.height;
         var context = canvas.getContext ('2d');
         Array.prototype.slice.call (this.children).forEach ((e) => {
-          if (e.localName === 'image-layer') {
-            context.drawImage (e.ieCanvas, 0, 0, e.width, e.height);
+          if (e.localName === 'image-layer' && e.pcUpgraded) {
+            context.drawImage (e.ieCanvas, e.left, e.top, e.width, e.height);
           }
         });
         if (canvas.toBlob) {
@@ -114,10 +122,23 @@
       this.ieSetClickMode ('none');
       this.ieSetClickMode ('selectImage');
       this.ieSetDnDMode ('selectImage');
+      this.ieSetMoveMode ('none');
 
+      // XXX not tested
+      var mo = new MutationObserver (function (mutations) {
+        mutations.forEach ((mutation) => {
+          if (mutation.attributeName === 'movable') {
+            this.ieSetMoveMode (this.hasAttribute ('movable') ? 'editOffset' : 'none');
+          }
+        });
+      });
+      mo.observe (this, {attributeFilter: ['movable']});
+
+      this.top = 0;
+      this.left = 0;
       this.width = this.ieCanvas.width;
       this.height = this.ieCanvas.height;
-      if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ();
+      if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ({});
       this.dispatchEvent (new Event ('resize', {bubbles: true}));
       this.dispatchEvent (new Event ('change', {bubbles: true}));
     }, // pcInit
@@ -217,6 +238,65 @@
         throw new Error ("Bad mode |"+mode+"|");
       }
     }, // ieSetDnDMode
+    ieSetMoveMode: function (mode) {
+      if (this.ieMoveMode === mode) return;
+      if (mode === 'editOffset') {
+        this.ieMoveMode = mode;
+        var dragging = null;
+        this.ieMouseDownHandler = (ev) => {
+          dragging = [this.left, this.top,
+                      this.offsetLeft + ev.offsetX,
+                      this.offsetTop + ev.offsetY];
+        };
+        this.ieMouseMoveHandler = (ev) => {
+          if (dragging) {
+            this.ieMove (
+              dragging[0] + this.offsetLeft + ev.offsetX - dragging[2],
+              dragging[1] + this.offsetTop + ev.offsetY - dragging[3],
+            );
+          }
+        };
+        this.ieMouseUpHandler = (ev) => dragging = null;
+        this.ieKeyDownHandler = (ev) => {
+          if (dragging) return;
+          if (ev.keyCode === 38) {
+            this.ieMove (this.left, this.top-1);
+            ev.preventDefault ();
+          } else if (ev.keyCode === 39) {
+            this.ieMove (this.left+1, this.top);
+            ev.preventDefault ();
+          } else if (ev.keyCode === 40) {
+            this.ieMove (this.left, this.top+1);
+            ev.preventDefault ();
+          } else if (ev.keyCode === 37) {
+            this.ieMove (this.left-1, this.top);
+            ev.preventDefault ();
+          }
+        };
+        // XXX we don't have tests of dnd and keyboard operations
+        var m = this.ieMoveContainer = this;
+        m.addEventListener ('mousedown', this.ieMouseDownHandler);
+        m.addEventListener ('mousemove', this.ieMouseMoveHandler);
+        window.addEventListener ('mouseup', this.ieMouseUpHandler);
+        m.addEventListener ('keydown', this.ieKeyDownHandler);
+        m.tabIndex = 0;
+      } else if (mode === 'none') {
+        var m = this.ieMoveContainer;
+        if (m) {
+          m.removeEventListener ('mousedown', this.ieMouseDownHandler);
+          m.removeEventListener ('mousemove', this.ieMouseMoveHandler);
+          window.removeEventListener ('mouseup', this.ieMouseUpHandler);
+          m.removeEventListener ('keydown', this.ieKeyDownHandler);
+          delete this.ieMouseDownHandler;
+          delete this.ieMouseMoveHandler;
+          delete this.ieMouseUpHandler;
+          delete this.ieKeyDownHandler;
+          delete this.ieMoveContainer;
+        }
+      } else {
+        throw new Error ("Bad mode |"+mode+"|");
+      }
+    }, // ieSetMoveMode
 
     // XXX not tested
     startCaptureMode: function () {
@@ -295,9 +375,10 @@
       this.classList.add ('has-image');
       this.ieSetClickMode ('none');
       this.ieSetDnDMode ('none');
+      this.ieSetMoveMode (this.hasAttribute ('movable') ? 'editOffset' : 'none');
       
       if (resized) {
-        if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ();
+        if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ({});
         this.dispatchEvent (new Event ('resize', {bubbles: true}));
       }
       this.dispatchEvent (new Event ('change', {bubbles: true}));
@@ -369,7 +450,7 @@
       this.replaceChild (canvas, this.ieCanvas);
       this.ieCanvas = canvas;
       if (canvas.height !== canvas.width) {
-        if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ();
+        if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ({});
         this.dispatchEvent (new Event ('resize', {bubbles: true}));
         this.dispatchEvent (new Event ('change', {bubbles: true}));
       }
@@ -380,6 +461,20 @@
     rotateCounterclockwise: function () {
       return this.ieRotateByDegree (-90);
     }, // rotateCounterclockwise
+
+    ieMove: function (x, y) {
+      this.left = x;
+      this.top = y;
+      this.style.left = this.left + "px";
+      this.style.top = this.top + "px";
+      if (!this.ieMoveTimer) {
+        this.ieMoveTimer = setTimeout (() => {
+          if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ({resizeEvent: true});
+          this.ieMoveTimer = null;
+        }, 100);
+      }
+    }, // ieMove
+    
   }; // image-layer
   
   var selector = selectors.join (',');

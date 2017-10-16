@@ -59,17 +59,25 @@ image file to the element to set the image.  When the user is dragging
 an image file over the element, the |drop-target| class is set to the
 element.
 
-An |image-editor| element has *width* and *height*.  It is set to the
-width and height of the maximum of the layers' width and height,
-respectively.
+A layer has *left* and *top*, which are offsets from the left and top
+edges of the parent |image-editor| element, respectively.  They are
+both initially set to zero.  If a |movable| attribute is specified to
+an |image-layer| element, the layer is *movable*.  If a layer is
+movable, its left and top can be modified by dragging the layer, or
+using keyboard arrow keys.
+
+An |image-editor| element has *width* and *height*.  The width is set
+to the offset of the rightmost layer's right edge from the left edge
+of the element.  The height is set to the offset of the bottommost
+layer's bottom edge from the top edge of the element.
 
 An |image-editor| element has these object properties:
 
-  height
+  height (read-only)
 
     The element's height, in pixels.
 
-  width
+  width (read-only)
 
     The element's width, in pixels.
 
@@ -84,6 +92,24 @@ An |image-editor| element has these methods:
 
     Serializes the element as a JPEG file.  It returns a promise which
     is fulfilled with a Blob of that file.
+
+An |image-layer| element has these object properties:
+
+  left (read-only)
+
+    The layer's left, in pixels.
+
+  top (read-only)
+
+    The layer's top, in pixels.
+
+  height (read-only)
+
+    The layer's height, in pixels.
+
+  width (read-only)
+
+    The layer's width, in pixels.
 
 An |image-layer| element has these methods:
 
@@ -131,8 +157,8 @@ An |image-layer| element has these methods:
     |command-button| command.
 
 The |resize| event is fired at an |image-editor| or |image-layer|
-element when it is initialized and at an |image-layer| element
-whenever the itss width or height has been changed.
+element when it is initialized and whenever the its width or height
+has been changed.
 
 The |change| event is fired at an |image-layer| element when the
 element is initialized and whenever the layer is set to an image or

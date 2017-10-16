@@ -26,6 +26,10 @@ image-editor > image-layer:not(.has-image)::before {
   height: 100%;
 }
 
+image-editor > image-layer[movable] {
+  cursor: move;
+}
+
 image-editor > image-layer.drop-target {
   --background-box-color: rgb(153, 153, 243);
   background-color: transparent;
