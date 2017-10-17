@@ -40,16 +40,20 @@ setting these two values:
 * <image-editor>
 
 An |image-editor| element represents an editable image.  Its content
-can be one or more |image-layer| elements, representing *layers* in
-the image.  The order of child elements (in tree order) is the layers'
+can be one or more |image-layer| elements, representing layers in the
+image.  The order of child elements (in tree order) is the layers'
 compound order, where an earlier element has smaller z-index.
 
 A *layer* can be an image or a placeholder (which is a transparent
-image for the purpose of composition).  A *layer* has *width* and
-*height*.  A |canvas| element is inserted into a |image-layer|
-element.  Initially, a layer is a placeholder.  When a layer is *set*
-to an image, its width and height are set to the image's width and
-height, respectively.
+image for the purpose of composition).  A layer has *natural width*,
+*natural height*, and *scale factor*.  A |canvas| element is inserted
+into a |image-layer| element.  Initially, a layer is a placeholder.
+When a layer is *set* to an image, its natural width and natural
+height are set to the image's width and height, respectively, and its
+scale factor is set to 1.  A layer's *computed width* and *computed
+height* are natural width and natural height multiplied by scale
+factor, respectively.  Layeres are rendered within the image using
+computed width and computed height.
 
 The |placeholder| class is set to the element while it is a
 placeholder.  If a placeholder layer has a |useplaceholderui|
@@ -106,11 +110,11 @@ An |image-layer| element has these object properties:
 
   height (read-only)
 
-    The layer's height, in pixels.
+    The layer's computed height, in pixels.
 
   width (read-only)
 
-    The layer's width, in pixels.
+    The layer's computed width, in pixels.
 
 An |image-layer| element has these methods:
 
@@ -157,13 +161,17 @@ An |image-layer| element has these methods:
     Rotate the layer 3π/2 radian clockwise.  This is a
     |command-button| command.
 
+  setScale (number)
+
+    Set the scale factor of the layer.
+
 The |resize| event is fired at an |image-editor| or |image-layer|
 element when it is initialized and whenever the its width or height
 has been changed.
 
 The |change| event is fired at an |image-layer| element when the
-element is initialized and whenever the layer is set to an image or
-placeholder.
+element is initialized and whenever the layer is set to a new image or
+placeholder, the layer is rotated, or the layer is scaled.
 
 * Author
 

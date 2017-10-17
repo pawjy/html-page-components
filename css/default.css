@@ -50,6 +50,7 @@ image-editor > image-layer > video.capture {
 }
 
 image-editor > image-layer > canvas {
+  display: block;
   vertical-align: bottom;
 }
 

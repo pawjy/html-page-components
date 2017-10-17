@@ -79,13 +79,18 @@
           this.dispatchEvent (new Event ('resize', {bubbles: true}));
         });
       }
+      if (opts.changeEvent) {
+        Promise.resolve ().then (() => {
+          this.dispatchEvent (new Event ('change', {bubbles: true}));
+        });
+      }
     }, // ieResize
 
     ieCanvasToBlob: function (type, quality) {
       return new Promise ((ok) => {
         var canvas = document.createElement ('canvas');
-        canvas.width = this.width;
-        canvas.height = this.height;
+        canvas.width = Math.ceil (this.width);
+        canvas.height = Math.ceil (this.height);
         var context = canvas.getContext ('2d');
         Array.prototype.slice.call (this.children).forEach ((e) => {
           if (e.localName === 'image-layer' && e.pcUpgraded) {
@@ -133,8 +138,9 @@
 
       this.top = 0;
       this.left = 0;
-      this.width = this.ieCanvas.width;
-      this.height = this.ieCanvas.height;
+      this.ieScaleFactor = 1.0;
+      this.width = this.ieCanvas.width /* * this.ieScalerFactor */;
+      this.height = this.ieCanvas.height /* * this.ieScaleFactor */;
       if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ({});
       this.dispatchEvent (new Event ('resize', {bubbles: true}));
       this.dispatchEvent (new Event ('change', {bubbles: true}));
@@ -484,12 +490,24 @@
       this.style.top = this.top + "px";
       if (!this.ieMoveTimer) {
         this.ieMoveTimer = setTimeout (() => {
-          if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ({resizeEvent: true});
+          if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ({resizeEvent: true, changeEvent: true});
           this.ieMoveTimer = null;
         }, 100);
       }
     }, // ieMove
-    
+
+    setScale: function (newScale) {
+      if (this.ieScaleFactor === newScale) return;
+      this.ieScaleFactor = newScale;
+      this.width = this.ieCanvas.width * this.ieScaleFactor;
+      this.height = this.ieCanvas.height * this.ieScaleFactor;
+      this.ieCanvas.style.width = this.width + "px";
+      this.ieCanvas.style.height = this.height + "px";
+      if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ({});
+
+      this.dispatchEvent (new Event ('resize', {bubbles: true}));
+      this.dispatchEvent (new Event ('change', {bubbles: true}));
+    }, // setScale
   }; // image-layer
   
   var selector = selectors.join (',');
