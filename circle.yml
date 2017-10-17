@@ -3,10 +3,10 @@ machine:
     - docker
 workflows:
   version: 2
-    my-workflow:
-      jobs:
-        - run-tests:
-          context: org-global
+  my-workflow:
+    jobs:
+       - run-tests:
+           context: org-global
 dependencies:
   cache_directories:
     - local
@@ -51,8 +51,8 @@ deployment:
   nightly:
     branch: nightly
     commands:
-      - curl -s -S --request POST --header "Authorization:token $GH_AT" --header "Content-Type:application/json" --data-binary "{\"base\":\"master\",\"head\":\"`git rev-parse HEAD`\",\"commit_message\":\"auto-merge nightly into master\"}" "https://api.github.com/repos/wakaba/html-page-components/merges"
+      - curl -f -s -S --request POST --header "Authorization:token $GH_AT" --header "Content-Type:application/json" --data-binary "{\"base\":\"master\",\"head\":\"`git rev-parse HEAD`\",\"commit_message\":\"auto-merge nightly into master\"}" "https://api.github.com/repos/wakaba/html-page-components/merges"
   staging:
     branch: staging
     commands:
-      - curl -s -S --request POST --header "Authorization:token $GH_AT" --header "Content-Type:application/json" --data-binary "{\"base\":\"master\",\"head\":\"`git rev-parse HEAD`\",\"commit_message\":\"auto-merge staging into master\"}" "https://api.github.com/repos/wakaba/html-page-components/merges"
+      - curl -f -s -S --request POST --header "Authorization:token $GH_AT" --header "Content-Type:application/json" --data-binary "{\"base\":\"master\",\"head\":\"`git rev-parse HEAD`\",\"commit_message\":\"auto-merge staging into master\"}" "https://api.github.com/repos/wakaba/html-page-components/merges"
