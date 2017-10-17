@@ -20,7 +20,7 @@ dependencies:
 test:
   override:
     # Firefox
-    - docker run --name firefoxdriver -v $(pwd):/project -d --net=host -t quay.io/wakaba/firefoxdriver:stable /fx:
+    - docker run --name firefoxdriver -d --net=host -t quay.io/wakaba/firefoxdriver:stable /fx:
         parallel: true
     - TEST_WD_URL=http://localhost:9516 TEST_RESULTS_DIR=$CIRCLE_ARTIFACTS/test_results/firefox make test :
         timeout: 600
@@ -30,7 +30,7 @@ test:
     - docker kill firefoxdriver:
         parallel: true
     # Chrome
-    - docker run --name chromedriver -v $(pwd):/project -d --net=host -t quay.io/wakaba/chromedriver:chromium /cd:
+    - docker run --name chromedriver -d --net=host -t quay.io/wakaba/chromedriver:chromium /cd:
         parallel: true
     - TEST_WD_URL=http://localhost:9515 TEST_RESULTS_DIR=$CIRCLE_ARTIFACTS/test_results/chromium make test :
         timeout: 600
@@ -45,8 +45,8 @@ deployment:
   nightly:
     branch: nightly
     commands:
-      - curl -s -S --request POST --header "Authorization:token $GH_AT" --header "Content-Type:application/json" --data-binary "{\"base\":\"master\",\"head\":\"`git rev-parse HEAD`\",\"commit_message\":\"auto-merge nightly into master\"}" "https://api.github.com/repos/wakaba/html-page-components/merges"
+      - curl -f -s -S --request POST --header "Authorization:token $GH_AT" --header "Content-Type:application/json" --data-binary "{\"base\":\"master\",\"head\":\"`git rev-parse HEAD`\",\"commit_message\":\"auto-merge nightly into master\"}" "https://api.github.com/repos/wakaba/html-page-components/merges"
   staging:
     branch: staging
     commands:
-      - curl -s -S --request POST --header "Authorization:token $GH_AT" --header "Content-Type:application/json" --data-binary "{\"base\":\"master\",\"head\":\"`git rev-parse HEAD`\",\"commit_message\":\"auto-merge staging into master\"}" "https://api.github.com/repos/wakaba/html-page-components/merges"
+      - curl -f -s -S --request POST --header "Authorization:token $GH_AT" --header "Content-Type:application/json" --data-binary "{\"base\":\"master\",\"head\":\"`git rev-parse HEAD`\",\"commit_message\":\"auto-merge staging into master\"}" "https://api.github.com/repos/wakaba/html-page-components/merges"

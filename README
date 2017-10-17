@@ -1,3 +1,19 @@
+HTML page components
+~~~~~~~~~~~~~~~~~~~~
+
+* Files
+
+The |src/page-components.js| file implements elements described in
+this document.
+
+The |css/default.css| file describes the default style for these
+elements.  Though the file itself is not required to be loaded itself,
+some of style rules in the file are effectively required for these
+elements rendered as intended.
+
+  <link rel=stylesheet href=css/default.css>
+  <script src=src/page-components.js async></script>
+
 * <button is=command-button>
 
 A |button| element whose |is| attribute value is |command-button|
@@ -20,3 +36,175 @@ setting these two values:
 
   element.cbCommands[name]   An object.  It can have any property.
   element[name]  A function.  This is the method implementing the command.
+
+* <image-editor>
+
+An |image-editor| element represents an editable image.  Its content
+can be one or more |image-layer| elements, representing layers in the
+image.  The order of child elements (in tree order) is the layers'
+compound order, where an earlier element has smaller z-index.
+
+A *layer* can be an image or a placeholder (which is a transparent
+image for the purpose of composition).  A layer has *natural width*,
+*natural height*, and *scale factor*.  A |canvas| element is inserted
+into a |image-layer| element.  A layer's *computed width* and
+*computed height* are natural width and natural height multiplied by
+scale factor, respectively.  Layeres are rendered within the image
+using computed width and computed height.
+
+Initially, a layer is a placeholder.  The |placeholder| class is set
+to the element while it is a placeholder.  If a placeholder layer has
+a |useplaceholderui| attribute specified, the user can click the
+element to open a user interface to set a image (i.e. manually
+invoking the |selectImageFromFile| method).  In addition, the user can
+drop an image file to the element to set the image.  When the user is
+dragging an image file over the element, the |drop-target| class is
+set to the element.
+
+When a layer is *set* to an image, its natural width and natural
+height are set to the image's width and height, respectively, and its
+scale factor is set to 1.
+
+A layer has *left* and *top*, which are offsets from the left and top
+edges of the parent |image-editor| element, respectively.  They are
+both initially set to zero.  If a |movable| attribute is specified to
+an |image-layer| element, the layer is *movable*.  If a layer is
+movable, its left and top can be modified by dragging the layer, or
+using keyboard arrow keys.
+
+A layer has an *anchor point*.  Initially, the anchor point of a layer
+is the top left corner of the layer.  If an |anchorpoint| attribute is
+set to |center|, the anchor point of a layer is the center of the
+layer both horizontally and vertically.  When a layer is set to an
+image, the layer's left and top are modified appropriately such that
+the anchor point of the layer in the parent |image-editor| element is
+preserved.
+
+An |image-editor| element has *width* and *height*.  An |image-editor|
+element can have |width| and |height| content attributes, whose values
+must be valid floating-point numbers representing width and height in
+pixels, respectively.  If specified, they set width and height of the
+element and they are not affected by layers' dimension.  Otherwise,
+the width is set to the offset of the rightmost layer's right edge
+from the left edge of the element and the height is set to the offset
+of the bottommost layer's bottom edge from the top edge of the
+element.
+
+An |image-editor| element has these object properties:
+
+  height (read-only)
+
+    The element's height, in pixels.
+
+  width (read-only)
+
+    The element's width, in pixels.
+
+An |image-editor| element has these methods:
+
+  getPNGBlob () : Promise
+
+    Serializes the element as a PNG file.  It returns a promise which
+    is fulfilled with a Blob of that file.
+
+  getJPEGBlob () : Promise
+
+    Serializes the element as a JPEG file.  It returns a promise which
+    is fulfilled with a Blob of that file.
+
+An |image-layer| element has these object properties:
+
+  left (read-only)
+
+    The layer's left, in pixels.
+
+  top (read-only)
+
+    The layer's top, in pixels.
+
+  height (read-only)
+
+    The layer's computed height, in pixels.
+
+  width (read-only)
+
+    The layer's computed width, in pixels.
+
+An |image-layer| element has these methods:
+
+  selectImageByURL (url : String) : Promise
+
+    Set the layer to an image specified by the URL /url/.  It returns
+    a promise which is fulfilled once the image has been loaded.  It
+    is rejected if the image cannot be loaded.
+
+  selectImageFromFile () : Promise
+
+    Set the layer to an image for the element by showing a user
+    interface to choose a file.  It returns a promise which is
+    fulfilled once the image has been loaded.  It is rejected if the
+    image cannot be loaded.  This is a |command-button| command.
+
+  startCaptureMode ()
+
+    Starts the element's *camera capture mode*, if not yet and if
+    possible.  While the element is in the camera capture mode, a
+    |video| element with class |capture| is inserted in the element.
+    This is a |command-button| command.
+
+  endCaptureMode ()
+
+    Ends the element's camera capture mode, if the element is in that
+    mode.  This is a |command-button| command.
+
+  selectImageFromCaptureModeAndEndCaptureMode () : Promise
+
+    Set the layer to the current snapshot of the camera image.  It
+    returns a promise which is fulfilled once the image has been
+    loaded.  It is rejected if the image cannot be loaded.  It
+    implicitly invokes |endCaptureMode|.  This is a |command-button|
+    command.
+
+  rotateClockwise ()
+
+    Set the layer to the result of rotation of the layer π/2 radian
+    clockwise.  This is a |command-button| command.
+
+  rotateCounterclockwise ()
+
+    Set the layer to the result of rotation of the layer 3π/2 radian
+    clockwise.  This is a |command-button| command.
+
+  setScale (number)
+
+    Set the scale factor of the layer to the argument and set the
+    layer to the scaled variant of the layer.
+
+The |resize| event is fired at an |image-editor| or |image-layer|
+element when it is initialized and whenever the its width or height
+has been changed.
+
+The |change| event is fired at an |image-layer| element when the
+element is initialized and whenever the layer is set to a new image or
+placeholder.
+
+* Author
+
+Wakaba <wakaba@suikawiki.org>.
+
+* License
+
+Copyright 2017 Wakaba <wakaba@suikawiki.org>.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Affero General Public License for more details.
+
+You does not have received a copy of the GNU Affero General Public
+License along with this program, see <https://www.gnu.org/licenses/>.

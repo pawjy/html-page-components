@@ -1,4 +1,9 @@
 (function () {
+  var link0 = document.createElement ('link');
+  link0.rel = "stylesheet";
+  link0.href = "https://code.jquery.com/qunit/qunit-2.2.0.css";
+  document.head.appendChild (link0);
+
   var link = document.createElement ('link');
   link.rel = "stylesheet";
   link.href = "test.css";
@@ -31,12 +36,12 @@
         var code = new Function (e.textContent);
         var context = {
           currentScript: e,
-          wait: () => new Promise ((ok) => setTimeout (ok, 0)),
+          wait: (n) => new Promise ((ok) => setTimeout (ok, n || 0)),
           assertWindowError: function (code, expected, name) {
             var onerror = window.onerror;
             var error = undefined;
             window.onerror = function (a, b, c, d, e) {
-              error = e;
+              error = e || arguments;
               return true;
             };
             code ();
@@ -44,18 +49,16 @@
             this.assert.throws (() => { throw error }, expected, name);
           }, // assertWindowError
         };
-        return Promise.resolve ().then (function () {
+        return scriptLoaded.then (function () {
           context.assert = assert;
           return code.apply (context);
-        }).then (assert.async ());
+        }).then (assert.async (), function (e) {
+          assert.equal (true, false, "Should not be rejected");
+          assert.equal (e, null, "Exception");
+        });
       });
     });
   });
-
-  var div1 = document.createElement ('div');
-  div1.id = "for-screenshot";
-  div1.style.display = 'none';
-  document.body.appendChild (div1);
 
   var div2 = document.createElement ('div2');
   div2.id = "qunit";

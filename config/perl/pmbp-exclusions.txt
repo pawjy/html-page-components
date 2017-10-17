@@ -9,3 +9,4 @@
 - "../../t_deps/modules/promise.2" build tests
 - "../../t_deps/modules/json-ps" build tests
 - "../../t_deps/modules/web-datetime.2" build tests
+- "../../t_deps/modules/streams" build tests

@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body id=for-screenshot>
+  <test-code name=nolayer>
+    /*
+      <image-editor onresize="
+        window.nolayerWidth = this.width;
+        window.nolayerHeight = this.height;
+        window.nolayerEvents = ['resize'];
+      " onchange="
+        window.nolayerEvents.push ('change');
+      "></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    this.assert.equal (e.width, 300);
+    this.assert.equal (e.height, 150);
+    this.assert.equal (window.nolayerWidth, e.width);
+    this.assert.equal (window.nolayerHeight, e.height);
+
+    // Depending on default style sheet
+    this.assert.equal (e.clientWidth, e.width);
+    this.assert.equal (e.clientHeight, e.height);
+    this.assert.equal (getComputedStyle (e).cursor, 'auto');
+
+    this.assert.deepEqual (window.nolayerEvents, ['resize']);
+  </test-code>
+
+  <test-code name=parsed1>
+    /*
+      <image-editor onresize="
+        window.parsed1Widths = window.parsed1Widths || [];
+        window.parsed1Heights = window.parsed1Heights || [];
+        window.parsed1Events = window.parsed1Events || [];
+        window.parsed1Widths.push (event.target.width);
+        window.parsed1Heights.push (event.target.height);
+        window.parsed1Events.push ('resize');
+      " onchange="
+        window.parsed1Events.push ('change');
+      "><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ("image-layer");
+    this.assert.equal (f.classList.contains ('placeholder'), true);
+    this.assert.equal (e.width, 300);
+    this.assert.equal (e.height, 150);
+    this.assert.equal (f.width, e.width);
+    this.assert.equal (f.height, e.height);
+    this.assert.deepEqual (window.parsed1Widths, [e.width, f.width]);
+    this.assert.deepEqual (window.parsed1Heights, [e.height, f.height]);
+    this.assert.deepEqual (window.parsed1Events, ['resize', 'resize', 'change']);
+
+    // Depending on default style sheet
+    this.assert.equal (e.clientWidth, e.width);
+    this.assert.equal (e.clientHeight, e.height);
+    this.assert.equal (f.clientWidth, f.width);
+    this.assert.equal (f.clientHeight, f.height);
+    this.assert.equal (getComputedStyle (f).cursor, 'auto');
+
+    // selectImageFromFile is exported
+    this.assert.equal (!!f.cbCommands.selectImageFromFile, true);
+  </test-code>
+
+  <test-code name=parsed1WithPlaceholder>
+    /*
+      <image-editor onresize="
+        window.parsed1WPWidths = window.parsed1WPWidths || [];
+        window.parsed1WPHeights = window.parsed1WPHeights || [];
+        window.parsed1WPEvents = window.parsed1WPEvents || [];
+        window.parsed1WPWidths.push (event.target.width);
+        window.parsed1WPHeights.push (event.target.height);
+        window.parsed1WPEvents.push ('resize');
+      " onchange="
+        window.parsed1WPEvents.push ('change');
+      "><image-layer useplaceholderui></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ("image-layer");
+    this.assert.equal (f.classList.contains ('placeholder'), true);
+    this.assert.equal (e.width, 300);
+    this.assert.equal (e.height, 150);
+    this.assert.equal (f.width, e.width);
+    this.assert.equal (f.height, e.height);
+    this.assert.deepEqual (window.parsed1WPWidths, [e.width, f.width]);
+    this.assert.deepEqual (window.parsed1WPHeights, [e.height, f.height]);
+    this.assert.deepEqual (window.parsed1WPEvents, ['resize', 'resize', 'change']);
+
+    // Depending on default style sheet
+    this.assert.equal (e.clientWidth, e.width);
+    this.assert.equal (e.clientHeight, e.height);
+    this.assert.equal (f.clientWidth, f.width);
+    this.assert.equal (f.clientHeight, f.height);
+    this.assert.equal (getComputedStyle (f).cursor, 'pointer');
+  </test-code>
+
+  <test-code name=selectImageByURL>
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var resizeWidth;
+    var resizeHeight;
+    e.onresize = function () {
+      resizeWidth = e.width;
+      resizeHeight = e.height;
+    };
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (f.classList.contains ('placeholder'), false);
+      this.assert.equal (resizeWidth, 183);
+      this.assert.equal (resizeHeight, 175);
+      this.assert.equal (e.width, resizeWidth);
+      this.assert.equal (e.height, resizeHeight);
+
+      // Depending on default style sheet
+      this.assert.equal (e.clientWidth, resizeWidth);
+      this.assert.equal (e.clientHeight, resizeHeight);
+      this.assert.equal (getComputedStyle (e).cursor, 'auto');
+
+      e.click (); // nothing happens
+      this.assert.equal (e.width, resizeWidth);
+      this.assert.equal (e.height, resizeHeight);
+    });
+  </test-code>
+
+  <test-code name=selectImageByURL_badURL>
+    /*
+      <image-editor><image-layer useplaceholderui></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    return f.selectImageByURL (Math.random ()).then (() => {
+      throw "selectImageByURL does not reject";
+    }, () => {
+      this.assert.equal (f.classList.contains ('placeholder'), true);
+
+      // Depending on default style sheet
+      this.assert.equal (e.clientWidth, 300);
+      this.assert.equal (e.clientHeight, 150);
+      this.assert.equal (getComputedStyle (f).cursor, 'pointer');
+    });
+  </test-code>
+
+  <test-code name=selectImageByURL-twice>
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      e.onresize = function () {
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
+      };
+      return f.selectImageByURL ("image.png");
+    }).then (() => {
+      this.assert.deepEqual (events, ['change']);
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+    });
+  </test-code>
+
+  <test-code name=twolayers>
+    /*
+      <image-editor><image-layer></image-layer><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var g = e.querySelector ('image-layer:nth-child(2)');
+    var events = [];
+    e.onresize = function () {
+      events.push ('resize');
+    };
+    e.onchange = function () {
+      events.push ('change');
+    };
+    return f.selectImageByURL ("image.png").then (() => {
+      return g.selectImageByURL ("image2.png");
+    }).then (() => {
+      this.assert.deepEqual (events, ['resize', 'change', 'resize', 'change']);
+      this.assert.equal (e.width, 220);
+      this.assert.equal (e.height, 175);
+
+      return g.selectImageByURL ("image.png");
+    }).then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+    });
+  </test-code>
+
+  <test-code name=rotateClockwise>
+    /*
+      <image-editor><image-layer></image-layer><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var g = e.querySelector ('image-layer:nth-child(2)');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      return g.selectImageByURL ("image2.png");
+    }).then (() => {
+      this.assert.equal (e.width, 220);
+      this.assert.equal (e.height, 175);
+
+      e.onresize = function () {
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
+      };
+      
+      g.rotateClockwise ();
+
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 220);
+      this.assert.equal (g.width, 60);
+      this.assert.equal (g.height, 220);
+      this.assert.deepEqual (events, ['resize', 'change']);
+      
+      g.rotateClockwise ();
+
+      this.assert.equal (e.width, 220);
+      this.assert.equal (e.height, 175);
+      this.assert.equal (g.width, 220);
+      this.assert.equal (g.height, 60);
+      this.assert.deepEqual (events, ['resize', 'change', 'resize', 'change']);
+    });
+  </test-code>
+
+  <test-code name=rotateCounterclockwise>
+    /*
+      <image-editor><image-layer></image-layer><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var g = e.querySelector ('image-layer:nth-child(2)');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      return g.selectImageByURL ("image2.png");
+    }).then (() => {
+      this.assert.equal (e.width, 220);
+      this.assert.equal (e.height, 175);
+
+      e.onresize = function () {
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
+      };
+      
+      g.rotateCounterclockwise ();
+
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 220);
+      this.assert.equal (g.width, 60);
+      this.assert.equal (g.height, 220);
+      this.assert.deepEqual (events, ['resize', 'change']);
+      
+      g.rotateCounterclockwise ();
+
+      this.assert.equal (e.width, 220);
+      this.assert.equal (e.height, 175);
+      this.assert.equal (g.width, 220);
+      this.assert.equal (g.height, 60);
+      this.assert.deepEqual (events, ['resize', 'change', 'resize', 'change']);
+    });
+  </test-code>
+
+  <test-code name="rotate scaled layer">
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+      f.setScale (0.5);
+
+      e.onresize = function () {
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
+      };
+
+      f.rotateClockwise ();
+
+      this.assert.equal (e.width, 175/2);
+      this.assert.equal (e.height, 183/2);
+      this.assert.equal (f.width, 175/2);
+      this.assert.equal (f.height, 183/2);
+      this.assert.deepEqual (events, ['resize', 'change']);
+    });
+  </test-code>
+
+  <test-code name="rotate scaled layer anchorpoint=center">
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+      f.setAttribute ('anchorpoint', 'center');
+      f.setScale (0.5);
+
+      e.onresize = function () {
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
+      };
+
+      f.rotateClockwise ();
+
+      this.assert.equal (e.width, 183/2+175/4);
+      this.assert.equal (e.height, 175/2+183/4);
+      this.assert.equal (f.width, 175/2);
+      this.assert.equal (f.height, 183/2);
+      this.assert.deepEqual (events, ['resize', 'change']);
+    });
+  </test-code>
+
+  <test-code name=move>
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+
+      e.onresize = function () {
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
+      };
+
+      f.ieMove (13, 65); // internal
+      return this.wait (1000);
+    }).then (() => {
+      this.assert.equal (e.width, 13+183);
+      this.assert.equal (e.height, 65+175);
+      this.assert.equal (f.width, 183);
+      this.assert.equal (f.height, 175);
+      this.assert.deepEqual (events, ['resize', 'change']);
+
+      return e.getPNGBlob ();
+    }).then ((blob) => {
+      var url = URL.createObjectURL (blob);
+      return new Promise ((ok, ng) => {
+        var img = document.createElement ('img');
+        img.onload = ok;
+        img.onerror = ng;
+        img.src = url;
+      });
+    }).then ((loadEv) => {
+      var img = loadEv.target;
+      this.assert.equal (img.naturalWidth, e.width, "Generated image's width");
+      this.assert.equal (img.naturalHeight, e.height, "Generated image's height");
+    });
+  </test-code>
+
+  <test-code name=scale>
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+
+      e.onresize = function () {
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
+      };
+
+      f.setScale (2.0);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 183 * 2);
+      this.assert.equal (e.height, 175 * 2);
+      this.assert.equal (f.width, 183 * 2);
+      this.assert.equal (f.height, 175 * 2);
+      this.assert.deepEqual (events, ['resize', 'change']);
+
+      return e.getPNGBlob ();
+    }).then ((blob) => {
+      var url = URL.createObjectURL (blob);
+      return new Promise ((ok, ng) => {
+        var img = document.createElement ('img');
+        img.onload = ok;
+        img.onerror = ng;
+        img.src = url;
+      });
+    }).then ((loadEv) => {
+      var img = loadEv.target;
+      this.assert.equal (img.naturalWidth, e.width, "Generated image's width");
+      this.assert.equal (img.naturalHeight, e.height, "Generated image's height");
+
+      f.setScale (0.3);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 183 * 0.3);
+      this.assert.equal (e.height, 175 * 0.3);
+      this.assert.equal (f.width, 183 * 0.3);
+      this.assert.equal (f.height, 175 * 0.3);
+
+      return e.getPNGBlob ();
+    }).then ((blob) => {
+      var url = URL.createObjectURL (blob);
+      return new Promise ((ok, ng) => {
+        var img = document.createElement ('img');
+        img.onload = ok;
+        img.onerror = ng;
+        img.src = url;
+      });
+    }).then ((loadEv) => {
+      var img = loadEv.target;
+      this.assert.equal (img.naturalWidth, Math.ceil (e.width), "Generated image's width");
+      this.assert.equal (img.naturalHeight, Math.ceil (e.height), "Generated image's height");
+    });
+  </test-code>
+
+  <test-code name=offsettedScale>
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+      f.ieMove (14, 44); // internal
+
+      e.onresize = function () {
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
+      };
+
+      f.setScale (2.0);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 14+183 * 2);
+      this.assert.equal (e.height, 44+175 * 2);
+      this.assert.equal (f.width, 183 * 2);
+      this.assert.equal (f.height, 175 * 2);
+      this.assert.deepEqual (events, ['resize', 'change']);
+
+      return e.getPNGBlob ();
+    }).then ((blob) => {
+      var url = URL.createObjectURL (blob);
+      return new Promise ((ok, ng) => {
+        var img = document.createElement ('img');
+        img.onload = ok;
+        img.onerror = ng;
+        img.src = url;
+      });
+    }).then ((loadEv) => {
+      var img = loadEv.target;
+      this.assert.equal (img.naturalWidth, e.width, "Generated image's width");
+      this.assert.equal (img.naturalHeight, e.height, "Generated image's height");
+    });
+  </test-code>
+
+  <test-code name=anchorpointcenteredScale>
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+      f.setAttribute ('anchorpoint', 'center');
+      f.ieMove (14, 44); // internal
+
+      e.onresize = function () {
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
+      };
+
+      f.setScale (2.0);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 14+183 + 183/2);
+      this.assert.equal (e.height, 44+175 + 175/2);
+      this.assert.equal (f.width, 183 * 2);
+      this.assert.equal (f.height, 175 * 2);
+      this.assert.deepEqual (events, ['resize', 'change']);
+
+      return e.getPNGBlob ();
+    }).then ((blob) => {
+      var url = URL.createObjectURL (blob);
+      return new Promise ((ok, ng) => {
+        var img = document.createElement ('img');
+        img.onload = ok;
+        img.onerror = ng;
+        img.src = url;
+      });
+    }).then ((loadEv) => {
+      var img = loadEv.target;
+      this.assert.equal (img.naturalWidth, Math.ceil (e.width), "Generated image's width");
+      this.assert.equal (img.naturalHeight, Math.ceil (e.height), "Generated image's height");
+
+      f.setScale (0.5);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 14+183 - 183/4);
+      this.assert.equal (e.height, 44+175 - 175/4);
+      this.assert.equal (f.width, 183 * 0.5);
+      this.assert.equal (f.height, 175 * 0.5);
+      this.assert.deepEqual (events, ['resize', 'change', 'resize', 'change']);
+
+      return e.getPNGBlob ();
+    }).then ((blob) => {
+      var url = URL.createObjectURL (blob);
+      return new Promise ((ok, ng) => {
+        var img = document.createElement ('img');
+        img.onload = ok;
+        img.onerror = ng;
+        img.src = url;
+      });
+    }).then ((loadEv) => {
+      var img = loadEv.target;
+      this.assert.equal (img.naturalWidth, Math.ceil (e.width), "Generated image's width");
+      this.assert.equal (img.naturalHeight, Math.ceil (e.height), "Generated image's height");
+    });
+  </test-code>
+
+
+  <test-code name=getPNGBlob>
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    return f.selectImageByURL ("image.png").then (() => {
+      return e.getPNGBlob ();
+    }).then ((blob) => {
+      var url = URL.createObjectURL (blob);
+      return fetch (url).then ((res) => {
+        return res.arrayBuffer ();
+      }).then ((ab) => {
+        var data = new Uint8Array (ab);
+        this.assert.equal (data[0], 0x89, "PNG signature [0]");
+        this.assert.equal (data[1], 0x50);
+        this.assert.equal (data[2], 0x4E);
+        this.assert.equal (data[3], 0x47);
+        this.assert.equal (data[4], 0x0D);
+        this.assert.equal (data[5], 0x0A);
+        this.assert.equal (data[6], 0x1A);
+        this.assert.equal (data[7], 0x0A);
+
+        return new Promise ((ok, ng) => {
+          var img = document.createElement ('img');
+          img.onload = ok;
+          img.onerror = ng;
+          img.src = url;
+        });
+      }).then ((loadEv) => {
+        var img = loadEv.target;
+        this.assert.equal (img.naturalWidth, 183, "Generated image's width");
+        this.assert.equal (img.naturalHeight, 175, "Generated image's height");
+      });
+    });
+  </test-code>
+
+  <test-code name=getJPEGBlob>
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    return f.selectImageByURL ("image.png").then (() => {
+      return e.getJPEGBlob ();
+    }).then ((blob) => {
+      var url = URL.createObjectURL (blob);
+      return fetch (url).then ((res) => {
+        return res.arrayBuffer ();
+      }).then ((ab) => {
+        var data = new Uint8Array (ab);
+        this.assert.equal (data[0], 0xFF, "JPEG signature [0]");
+        this.assert.equal (data[1], 0xD8);
+        this.assert.equal (data[2], 0xFF);
+
+        return new Promise ((ok, ng) => {
+          var img = document.createElement ('img');
+          img.onload = ok;
+          img.onerror = ng;
+          img.src = url;
+        });
+      }).then ((loadEv) => {
+        var img = loadEv.target;
+        this.assert.equal (img.naturalWidth, 183, "Generated image's width");
+        this.assert.equal (img.naturalHeight, 175, "Generated image's height");
+      });
+    });
+  </test-code>
+
+  <test-code name=useplaceholderuiAttributeRemoved>
+    /*
+      <image-editor><image-layer useplaceholderui></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    return Promise.resolve ().then (() => {
+      // Depending on default style sheet
+      this.assert.equal (e.clientWidth, 300);
+      this.assert.equal (e.clientHeight, 150);
+      this.assert.equal (getComputedStyle (f).cursor, 'pointer');
+      
+      f.removeAttribute ('useplaceholderui');
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (f.classList.contains ('placeholder'), true);
+
+      // Depending on default style sheet
+      this.assert.equal (e.clientWidth, 300);
+      this.assert.equal (e.clientHeight, 150);
+      this.assert.equal (getComputedStyle (f).cursor, 'auto');
+      
+      f.setAttribute ('useplaceholderui', '');
+      return this.wait ();
+    }).then (() => {
+      // Depending on default style sheet
+      this.assert.equal (getComputedStyle (f).cursor, 'pointer');
+    });
+  </test-code>
+
+  <test-code name="select anchorpoint=center">
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+      f.setAttribute ('anchorpoint', 'center');
+
+      return f.selectImageByURL ("image2.png");
+    }).then (() => {
+      this.assert.equal (e.width, 183 / 2 + 220 / 2);
+      this.assert.equal (e.height, 175 / 2 + 60 / 2);
+      this.assert.equal (f.width, 220);
+      this.assert.equal (f.height, 60);
+    });
+  </test-code>
+
+  <test-code name="select anchorpoint=center with scale factor">
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+      f.setScale (0.5);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 183/2);
+      this.assert.equal (e.height, 175/2);
+
+      f.setAttribute ('anchorpoint', 'center');
+
+      return f.selectImageByURL ("image2.png");
+    }).then (() => {
+      this.assert.equal (e.width, 183/2 / 2 + 220/2 / 2);
+      this.assert.equal (e.height, 175/2 / 2 + 60/2 / 2);
+      this.assert.equal (f.width, 220/2);
+      this.assert.equal (f.height, 60/2);
+    });
+  </test-code>
+
+  <test-code name="fixed dimension">
+    /*
+      <image-editor width=523 height=120><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+
+    this.assert.equal (e.width, 523);
+    this.assert.equal (e.height, 120);
+    this.assert.equal (f.width, 523);
+    this.assert.equal (f.height, 120);
+
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 523);
+      this.assert.equal (e.height, 120);
+      this.assert.equal (f.width, 183);
+      this.assert.equal (f.height, 175);
+      
+      f.setScale (0.5);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 523);
+      this.assert.equal (e.height, 120);
+      this.assert.equal (f.width, 183/2);
+      this.assert.equal (f.height, 175/2);
+    });
+  </test-code>
+
+  <test-code name="fixed dimension changed">
+    /*
+      <image-editor width=523 height=120><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+
+    var events = [];
+    e.onresize = function () {
+      events.push ('resize');
+    };
+    e.onchange = function () {
+      events.push ('change');
+    };
+
+    this.assert.equal (e.width, 523);
+    this.assert.equal (e.height, 120);
+    this.assert.equal (f.width, 523);
+    this.assert.equal (f.height, 120);
+
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 523);
+      this.assert.equal (e.height, 120);
+      this.assert.equal (f.width, 183);
+      this.assert.equal (f.height, 175);
+
+      e.setAttribute ('width', 60);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 60);
+      this.assert.equal (e.height, 120);
+      this.assert.equal (f.width, 183);
+      this.assert.equal (f.height, 175);
+
+      e.setAttribute ('height', 160);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 60);
+      this.assert.equal (e.height, 160);
+      this.assert.equal (f.width, 183);
+      this.assert.equal (f.height, 175);
+      
+      this.assert.deepEqual (events, ['resize', 'change',
+                                      'resize', 'change',
+                                      'resize', 'change']);
+      events = [];
+
+      e.removeAttribute ('height');
+      e.removeAttribute ('width');
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+      this.assert.equal (f.width, 183);
+      this.assert.equal (f.height, 175);
+      
+      this.assert.deepEqual (events, ['resize', 'change']);
+    });
+  </test-code>
+
+  <script src=runtests.js></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->
