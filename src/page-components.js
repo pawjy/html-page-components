@@ -389,20 +389,12 @@
     }, // ieTogglePlaceholder      
 
     ieSelectImageByElement: function (element, width, height) {
-      // XXX max dimension
-      var resized = (this.width !== width || this.height !== height);
-      this.width = this.ieCanvas.width = width;
-      this.height = this.ieCanvas.height = height;
+      this.ieCanvas.width = width;
+      this.ieCanvas.height = height;
       var context = this.ieCanvas.getContext ('2d');
       context.drawImage (element, 0, 0, width, height);
-
+      this.ieUpdateDimension ();
       this.ieTogglePlaceholder (false);
-      
-      if (resized) {
-        if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ({});
-        this.dispatchEvent (new Event ('resize', {bubbles: true}));
-      }
-      this.dispatchEvent (new Event ('change', {bubbles: true}));
       return Promise.resolve ();
     }, // ieSelectImageByElement
     selectImageByURL: function (url) {
@@ -461,8 +453,8 @@
 
     ieRotateByDegree: function (degree) {
       var canvas = document.createElement ('canvas');
-      this.width = canvas.width = this.ieCanvas.height;
-      this.height = canvas.height = this.ieCanvas.width;
+      canvas.width = this.ieCanvas.height;
+      canvas.height = this.ieCanvas.width;
       var context = canvas.getContext ('2d');
       context.translate (canvas.width / 2, canvas.height / 2);
       context.rotate (degree * 2 * Math.PI / 360);
@@ -470,11 +462,7 @@
       context.resetTransform ();
       this.replaceChild (canvas, this.ieCanvas);
       this.ieCanvas = canvas;
-      if (canvas.height !== canvas.width) {
-        if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ({});
-        this.dispatchEvent (new Event ('resize', {bubbles: true}));
-        this.dispatchEvent (new Event ('change', {bubbles: true}));
-      }
+      this.ieUpdateDimension ();
     }, // ieRotateByDegree
     rotateClockwise: function () {
       return this.ieRotateByDegree (90);
@@ -495,18 +483,36 @@
         }, 100);
       }
     }, // ieMove
+    ieUpdateDimension: function () {
+      var oldWidth = this.width;
+      var oldHeight = this.height;
+      if (this.getAttribute ('anchorpoint') === 'center') {
+        var x = this.left + this.width / 2;
+        var y = this.top + this.height / 2;
+        this.width = this.ieCanvas.width * this.ieScaleFactor;
+        this.height = this.ieCanvas.height * this.ieScaleFactor; 
+        this.left = x - this.width / 2;
+        this.top = y - this.height / 2;
+        this.style.left = this.left + "px";
+        this.style.top = this.top + "px";
+      } else {
+        this.width = this.ieCanvas.width * this.ieScaleFactor;
+        this.height = this.ieCanvas.height * this.ieScaleFactor;
+      }
+      this.ieCanvas.style.width = this.width + "px";
+      this.ieCanvas.style.height = this.height + "px";
+      if (oldWidth !== this.width || oldHeight !== this.height) {
+        if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ({});
+
+        this.dispatchEvent (new Event ('resize', {bubbles: true}));
+      }
+      this.dispatchEvent (new Event ('change', {bubbles: true}));
+    }, // ieUpdateDimension
 
     setScale: function (newScale) {
       if (this.ieScaleFactor === newScale) return;
       this.ieScaleFactor = newScale;
-      this.width = this.ieCanvas.width * this.ieScaleFactor;
-      this.height = this.ieCanvas.height * this.ieScaleFactor;
-      this.ieCanvas.style.width = this.width + "px";
-      this.ieCanvas.style.height = this.height + "px";
-      if (this.parentNode && this.parentNode.ieResize) this.parentNode.ieResize ({});
-
-      this.dispatchEvent (new Event ('resize', {bubbles: true}));
-      this.dispatchEvent (new Event ('change', {bubbles: true}));
+      this.ieUpdateDimension ();
     }, // setScale
   }; // image-layer
   

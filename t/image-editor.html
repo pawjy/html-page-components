@@ -272,6 +272,65 @@
     });
   </test-code>
 
+  <test-code name="rotate scaled layer">
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+      f.setScale (0.5);
+
+      e.onresize = function () {
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
+      };
+
+      f.rotateClockwise ();
+
+      this.assert.equal (e.width, 175/2);
+      this.assert.equal (e.height, 183/2);
+      this.assert.equal (f.width, 175/2);
+      this.assert.equal (f.height, 183/2);
+      this.assert.deepEqual (events, ['resize', 'change']);
+    });
+  </test-code>
+
+  <test-code name="rotate scaled layer anchorpoint=center">
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+      f.setAttribute ('anchorpoint', 'center');
+      f.setScale (0.5);
+
+      e.onresize = function () {
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
+      };
+
+      f.rotateClockwise ();
+
+      this.assert.equal (e.width, 183/2+175/4);
+      this.assert.equal (e.height, 175/2+183/4);
+      this.assert.equal (f.width, 175/2);
+      this.assert.equal (f.height, 183/2);
+      this.assert.deepEqual (events, ['resize', 'change']);
+    });
+  </test-code>
+
   <test-code name=move>
     /*
       <image-editor><image-layer></image-layer></image-editor>
@@ -424,6 +483,74 @@
     });
   </test-code>
 
+  <test-code name=anchorpointcenteredScale>
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+      f.setAttribute ('anchorpoint', 'center');
+      f.ieMove (14, 44); // internal
+
+      e.onresize = function () {
+        events.push ('resize');
+      };
+      e.onchange = function () {
+        events.push ('change');
+      };
+
+      f.setScale (2.0);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 14+183 + 183/2);
+      this.assert.equal (e.height, 44+175 + 175/2);
+      this.assert.equal (f.width, 183 * 2);
+      this.assert.equal (f.height, 175 * 2);
+      this.assert.deepEqual (events, ['resize', 'change']);
+
+      return e.getPNGBlob ();
+    }).then ((blob) => {
+      var url = URL.createObjectURL (blob);
+      return new Promise ((ok, ng) => {
+        var img = document.createElement ('img');
+        img.onload = ok;
+        img.onerror = ng;
+        img.src = url;
+      });
+    }).then ((loadEv) => {
+      var img = loadEv.target;
+      this.assert.equal (img.naturalWidth, Math.ceil (e.width), "Generated image's width");
+      this.assert.equal (img.naturalHeight, Math.ceil (e.height), "Generated image's height");
+
+      f.setScale (0.5);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 14+183 - 183/4);
+      this.assert.equal (e.height, 44+175 - 175/4);
+      this.assert.equal (f.width, 183 * 0.5);
+      this.assert.equal (f.height, 175 * 0.5);
+      this.assert.deepEqual (events, ['resize', 'change', 'resize', 'change']);
+
+      return e.getPNGBlob ();
+    }).then ((blob) => {
+      var url = URL.createObjectURL (blob);
+      return new Promise ((ok, ng) => {
+        var img = document.createElement ('img');
+        img.onload = ok;
+        img.onerror = ng;
+        img.src = url;
+      });
+    }).then ((loadEv) => {
+      var img = loadEv.target;
+      this.assert.equal (img.naturalWidth, Math.ceil (e.width), "Generated image's width");
+      this.assert.equal (img.naturalHeight, Math.ceil (e.height), "Generated image's height");
+    });
+  </test-code>
+
 
   <test-code name=getPNGBlob>
     /*
@@ -521,6 +648,54 @@
     }).then (() => {
       // Depending on default style sheet
       this.assert.equal (getComputedStyle (f).cursor, 'pointer');
+    });
+  </test-code>
+
+  <test-code name="select anchorpoint=center">
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+      f.setAttribute ('anchorpoint', 'center');
+
+      return f.selectImageByURL ("image2.png");
+    }).then (() => {
+      this.assert.equal (e.width, 183 / 2 + 220 / 2);
+      this.assert.equal (e.height, 175 / 2 + 60 / 2);
+      this.assert.equal (f.width, 220);
+      this.assert.equal (f.height, 60);
+    });
+  </test-code>
+
+  <test-code name="select anchorpoint=center with scale factor">
+    /*
+      <image-editor><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+      f.setScale (0.5);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 183/2);
+      this.assert.equal (e.height, 175/2);
+
+      f.setAttribute ('anchorpoint', 'center');
+
+      return f.selectImageByURL ("image2.png");
+    }).then (() => {
+      this.assert.equal (e.width, 183/2 / 2 + 220/2 / 2);
+      this.assert.equal (e.height, 175/2 / 2 + 60/2 / 2);
+      this.assert.equal (f.width, 220/2);
+      this.assert.equal (f.height, 60/2);
     });
   </test-code>
 
