@@ -35,10 +35,20 @@
   selectors.push ('image-editor');
   elementProps["image-editor"] = {
     pcInit: function () {
-      this.ieResize ({});
-      Promise.resolve ().then ((e) => {
-        this.dispatchEvent (new Event ('resize', {bubbles: true}));
+      this.ieResize ({resizeEvent: true});
+      var mo = new MutationObserver ((mutations) => {
+        var resized = false;
+        mutations.forEach ((mutation) => {
+          if (mutation.attributeName === 'width' ||
+              mutation.attributeName === 'height') {
+            if (!resized) {
+              resized = true;
+              this.ieResize ({resizeEvent: true, changeEvent: true});
+            }
+          }
+        });
       });
+      mo.observe (this, {attributeFilter: ['width', 'height']});
 
       new MutationObserver (function (mutations) {
         mutations.forEach (function (m) {
@@ -58,17 +68,22 @@
     }, // pcInit
 
     ieResize: function (opts) {
-      // XXX dimension
       var width = 0;
       var height = 0;
-      Array.prototype.slice.call (this.children).forEach ((e) => {
-        var w = e.left + e.width;
-        var h = e.top + e.height;
-        if (w > width) width = w;
-        if (h > height) height = h;
-      });
-      width = width || 300;
-      height = height || 150;
+      var fixedWidth = parseFloat (this.getAttribute ('width'));
+      var fixedHeight = parseFloat (this.getAttribute ('height'));
+      if (!(fixedWidth > 0) || !(fixedHeight > 0)) {
+        Array.prototype.slice.call (this.children).forEach ((e) => {
+          var w = e.left + e.width;
+          var h = e.top + e.height;
+          if (w > width) width = w;
+          if (h > height) height = h;
+        });
+        width = width || 300;
+        height = height || 150;
+      }
+      if (fixedWidth > 0) width = fixedWidth;
+      if (fixedHeight > 0) height = fixedHeight;
       var resize = opts.resizeEvent && (this.width !== width || this.height !== height);
       this.width = width;
       this.height = height;
@@ -122,7 +137,10 @@
     pcInit: function () {
       this.ieCanvas = document.createElement ('canvas');
       this.appendChild (this.ieCanvas);
-
+      if (this.parentNode) {
+        this.ieCanvas.width = this.parentNode.width;
+        this.ieCanvas.height = this.parentNode.height;
+      }
       this.ieTogglePlaceholder (true);
 
       // XXX not tested

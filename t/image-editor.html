@@ -699,6 +699,96 @@
     });
   </test-code>
 
+  <test-code name="fixed dimension">
+    /*
+      <image-editor width=523 height=120><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+
+    this.assert.equal (e.width, 523);
+    this.assert.equal (e.height, 120);
+    this.assert.equal (f.width, 523);
+    this.assert.equal (f.height, 120);
+
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 523);
+      this.assert.equal (e.height, 120);
+      this.assert.equal (f.width, 183);
+      this.assert.equal (f.height, 175);
+      
+      f.setScale (0.5);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 523);
+      this.assert.equal (e.height, 120);
+      this.assert.equal (f.width, 183/2);
+      this.assert.equal (f.height, 175/2);
+    });
+  </test-code>
+
+  <test-code name="fixed dimension changed">
+    /*
+      <image-editor width=523 height=120><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+
+    var events = [];
+    e.onresize = function () {
+      events.push ('resize');
+    };
+    e.onchange = function () {
+      events.push ('change');
+    };
+
+    this.assert.equal (e.width, 523);
+    this.assert.equal (e.height, 120);
+    this.assert.equal (f.width, 523);
+    this.assert.equal (f.height, 120);
+
+    var events = [];
+    return f.selectImageByURL ("image.png").then (() => {
+      this.assert.equal (e.width, 523);
+      this.assert.equal (e.height, 120);
+      this.assert.equal (f.width, 183);
+      this.assert.equal (f.height, 175);
+
+      e.setAttribute ('width', 60);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 60);
+      this.assert.equal (e.height, 120);
+      this.assert.equal (f.width, 183);
+      this.assert.equal (f.height, 175);
+
+      e.setAttribute ('height', 160);
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 60);
+      this.assert.equal (e.height, 160);
+      this.assert.equal (f.width, 183);
+      this.assert.equal (f.height, 175);
+      
+      this.assert.deepEqual (events, ['resize', 'change',
+                                      'resize', 'change',
+                                      'resize', 'change']);
+      events = [];
+
+      e.removeAttribute ('height');
+      e.removeAttribute ('width');
+      return this.wait ();
+    }).then (() => {
+      this.assert.equal (e.width, 183);
+      this.assert.equal (e.height, 175);
+      this.assert.equal (f.width, 183);
+      this.assert.equal (f.height, 175);
+      
+      this.assert.deepEqual (events, ['resize', 'change']);
+    });
+  </test-code>
+
   <script src=runtests.js></script>
 </body>
 </html>

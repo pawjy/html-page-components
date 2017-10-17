@@ -80,10 +80,15 @@ image, the layer's left and top are modified appropriately such that
 the anchor point of the layer in the parent |image-editor| element is
 preserved.
 
-An |image-editor| element has *width* and *height*.  The width is set
-to the offset of the rightmost layer's right edge from the left edge
-of the element.  The height is set to the offset of the bottommost
-layer's bottom edge from the top edge of the element.
+An |image-editor| element has *width* and *height*.  An |image-editor|
+element can have |width| and |height| content attributes, whose values
+must be valid floating-point numbers representing width and height in
+pixels, respectively.  If specified, they set width and height of the
+element and they are not affected by layers' dimension.  Otherwise,
+the width is set to the offset of the rightmost layer's right edge
+from the left edge of the element and the height is set to the offset
+of the bottommost layer's bottom edge from the top edge of the
+element.
 
 An |image-editor| element has these object properties:
 
