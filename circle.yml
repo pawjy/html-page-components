@@ -1,12 +1,6 @@
 machine:
   services:
     - docker
-workflows:
-  version: 2
-  my-workflow:
-    jobs:
-       - run-tests:
-           context: org-global
 dependencies:
   cache_directories:
     - local
