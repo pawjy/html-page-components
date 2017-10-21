@@ -27,6 +27,8 @@
     script.src = '../src/page-components.js';
     script.onload = ok;
     script.onerror = error;
+    var v = document.currentScript.getAttribute ('data-export');
+    if (v) script.setAttribute ('data-export', v);
     document.body.appendChild (script);
   });
 

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+  <test-code name="not affected">
+    /*
+      <div></div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {});
+    this.assert.equal (e.innerHTML, '');
+  </test-code>
+  
+  <test-code name="field value replaced">
+    /*
+      <div><span data-field=foo>abc</span><span data-field=bar>fff</span></div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {foo: "134 f<&>\u0022oo"});
+    this.assert.equal (e.innerHTML, '&lt;span data-field="foo">134 f&amp;lt;&amp;amp;&amp;gt;"oo&lt;/span>&lt;span data-field="bar">&lt;/span>');
+  </test-code>
+
+  <test-code name="field value .">
+    /*
+      <div><span data-field=foo.abc>abc</span><span data-field=bar.abc>fff</span></div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {foo: {abc: "134 f<&>\u0022oo"}});
+    this.assert.equal (e.innerHTML, '&lt;span data-field="foo.abc">134 f&amp;lt;&amp;amp;&amp;gt;"oo&lt;/span>&lt;span data-field="bar.abc">&lt;/span>');
+  </test-code>
+  
+  <test-code name="input">
+    /*
+      <div><input data-field=abc value=a><input data-field=xyz value=b></div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {abc: "axx"});
+    this.assert.equal (e.childNodes.length, 2);
+    this.assert.equal (e.firstChild.getAttribute ('value'), "a");
+    this.assert.equal (e.firstChild.value, 'axx');
+    this.assert.equal (e.lastChild.getAttribute ('value'), "b");
+    this.assert.equal (e.lastChild.value, 'undefined');
+  </test-code>
+  
+  <test-code name="textarea">
+    /*
+      <div><textarea data-field=abc>a</textarea><textarea data-field=xyz>b</textarea></div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {abc: "axx"});
+    this.assert.equal (e.childNodes.length, 2);
+    this.assert.equal (e.firstChild.getAttribute ('value'), null);
+    this.assert.equal (e.firstChild.textContent, "a");
+    this.assert.equal (e.firstChild.value, 'axx');
+    this.assert.equal (e.lastChild.getAttribute ('value'), null);
+    this.assert.equal (e.lastChild.textContent, "b");
+    this.assert.equal (e.lastChild.value, 'undefined');
+  </test-code>
+  
+  <test-code name="select">
+    /*
+      <div><select data-field=abc><option value=b>B<option value=a>A<option value=c>C</select></div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {abc: "c"});
+    this.assert.equal (e.childNodes.length, 1);
+    this.assert.equal (e.firstChild.getAttribute ('value'), null);
+    this.assert.equal (e.firstChild.value, 'c');
+  </test-code>
+  
+  <test-code name="output">
+    /*
+      <div><output data-field=abc>a</output><output data-field=xyz>b</output></div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {abc: "axx"});
+    this.assert.equal (e.childNodes.length, 2);
+    this.assert.equal (e.firstChild.getAttribute ('value'), null);
+    this.assert.equal (e.firstChild.textContent, "axx");
+    this.assert.equal (e.firstChild.value, "axx");
+    this.assert.equal (e.lastChild.getAttribute ('value'), null);
+    this.assert.equal (e.lastChild.textContent, "undefined");
+    this.assert.equal (e.lastChild.value, "undefined");
+  </test-code>
+
+  <script src=runtests.js data-export=$fill></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->

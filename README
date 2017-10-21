@@ -14,7 +14,12 @@ elements rendered as intended.
   <link rel=stylesheet href=css/default.css>
   <script src=src/page-components.js async></script>
 
-* <button is=command-button>
+* Elements
+
+Following elements and API are available once the script has been
+loaded:
+
+** <button is=command-button>
 
 A |button| element whose |is| attribute value is |command-button|
 represents a command button.  (Be aware that this implementation does
@@ -37,7 +42,7 @@ setting these two values:
   element.cbCommands[name]   An object.  It can have any property.
   element[name]  A function.  This is the method implementing the command.
 
-* <image-editor>
+** <image-editor>
 
 An |image-editor| element represents an editable image.  Its content
 can be one or more |image-layer| elements, representing layers in the
@@ -187,6 +192,48 @@ has been changed.
 The |change| event is fired at an |image-layer| element when the
 element is initialized and whenever the layer is set to a new image or
 placeholder.
+
+* Exportable function
+
+By setting the |data-export| attribute of the |script| element loading
+the |page-components.js| to a space-separated list of the function
+names, the functions can be exported to the global scope.  The
+following function is available:
+
+  $fill (root, object)
+
+    Edit any descendant of /root/ with the following conditions:
+
+      An element with |data-field| attribute
+
+        Replace the value of the element by the field value specified
+        by the |data-field| attribute.
+
+        For the purpose of this function the value of an element
+        /element/ is determined by the
+        |window.pcFillType[element.localName]|:
+
+          |contentattribute|
+
+            The value of /element/ is the |value| content attribute
+            value of /element/, if specified, or |null|.
+
+          |idlattribute|
+
+            The value of /element/ is the |value| IDL attribute value
+            of /element/.
+
+          Any other value
+
+            The |textContent| IDL attribute value of /element/.
+
+    The field value for /field/ is the /field/ property value of
+    /object/.  If /field/ contains a |.| character, the substring
+    before the character is the property value and the remaining
+    substring is interpreted as the field value recursively applied to
+    that property value (If the property value is |null| or
+    |undefined|, the result is |null|).  For example, field value for
+    |abc.def.xyz| is the value of |object.abc.def.xyz|.
 
 * Author
 
