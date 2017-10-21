@@ -103,6 +103,33 @@
     this.assert.equal (e.lastChild.value, null);
   </test-code>
 
+  <test-code name="data-src-field, data-href-field, data-id-field">
+    /*
+      <div>
+        <span data-src-field=foo.abc>abc</span>
+        <span data-href-field=bar.abc data-id-field=abc>fff</span>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {foo: {abc: "134 f<&>\u0022oo"}, "abc": 533});
+    this.assert.equal (e.firstElementChild.getAttribute ('src'), '134 f<&>"oo');
+    this.assert.equal (e.lastElementChild.getAttribute ('href'), null);
+    this.assert.equal (e.lastElementChild.getAttribute ('id'), '533');
+  </test-code>
+
+  <test-code name="data-href-field, data-title-field">
+    /*
+      <div>
+        <span data-href-field=foo.abc>abc</span>
+        <span data-title-field=abc>fff</span>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {foo: {abc: "134 f<&>\u0022oo"}, "abc": 533});
+    this.assert.equal (e.firstElementChild.getAttribute ('href'), '134 f<&>"oo');
+    this.assert.equal (e.lastElementChild.getAttribute ('title'), '533');
+  </test-code>
+
   <script src=runtests.js data-export=$fill></script>
 </body>
 </html>
