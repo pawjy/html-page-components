@@ -42,6 +42,35 @@ setting these two values:
   element.cbCommands[name]   An object.  It can have any property.
   element[name]  A function.  This is the method implementing the command.
 
+** <list-container>
+
+A |list-container| element represents a dynamic list of items.  Its
+content model is transparent.
+
+A |list-container| element has a *list*, which is a list of JavaScript
+objects.  The list can be constructed by a loader.  A *loader* is a
+handler with type |pc-handler|.  The loader used by a |list-container|
+element can be specified by the |loader| attribute value.  The default
+loader's name is |src|.
+
+The first |list-main| element descendant of a |list-container| element
+is the *list item insertion point* of the |list-container| element.
+When the |list-container| element is *rendered*, any child of the list
+item insertion point is discarded and the elements created from the
+items of the list of the element are inserted into the list item
+insertion point.
+
+An element is created from a list item by creating a |list-item|
+element, appending a deep clone of the template content of the
+selected template of the |list-container| element, and then |$fill| is
+invoked with the |list-item| element and the list item.  The selected
+template of the |list-container| element is the first |template|
+element descendant of the |list-container| element.
+
+A |list-container| element is rendered when the element is inserted
+and has |list-main| element and |template| element descendants, or
+when a |list-main| or |template| element descendant is inserted.
+
 ** <image-editor>
 
 An |image-editor| element represents an editable image.  Its content
@@ -311,6 +340,24 @@ following function is available:
     The result of processing a value template /template/ is a copy of
     /template/ where any substring |{/field-name/}| is replaced by the
     field value for /field-name/.
+
+* Handlers
+
+A handler can be defined by inserting an element whose local name is
+handler type into the head element of the document.
+
+The *handler type* is |pc-loader|, which defines a handler for
+|list-container| element's loader.
+
+The element must have a |name| attribute, whose value is the *handler
+name*.  The handler name must be unique.  Predefined handler names
+cannot be used as a |name| attribute value.
+
+The element must have a |pcHandler| property whose value is a
+JavaScript function.  This function is invoked when the handler is
+said to be *invoked*.
+
+A handler cannot be removed.
 
 * Author
 

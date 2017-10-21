@@ -68,6 +68,56 @@
       }); // [data-*-template]
     });
   }; // $fill
+
+  var handlers = {
+    'pc-loader': {},
+  };
+  var handlerLoaded = {
+    'pc-loader': {},
+  };
+  var handlerLoadedNow = {
+    'pc-loader': {},
+  };
+  var addHandler = function (e) {
+    if (handlers[e.localName]) {
+      var name = e.getAttribute ('name');
+      if (handlers[e.localName][name]) {
+        throw new Error ("Duplicate |"+e.localName+"| handler |"+name+"|");
+      } else {
+        if (!e.pcHandler) {
+          throw new Error ("|"+e.localName+"| handler |"+name+"| does not have |pcHandler|");
+        } else {
+          handlers[e.localName][name] = e.pcHandler;
+          if (handlerLoadedNow[e.localName][name]) {
+            handlerLoadedNow[e.localName][name] (e.pcHandler);
+            delete handlerLoaded[e.localName][name];
+            delete handlerLoadedNow[e.localName][name];
+          }
+        }
+      }
+    }
+  }; // addHandler
+  new MutationObserver (function (mutations) {
+    mutations.forEach (function (m) {
+      Array.prototype.forEach.call (m.addedNodes, addHandler);
+    });
+  }).observe (document.head, {childList: true});
+  Promise.resolve ().then (() => {
+    Array.prototype.slice.call (document.head.children).forEach (addHandler);
+  });
+  var getHandler = function (type, handlerName) {
+    var handler = handlers[type][handlerName];
+    if (handler) {
+      return Promise.resolve (handler);
+    } else {
+      if (!handlerLoaded[type][handlerName]) {
+        handlerLoaded[type][handlerName] = new Promise ((a, b) => {
+          handlerLoadedNow[type][handlerName] = a;
+        });
+      }
+      return handlerLoaded[type][handlerName];
+    }
+  }; // getHandler
   
   var selectors = [];
   var elementProps = {};
@@ -88,7 +138,7 @@
   elementProps.button = {
     pcInit: function () {
       this.addEventListener ('click', () => this.cbClick ());
-    }, // cbInit
+    }, // pcInit
     cbClick: function () {
       var selector = this.getAttribute ('data-selector');
       var selected = document.querySelector (selector);
@@ -101,6 +151,75 @@
       selected[command] ();
     }, // cbClick
   }; // button[is=command-button]
+
+  // XXX handlers["pc-loader"].src
+  
+  selectors.push ('list-container');
+  elementProps["list-container"] = {
+    pcInit: function () {
+      // XXX observe only template children and list-main descendants
+      var selector = 'template, list-main';
+      new MutationObserver ((mutations) => {
+        mutations.forEach ((m) => {
+          Array.prototype.forEach.call (m.addedNodes, (e) => {
+            if (e.nodeType === e.ELEMENT_NODE) {
+              console.log(e);
+              if (e.matches (selector) || e.querySelector (selector)) {
+                this.lcRequestRender ();
+              }
+            }
+          });
+        });
+      }).observe (this, {childList: true, subtree: true});
+      
+      this.lcData = [];
+      this.lcLoad ().then (() => {
+        return this.lcRequestRender ();
+      });
+    }, // pcInit
+
+    lcLoad: function () {
+      return getHandler ("pc-loader", this.getAttribute ('loader') || 'src').then ((loader) => {
+        return loader.apply (this);
+      }).then ((list) => {
+        // XXX filter=""
+        // XXX sort
+        // XXX object as list
+        this.lcData = list;
+      });
+    }, // lcLoad
+
+    lcRequestRender: function () {
+      clearTimeout (this.lcRenderRequestedTimer);
+      this.lcRenderRequestedTimer = setTimeout (() => this.lcRender (), 0);
+    }, // lcRequestRender
+    lcRender: function () {
+      console.log("render");
+      // XXX type=""
+      var listContainer = this.querySelector ('list-main');
+      if (!listContainer) return;
+      
+      // XXX template selector
+      var template;
+      Array.prototype.slice.call (this.children).forEach ((e) => {
+        if (e.localName === 'template') {
+          template = e;
+        }
+      });
+      if (!template) template = document.createElement ('template');
+
+      listContainer.textContent = '';
+      this.lcData.forEach ((object) => {
+        var listItem = document.createElement ('list-item');
+        listItem.appendChild (template.content.cloneNode (true));
+        $fill (listItem, object);
+        listContainer.appendChild (listItem);
+      });
+
+      // XXX loaded-actions=""
+    }, // lcRender
+    
+  }; // list-container
 
   selectors.push ('image-editor');
   elementProps["image-editor"] = {
