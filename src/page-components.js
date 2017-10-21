@@ -11,6 +11,7 @@
   // <progress>
   // <meter>
 
+  var filledAttributes = ['href', 'src', 'id', 'title'];
   var $fill = exportable.$fill = function (root, object) {
     root.querySelectorAll ('[data-field]').forEach ((f) => {
       var name = f.getAttribute ('data-field').split (/\./);
@@ -37,7 +38,24 @@
       } else {
         f.textContent = value;
       }
-    }); // data-field]
+    }); // [data-field]
+
+    filledAttributes.forEach ((n) => {
+      root.querySelectorAll ('[data-'+n+'-field]').forEach ((f) => {
+        var name = f.getAttribute ('data-'+n+'-field').split (/\./);
+        var value = object;
+        for (var i = 0; i < name.length; i++) {
+          value = value[name[i]];
+          if (value == null) break;
+        }
+        if (value) {
+          f.setAttribute (n, value);
+        } else {
+          f.removeAttribute (n);
+        }
+      }); // [data-*-field]
+      
+    });
   }; // $fill
   
   var selectors = [];

@@ -209,7 +209,7 @@ following function is available:
         Replace the value of the element by the field value specified
         by the |data-field| attribute.
 
-        For the purpose of this function the value of an element
+        For the purpose of this function the *value* of an element
         /element/ is determined by the
         |window.pcFillType[element.localName]|:
 
@@ -249,7 +249,33 @@ following function is available:
 
             The |textContent| IDL attribute value of /element/.
 
-    The field value for /field/ is the /field/ property value of
+      An element with data-/*/-field attribute
+
+        ... where /*/ is the *target attribute name* and is one of:
+        |href|, |src|, |id|, |title|
+
+        The attribute whose name is the target attribute name is set
+        to the field value for the |data-/*/-field| attribute value.
+        If the field value is |null| or |undefined|, the attribute
+        whose name is the target attribute name is removed instead.
+
+        For example,
+
+          <a data-href-field=link data-field=title></a>
+
+        ... with /object/:
+
+          {
+            link: "https://example.com/",
+            title: "Example Web Page",
+          }
+
+        ... is expanded to:
+
+          <a data-href-field=link data-field=title
+              href="https://example.com/">Example Web Page</a>
+
+    The *field value* for /field/ is the /field/ property value of
     /object/.  If /field/ contains a |.| character, the substring
     before the character is the property value and the remaining
     substring is interpreted as the field value recursively applied to
