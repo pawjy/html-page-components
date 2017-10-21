@@ -1,4 +1,37 @@
 (function () {
+  var exportable = {};
+
+  if (!self.pcFillType) self.pcFillType = {};
+  // <time>
+  // <data>
+  self.pcFillType.input = 'idlattribute';
+  self.pcFillType.select = 'idlattribute';
+  self.pcFillType.textarea = 'idlattribute';
+  self.pcFillType.output = 'idlattribute';
+  // <progress>
+  // <meter>
+
+  var $fill = exportable.$fill = function (root, object) {
+    root.querySelectorAll ('[data-field]').forEach ((f) => {
+      var name = f.getAttribute ('data-field').split (/\./);
+      var value = object;
+      for (var i = 0; i < name.length; i++) {
+        value = value[name[i]];
+        if (value == null) break;
+      }
+
+      var ln = f.localName;
+      var fillType = self.pcFillType ? self.pcFillType[ln] : null;
+      if (fillType === 'contentattribute') {
+        f.setAttribute ('value', value);
+      } else if (fillType === 'idlattribute') {
+        f.value = value;
+      } else {
+        f.textContent = value;
+      }
+    }); // data-field]
+  }; // $fill
+  
   var selectors = [];
   var elementProps = {};
 
@@ -546,6 +579,10 @@
     });
   }).observe (document, {childList: true, subtree: true});
   Array.prototype.forEach.call (document.querySelectorAll (selector), upgrade);
+
+  (document.currentScript.getAttribute ('data-export') || '').split (/\s+/).filter ((_) => { return _.length }).forEach ((name) => {
+    self[name] = exportable[name];
+  });
 }) ();
 
 /*
