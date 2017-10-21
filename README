@@ -270,10 +270,35 @@ following function is available:
             title: "Example Web Page",
           }
 
-        ... is expanded to:
+        ... is expanded as:
 
           <a data-href-field=link data-field=title
               href="https://example.com/">Example Web Page</a>
+
+      An element with data-/*/-template attribute
+
+        ... where /*/ is the *target attribute name* and is one of:
+        |href|, |src|, |id|, |title|
+
+        The attribute whose name is the target attribute name is set
+        to the result of processing the |data-/*/-template| attribute
+        value as a value template.
+
+        For example,
+
+          <a data-href-template=https://example.com/{user_id}/{object_id}>
+
+        ... with /object/:
+
+          {
+            user_id: 535555,
+            object_id: 72534151,
+          }
+
+        ... is expanded as:
+
+          <a data-href-template=https://example.com/{user_id}/{object_id}
+              href="https://example.com/535555/72534151">
 
     The *field value* for /field/ is the /field/ property value of
     /object/.  If /field/ contains a |.| character, the substring
@@ -282,6 +307,10 @@ following function is available:
     that property value (If the property value is |null| or
     |undefined|, the result is |null|).  For example, field value for
     |abc.def.xyz| is the value of |object.abc.def.xyz|.
+
+    The result of processing a value template /template/ is a copy of
+    /template/ where any substring |{/field-name/}| is replaced by the
+    field value for /field-name/.
 
 * Author
 

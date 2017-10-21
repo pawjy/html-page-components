@@ -54,7 +54,18 @@
           f.removeAttribute (n);
         }
       }); // [data-*-field]
-      
+
+      root.querySelectorAll ('[data-'+n+'-template]').forEach ((f) => {
+        f.setAttribute (n, f.getAttribute ('data-'+n+'-template').replace (/\{([\w.]+)\}/g, function (_, n) {
+          var name = n.split (/\./);
+          var value = object;
+          for (var i = 0; i < name.length; i++) {
+            value = value[name[i]];
+            if (value == null) break;
+          }
+          return value;
+        }));
+      }); // [data-*-template]
     });
   }; // $fill
   
