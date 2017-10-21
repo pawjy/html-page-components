@@ -62,7 +62,7 @@
     });
   });
 
-  var div2 = document.createElement ('div2');
+  var div2 = document.createElement ('div');
   div2.id = "qunit";
   document.body.appendChild (div2);
 }) ();
