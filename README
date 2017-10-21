@@ -223,6 +223,28 @@ following function is available:
             The value of /element/ is the |value| IDL attribute value
             of /element/.
 
+            |input|, |select|, |textarea|, and |output| elements are
+             set to this mode.
+
+          |datetime|
+
+            The value of /element/ is the |datetime| attribute value
+            and is set to the result of the |new Date (/field value/ *
+            1000).toISOString ()|.  If it throws, the |datetime|
+            attribute is removed and the |textContent| is set to the
+            exception.
+
+            In other words, the field value is expected to be a Unix
+            time number and the |datetime| attribute is set to its
+            global date and time string equivalent.
+
+            Note that the |textContent| of /element/ is not updated
+            when the |datetime| attribute value is changed.  It should
+            be handled by another JavaScript codes, such as time.js
+            <https://github.com/wakaba/timejs>.
+
+            |time| element is set to this mode.
+
           Any other value
 
             The |textContent| IDL attribute value of /element/.

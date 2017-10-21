@@ -85,6 +85,23 @@
     this.assert.equal (e.lastChild.textContent, "undefined");
     this.assert.equal (e.lastChild.value, "undefined");
   </test-code>
+  
+  <test-code name="time">
+    /*
+      <div><time data-field=abc>a</time><time data-field=xyz>b</time></div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {abc: 4355452555.55});
+    this.assert.equal (e.childNodes.length, 2);
+    this.assert.equal (e.firstChild.getAttribute ('value'), null);
+    this.assert.equal (e.firstChild.getAttribute ('datetime'), "2108-01-08T07:55:55.550Z");
+    this.assert.equal (e.firstChild.textContent, "a");
+    this.assert.equal (e.firstChild.value, null);
+    this.assert.equal (e.lastChild.getAttribute ('value'), null);
+    this.assert.equal (e.lastChild.getAttribute ('datetime'), null);
+    this.assert.equal (!!e.lastChild.textContent.match (/Error/), true, "RangeError: Invalid time value");
+    this.assert.equal (e.lastChild.value, null);
+  </test-code>
 
   <script src=runtests.js data-export=$fill></script>
 </body>
