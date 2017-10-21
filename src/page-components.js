@@ -2,7 +2,7 @@
   var exportable = {};
 
   if (!self.pcFillType) self.pcFillType = {};
-  // <time>
+  self.pcFillType.time = 'datetime';
   // <data>
   self.pcFillType.input = 'idlattribute';
   self.pcFillType.select = 'idlattribute';
@@ -26,6 +26,14 @@
         f.setAttribute ('value', value);
       } else if (fillType === 'idlattribute') {
         f.value = value;
+      } else if (fillType === 'datetime') {
+        try {
+          var dt = new Date (value * 1000);
+          f.setAttribute ('datetime', dt.toISOString ());
+        } catch (e) {
+          f.removeAttribute ('datetime');
+          f.textContent = e;
+        }
       } else {
         f.textContent = value;
       }
