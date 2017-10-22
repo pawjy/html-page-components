@@ -25,7 +25,7 @@
       </list-container>
     */
     var e = this.currentScript.querySelector ('list-container');
-    var handler = document.createElement ('pc-loader');
+    var handler = document.createElementNS ('data:,pc', 'loader');
     handler.setAttribute ('name', 'loaderDefinedAfterUpgrade');
     handler.pcHandler = () => {
       return [{"name":"a"}, {"name":"c"}];
@@ -46,7 +46,7 @@
         <list-main></list-main>
       </template>
     */
-    var handler = document.createElement ('pc-loader');
+    var handler = document.createElementNS ('data:,pc', 'loader');
     handler.setAttribute ('name', 'loaderDefinedBeforeUpgrade');
     handler.pcHandler = () => {
       return [{"name":"a"}, {"name":"c"}];
@@ -74,7 +74,7 @@
       </template>
     */
     var handlerName = Math.random ();
-    var handler = document.createElement ('pc-loader');
+    var handler = document.createElementNS ('data:,pc', 'loader');
     handler.setAttribute ('name', handlerName);
     handler.pcHandler = () => {
       return [{"name":"aa"}, {"name":"cc"}];
@@ -106,7 +106,7 @@
       </template>
     */
     var handlerName = Math.random ();
-    var handler = document.createElement ('pc-loader');
+    var handler = document.createElementNS ('data:,pc', 'loader');
     handler.setAttribute ('name', handlerName);
     handler.pcHandler = () => {
       return [{"name":"aa"}, {"name":"cc"}];

@@ -49,7 +49,7 @@ content model is transparent.
 
 A |list-container| element has a *list*, which is a list of JavaScript
 objects.  The list can be constructed by a loader.  A *loader* is a
-handler with type |pc-handler|.  The loader used by a |list-container|
+handler with type |loader|.  The loader used by a |list-container|
 element can be specified by the |loader| attribute value.  The default
 loader's name is |src|.
 
@@ -343,10 +343,11 @@ following function is available:
 
 * Handlers
 
-A handler can be defined by inserting an element whose local name is
-handler type into the head element of the document.
+A handler can be defined by inserting an element whose namespace URL
+is <data:,pc> and local name is handler type into the head element of
+the document.
 
-The *handler type* is |pc-loader|, which defines a handler for
+The *handler type* is |loader|, which defines a handler for
 |list-container| element's loader.
 
 The element must have a |name| attribute, whose value is the *handler
