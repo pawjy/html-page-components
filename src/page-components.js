@@ -1,6 +1,29 @@
 (function () {
   var exportable = {};
 
+  var $promised = {};
+
+  $promised.forEach = function (code, items) {
+    var list = Array.prototype.slice.call (items);
+    var run = function () {
+      if (!list.length) return Promise.resolve ();
+      return Promise.resolve (list.shift ()).then (code).then (run);
+    };
+    return run ();
+  }; // forEach
+
+  $promised.map = function (code, items) {
+    var list = Array.prototype.slice.call (items);
+    var newList = [];
+    var run = function () {
+      if (!list.length) return Promise.resolve (newList);
+      return Promise.resolve (list.shift ()).then (code).then ((_) => {
+        newList.push (_);
+      }).then (run);
+    };
+    return run ();
+  }; // map
+
   var definables = {
     loader: {type: 'handler'},
     filltype: {type: 'map'},
@@ -55,6 +78,18 @@
       return defLoadedPromises[type][name];
     }
   }; // getDef
+
+  var waitDefsByString = function (string) {
+    return Promise.all (string.split (/\s+/).map ((_) => {
+      if (_ === "") return;
+      var v = _.split (/:/, 2);
+      if (defs[v[0]]) {
+        return getDef (v[0], v[1]);
+      } else {
+        throw new Error ("Unknown definition type |"+v[0]+"|");
+      }
+    }));
+  }; // waitDefsByString
 
   defs.filltype.time = 'datetime';
   // <data>
@@ -122,6 +157,16 @@
       }); // [data-*-template]
     });
   }; // $fill
+
+  var createFromTemplate = function (template, localName, object) {
+    return waitDefsByString (template.getAttribute ('data-requires') || '').then (() => {
+      var e = document.createElement (localName);
+      e.className = template.className;
+      e.appendChild (template.content.cloneNode (true));
+      $fill (e, object);
+      return e;
+    });
+  }; // createFromTemplate
   
   var selectors = [];
   var elementProps = {};
@@ -213,12 +258,11 @@
       if (!template) template = document.createElement ('template');
 
       listContainer.textContent = '';
-      this.lcData.forEach ((object) => {
-        var listItem = document.createElement ('list-item');
-        listItem.appendChild (template.content.cloneNode (true));
-        $fill (listItem, object);
-        listContainer.appendChild (listItem);
-      });
+      return $promised.forEach ((object) => {
+        return createFromTemplate (template, 'list-item', object).then ((e) => {
+          listContainer.appendChild (e);
+        });
+      }, this.lcData);
 
       // XXX loaded-actions=""
     }, // lcRender

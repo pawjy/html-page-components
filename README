@@ -55,16 +55,12 @@ specified by the |loader| attribute value of the element, defaulted to
 The first |list-main| element descendant of a |list-container| element
 is the *list item insertion point* of the |list-container| element.
 When the |list-container| element is *rendered*, any child of the list
-item insertion point is discarded and the elements created from the
-items of the list of the element are inserted into the list item
-insertion point.
-
-An element is created from a list item by creating a |list-item|
-element, appending a deep clone of the template content of the
-selected template of the |list-container| element, and then |$fill| is
-invoked with the |list-item| element and the list item.  The selected
-template of the |list-container| element is the first |template|
-element descendant of the |list-container| element.
+item insertion point is discarded and the |list-item| elements created
+from the items of the list of the element using the selected template
+of the |list-container| element are inserted into the list item
+insertion point.  The selected template of the |list-container|
+element is the first |template| element descendant of the
+|list-container| element.
 
 A |list-container| element is rendered when the element is inserted
 and has |list-main| element and |template| element descendants, or
@@ -370,6 +366,31 @@ value, which must be a JavaScript function.
 
 If a definition type is /string/, it must have a content.  The
 *content* of a definition is the |content| content attribute value.
+
+* Template processing
+
+When a /name/ element is created from an /object/ using /template/,
+
+  - Its |data-requires| attribute value is interpreted as a
+    space-separated list of the definition type-name pair separated by
+    |:| required to process the template.
+
+  - Its |class| attribute value is set to the |class| attribute value
+    of /template/.
+
+  - Its content is set to a deep clone of the template content of
+    /template/.
+
+  - The |$fill| function is invoked with it and /object/.
+
+For example, a template:
+
+  <template data-requires=filltype:unit-number>
+    <unit-number type=distance data-field=from-station></unit-number>
+  </template>
+
+... will be processed after the |filltype| definition for name
+|unit-number| is loaded.
 
 * Author
 
