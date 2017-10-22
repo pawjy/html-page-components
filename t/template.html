@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+  <script>
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'ac');
+    handler.pcHandler = () => {
+      return [{"name":"a"}, {"name":"c"}];
+    };
+    document.head.appendChild (handler);
+  </script>
+  
+  <test-code name="template just copied">
+    /*
+      <list-container loader=ac>
+        <template><span data-field=name></span></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    return this.wait ().then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, 'a');
+      this.assert.equal (items[1].textContent, 'c');
+    });
+  </test-code>
+
+  <test-code name="class copied">
+    /*
+      <list-container loader=ac>
+        <template class="xya 124"><span data-field=name></span></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    return this.wait ().then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, 'a');
+      this.assert.equal (items[0].classList.contains ('xya'), true);
+      this.assert.equal (items[0].classList.contains ('124'), true);
+      this.assert.equal (items[1].textContent, 'c');
+      this.assert.equal (items[1].classList.contains ('xya'), true);
+      this.assert.equal (items[1].classList.contains ('124'), true);
+    });
+  </test-code>
+
+  <script src=runtests.js></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->

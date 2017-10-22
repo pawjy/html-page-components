@@ -122,6 +122,14 @@
       }); // [data-*-template]
     });
   }; // $fill
+
+  var createFromTemplate = function (template, localName, object) {
+    var e = document.createElement (localName);
+    e.className = template.className;
+    e.appendChild (template.content.cloneNode (true));
+    $fill (e, object);
+    return e;
+  }; // createFromTemplate
   
   var selectors = [];
   var elementProps = {};
@@ -214,9 +222,7 @@
 
       listContainer.textContent = '';
       this.lcData.forEach ((object) => {
-        var listItem = document.createElement ('list-item');
-        listItem.appendChild (template.content.cloneNode (true));
-        $fill (listItem, object);
+        var listItem = createFromTemplate (template, 'list-item', object);
         listContainer.appendChild (listItem);
       });
 
