@@ -201,7 +201,13 @@
     }, // cbClick
   }; // button[is=command-button]
 
-  // XXX defs.loader.src
+  defs.loader.src = function () {
+    if (!this.hasAttribute ('src')) return [];
+    return fetch (this.getAttribute ('src')).then ((res) => res.json ()).then ((json) => {
+      if (!this.hasAttribute ('key')) throw new Error ("|key| is not specified");
+      return (json || {})[this.getAttribute ('key')] || [];
+    });
+  }; // src
   
   selectors.push ('list-container');
   elementProps["list-container"] = {
@@ -228,6 +234,12 @@
     }, // pcInit
 
     lcLoad: function () {
+      var resolve;
+      var reject;
+      this.loaded = new Promise ((a, b) => {
+        resolve = a;
+        reject = b;
+      });
       return getDef ("loader", this.getAttribute ('loader') || 'src').then ((loader) => {
         return loader.apply (this);
       }).then ((list) => {
@@ -235,6 +247,10 @@
         // XXX sort
         // XXX object as list
         this.lcData = list;
+        resolve ();
+      }).catch ((e) => {
+        reject (e);
+        throw e;
       });
     }, // lcLoad
 
@@ -265,6 +281,7 @@
       }, this.lcData);
 
       // XXX loaded-actions=""
+      // XXX action-status integration
     }, // lcRender
     
   }; // list-container
