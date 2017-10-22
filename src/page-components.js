@@ -202,10 +202,10 @@
   }; // button[is=command-button]
 
   defs.loader.src = function () {
-    if (!this.hasAttribute ('src')) return [];
+    if (!this.hasAttribute ('src')) return {};
     return fetch (this.getAttribute ('src')).then ((res) => res.json ()).then ((json) => {
       if (!this.hasAttribute ('key')) throw new Error ("|key| is not specified");
-      return (json || {})[this.getAttribute ('key')] || [];
+      return {data: (json || {})[this.getAttribute ('key')]};
     });
   }; // src
   
@@ -242,11 +242,11 @@
       });
       return getDef ("loader", this.getAttribute ('loader') || 'src').then ((loader) => {
         return loader.apply (this);
-      }).then ((list) => {
+      }).then ((result) => {
         // XXX filter=""
         // XXX sort
         // XXX object as list
-        this.lcData = list;
+        this.lcData = result.data;
         resolve ();
       }).catch ((e) => {
         reject (e);

@@ -28,7 +28,7 @@
     var handler = document.createElementNS ('data:,pc', 'loader');
     handler.setAttribute ('name', 'loaderDefinedAfterUpgrade');
     handler.pcHandler = () => {
-      return [{"name":"a"}, {"name":"c"}];
+      return {data: [{"name":"a"}, {"name":"c"}]};
     };
     document.head.appendChild (handler);
     return this.wait (100).then (() => {
@@ -49,7 +49,7 @@
     var handler = document.createElementNS ('data:,pc', 'loader');
     handler.setAttribute ('name', 'loaderDefinedBeforeUpgrade');
     handler.pcHandler = () => {
-      return [{"name":"a"}, {"name":"c"}];
+      return {data: [{"name":"a"}, {"name":"c"}]};
     };
     document.head.appendChild (handler);
 
@@ -77,7 +77,7 @@
     var handler = document.createElementNS ('data:,pc', 'loader');
     handler.setAttribute ('name', handlerName);
     handler.pcHandler = () => {
-      return [{"name":"aa"}, {"name":"cc"}];
+      return {data: [{"name":"aa"}, {"name":"cc"}]};
     };
     document.head.appendChild (handler);
 
@@ -109,7 +109,7 @@
     var handler = document.createElementNS ('data:,pc', 'loader');
     handler.setAttribute ('name', handlerName);
     handler.pcHandler = () => {
-      return [{"name":"aa"}, {"name":"cc"}];
+      return {data: [{"name":"aa"}, {"name":"cc"}]};
     };
     document.head.appendChild (handler);
 
@@ -144,7 +144,7 @@
     var handler = document.createElementNS ('data:,pc', 'loader');
     handler.setAttribute ('name', 'renderingRequiresTestLoader');
     handler.pcHandler = () => {
-      return [{"name":"a"}, {"name":"c"}];
+      return {data: [{"name":"a"}, {"name":"c"}]};
     };
     document.head.appendChild (handler);
 

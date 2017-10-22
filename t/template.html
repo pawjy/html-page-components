@@ -9,7 +9,7 @@
     var handler = document.createElementNS ('data:,pc', 'loader');
     handler.setAttribute ('name', 'ac');
     handler.pcHandler = () => {
-      return [{"name":"a"}, {"name":"c"}];
+      return {data: [{"name":"a"}, {"name":"c"}]};
     };
     document.head.appendChild (handler);
   </script>
