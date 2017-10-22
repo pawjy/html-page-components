@@ -70,16 +70,16 @@
   }; // $fill
 
   var handlers = {
-    'pc-loader': {},
+    'loader': {},
   };
   var handlerLoaded = {
-    'pc-loader': {},
+    'loader': {},
   };
   var handlerLoadedNow = {
-    'pc-loader': {},
+    'loader': {},
   };
   var addHandler = function (e) {
-    if (handlers[e.localName]) {
+    if (handlers[e.localName] && e.namespaceURI === 'data:,pc') {
       var name = e.getAttribute ('name');
       if (handlers[e.localName][name]) {
         throw new Error ("Duplicate |"+e.localName+"| handler |"+name+"|");
@@ -152,7 +152,7 @@
     }, // cbClick
   }; // button[is=command-button]
 
-  // XXX handlers["pc-loader"].src
+  // XXX handlers["loader"].src
   
   selectors.push ('list-container');
   elementProps["list-container"] = {
@@ -179,7 +179,7 @@
     }, // pcInit
 
     lcLoad: function () {
-      return getHandler ("pc-loader", this.getAttribute ('loader') || 'src').then ((loader) => {
+      return getHandler ("loader", this.getAttribute ('loader') || 'src').then ((loader) => {
         return loader.apply (this);
       }).then ((list) => {
         // XXX filter=""
