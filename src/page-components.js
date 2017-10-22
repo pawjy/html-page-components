@@ -1,13 +1,67 @@
 (function () {
   var exportable = {};
 
-  if (!self.pcFillType) self.pcFillType = {};
-  self.pcFillType.time = 'datetime';
+  var definables = {
+    loader: {type: 'handler'},
+    filltype: {type: 'map'},
+  };
+  var defs = {};
+  var defLoadedPromises = {};
+  var defLoadedCallbacks = {};
+  for (var n in definables) {
+    defs[n] = {};
+    defLoadedPromises[n] = {};
+    defLoadedCallbacks[n] = {};
+  }
+  var addDef = function (e) {
+    var type = e.localName;
+    if (!(e.namespaceURI === 'data:,pc' && definables[type])) return;
+    
+    var name = e.getAttribute ('name');
+    if (defs[type][name]) {
+      throw new Error ("Duplicate |"+type+"|: |"+name+"|");
+    } else {
+      var value = null;
+      if (definables[type].type === 'handler') {
+        value = e.pcHandler || (() => {});
+      } else {
+        value = e.getAttribute ('content');
+      }
+      defs[type][name] = value;
+      if (defLoadedCallbacks[type][name]) {
+        defLoadedCallbacks[type][name] (value);
+        delete defLoadedCallbacks[type][name];
+        delete defLoadedPromises[type][name];
+      }
+    }
+  }; // addDef
+  new MutationObserver (function (mutations) {
+    mutations.forEach
+        ((m) => Array.prototype.forEach.call (m.addedNodes, addDef));
+  }).observe (document.head, {childList: true});
+  Promise.resolve ().then (() => {
+    Array.prototype.slice.call (document.head.children).forEach (addDef);
+  });
+  var getDef = function (type, name) {
+    var def = defs[type][name];
+    if (def) {
+      return Promise.resolve (def);
+    } else {
+      if (!defLoadedPromises[type][name]) {
+        defLoadedPromises[type][name] = new Promise ((a, b) => {
+          defLoadedCallbacks[type][name] = a;
+        });
+      }
+      return defLoadedPromises[type][name];
+    }
+  }; // getDef
+
+  defs.filltype.time = 'datetime';
   // <data>
-  self.pcFillType.input = 'idlattribute';
-  self.pcFillType.select = 'idlattribute';
-  self.pcFillType.textarea = 'idlattribute';
-  self.pcFillType.output = 'idlattribute';
+  defs.filltype.input = 'idlattribute';
+  defs.filltype.select = 'idlattribute';
+  defs.filltype.textarea = 'idlattribute';
+  defs.filltype.output = 'idlattribute';
   // <progress>
   // <meter>
 
@@ -22,7 +76,7 @@
       }
 
       var ln = f.localName;
-      var fillType = self.pcFillType ? self.pcFillType[ln] : null;
+      var fillType = defs.filltype[ln];
       if (fillType === 'contentattribute') {
         f.setAttribute ('value', value);
       } else if (fillType === 'idlattribute') {
@@ -68,56 +122,6 @@
       }); // [data-*-template]
     });
   }; // $fill
-
-  var handlers = {
-    'loader': {},
-  };
-  var handlerLoaded = {
-    'loader': {},
-  };
-  var handlerLoadedNow = {
-    'loader': {},
-  };
-  var addHandler = function (e) {
-    if (handlers[e.localName] && e.namespaceURI === 'data:,pc') {
-      var name = e.getAttribute ('name');
-      if (handlers[e.localName][name]) {
-        throw new Error ("Duplicate |"+e.localName+"| handler |"+name+"|");
-      } else {
-        if (!e.pcHandler) {
-          throw new Error ("|"+e.localName+"| handler |"+name+"| does not have |pcHandler|");
-        } else {
-          handlers[e.localName][name] = e.pcHandler;
-          if (handlerLoadedNow[e.localName][name]) {
-            handlerLoadedNow[e.localName][name] (e.pcHandler);
-            delete handlerLoaded[e.localName][name];
-            delete handlerLoadedNow[e.localName][name];
-          }
-        }
-      }
-    }
-  }; // addHandler
-  new MutationObserver (function (mutations) {
-    mutations.forEach (function (m) {
-      Array.prototype.forEach.call (m.addedNodes, addHandler);
-    });
-  }).observe (document.head, {childList: true});
-  Promise.resolve ().then (() => {
-    Array.prototype.slice.call (document.head.children).forEach (addHandler);
-  });
-  var getHandler = function (type, handlerName) {
-    var handler = handlers[type][handlerName];
-    if (handler) {
-      return Promise.resolve (handler);
-    } else {
-      if (!handlerLoaded[type][handlerName]) {
-        handlerLoaded[type][handlerName] = new Promise ((a, b) => {
-          handlerLoadedNow[type][handlerName] = a;
-        });
-      }
-      return handlerLoaded[type][handlerName];
-    }
-  }; // getHandler
   
   var selectors = [];
   var elementProps = {};
@@ -152,7 +156,7 @@
     }, // cbClick
   }; // button[is=command-button]
 
-  // XXX handlers["loader"].src
+  // XXX defs.loader.src
   
   selectors.push ('list-container');
   elementProps["list-container"] = {
@@ -179,7 +183,7 @@
     }, // pcInit
 
     lcLoad: function () {
-      return getHandler ("loader", this.getAttribute ('loader') || 'src').then ((loader) => {
+      return getDef ("loader", this.getAttribute ('loader') || 'src').then ((loader) => {
         return loader.apply (this);
       }).then ((list) => {
         // XXX filter=""

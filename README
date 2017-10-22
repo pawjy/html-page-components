@@ -48,10 +48,9 @@ A |list-container| element represents a dynamic list of items.  Its
 content model is transparent.
 
 A |list-container| element has a *list*, which is a list of JavaScript
-objects.  The list can be constructed by a loader.  A *loader* is a
-handler with type |loader|.  The loader used by a |list-container|
-element can be specified by the |loader| attribute value.  The default
-loader's name is |src|.
+objects.  The list is constructed by the loader whose name is
+specified by the |loader| attribute value of the element, defaulted to
+|src|.  A *loader* is a definition of type |loader|.
 
 The first |list-main| element descendant of a |list-container| element
 is the *list item insertion point* of the |list-container| element.
@@ -239,8 +238,8 @@ following function is available:
         by the |data-field| attribute.
 
         For the purpose of this function the *value* of an element
-        /element/ is determined by the
-        |window.pcFillType[element.localName]|:
+        /element/ is the definition of type |filltype| for /element/'s
+        local name:
 
           |contentattribute|
 
@@ -341,24 +340,36 @@ following function is available:
     /template/ where any substring |{/field-name/}| is replaced by the
     field value for /field-name/.
 
-* Handlers
+* Definitions
 
-A handler can be defined by inserting an element whose namespace URL
-is <data:,pc> and local name is handler type into the head element of
-the document.
+The *definition* is an integration point with another script libraries
+and the application.
 
-The *handler type* is |loader|, which defines a handler for
-|list-container| element's loader.
+A definition is represented by an element whose namespace URL is
+<data:,pc>.  The definition's *type* is its local name.  The
+definition can be registered by inserting the element into the head
+element of the document.  There is no way to remove a definition.
 
-The element must have a |name| attribute, whose value is the *handler
-name*.  The handler name must be unique.  Predefined handler names
-cannot be used as a |name| attribute value.
+The definition's *name* is its |name| attribute value.  A definition
+must have a |name| attribute.  The name must be unique for its type.
+Predefined names cannot be used as a name.
 
-The element must have a |pcHandler| property whose value is a
-JavaScript function.  This function is invoked when the handler is
-said to be *invoked*.
+There are following definition types:
 
-A handler cannot be removed.
+  filltype (string)
+
+    A map entry for |$fill| handling.
+
+  loader (handler)
+
+    A handler for |list-container| element's loader.
+
+If a definition type is /handler/, it must have a handler.  The
+*handler* of a definition is the |pcHandler| JavaScript property
+value, which must be a JavaScript function.
+
+If a definition type is /string/, it must have a content.  The
+*content* of a definition is the |content| content attribute value.
 
 * Author
 

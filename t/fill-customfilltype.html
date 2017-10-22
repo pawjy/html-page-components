@@ -6,10 +6,15 @@
 </head>
 <body>
   <script>
-    window.pcFillType = {
-      "content-attr": "contentattribute",
-      "idl-attr": "idlattribute",
-    };
+    var l = document.createElementNS ('data:,pc', 'filltype');
+    l.setAttribute ('name', 'content-attr');
+    l.setAttribute ('content', 'contentattribute');
+    document.head.appendChild (l);
+    
+    var l = document.createElementNS ('data:,pc', 'filltype');
+    l.setAttribute ('name', 'idl-attr');
+    l.setAttribute ('content', 'idlattribute');
+    document.head.appendChild (l);
   </script>
   
   <test-code name="content attribute">
