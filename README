@@ -358,7 +358,9 @@ There are following definition types:
 
   loader (handler)
 
-    A handler for |list-container| element's loader.
+    A handler for |list-container| element's loader.  It is expected
+    to return an object (a promise fulfulled with an object) whose
+    |data| is the list, as an array.
 
 If a definition type is /handler/, it must have a handler.  The
 *handler* of a definition is the |pcHandler| JavaScript property
