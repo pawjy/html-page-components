@@ -132,6 +132,38 @@
       this.assert.equal (items[1].textContent, '[[cc]]');
     });
   </test-code>
+  
+  <test-code name="renderingrequires filltype">
+    /*
+      <list-container loader=renderingRequiresTestLoader>
+        <template data-requires=filltype:e-1><e-1 data-field=name></e-1></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'renderingRequiresTestLoader');
+    handler.pcHandler = () => {
+      return [{"name":"a"}, {"name":"c"}];
+    };
+    document.head.appendChild (handler);
+
+    return this.wait (100).then (() => {
+      var f = document.createElementNS ('data:,pc', 'filltype');
+      f.setAttribute ('name', 'e-1');
+      f.setAttribute ('content', 'contentattribute');
+      document.head.appendChild (f);
+      
+      return this.wait (100);
+    }).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, '');
+      this.assert.equal (items[0].firstChild.getAttribute ('value'), 'a', 'value=""');
+      this.assert.equal (items[1].textContent, '');
+      this.assert.equal (items[1].firstChild.getAttribute ('value'), 'c', 'value=""');
+    });
+  </test-code>
 
   <script src=runtests.js></script>
 </body>

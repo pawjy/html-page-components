@@ -336,18 +336,6 @@ following function is available:
     /template/ where any substring |{/field-name/}| is replaced by the
     field value for /field-name/.
 
-* Template processing
-
-When a /name/ element is created from an /object/ using /template/,
-
-  - Its |class| attribute value is set to the |class| attribute value
-    of /template/.
-
-  - Its content is set to a deep clone of the template content of
-    /template/.
-
-  - The |$fill| function is invoked with it and /object/.
-
 * Definitions
 
 The *definition* is an integration point with another script libraries
@@ -378,6 +366,31 @@ value, which must be a JavaScript function.
 
 If a definition type is /string/, it must have a content.  The
 *content* of a definition is the |content| content attribute value.
+
+* Template processing
+
+When a /name/ element is created from an /object/ using /template/,
+
+  - Its |data-requires| attribute value is interpreted as a
+    space-separated list of the definition type-name pair separated by
+    |:| required to process the template.
+
+  - Its |class| attribute value is set to the |class| attribute value
+    of /template/.
+
+  - Its content is set to a deep clone of the template content of
+    /template/.
+
+  - The |$fill| function is invoked with it and /object/.
+
+For example, a template:
+
+  <template data-requires=filltype:unit-number>
+    <unit-number type=distance data-field=from-station></unit-number>
+  </template>
+
+... will be processed after the |filltype| definition for name
+|unit-number| is loaded.
 
 * Author
 

@@ -50,6 +50,36 @@
     });
   </test-code>
 
+  <test-code name="requires nothing">
+    /*
+      <list-container loader=ac>
+        <template data-requires><span data-field=name></span></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    return this.wait ().then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, 'a');
+      this.assert.equal (items[1].textContent, 'c');
+    });
+  </test-code>
+
+  <test-code name="requires broken">
+    /*
+      <list-container loader=ac>
+        <template data-requires=hoge><span data-field=name></span></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    return this.wait ().then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 0);
+    });
+  </test-code>
+
   <script src=runtests.js></script>
 </body>
 </html>
