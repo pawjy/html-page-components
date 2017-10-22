@@ -39,6 +39,9 @@
         var context = {
           currentScript: e,
           wait: (n) => new Promise ((ok) => setTimeout (ok, n || 0)),
+          assertEqualError: function (actual, expected, name) {
+            this.assert.throws (() => { throw actual }, expected, name);
+          }, // assertEqualError
           assertWindowError: function (code, expected, name) {
             var onerror = window.onerror;
             var error = undefined;
@@ -48,7 +51,7 @@
             };
             code ();
             window.onerror = onerror;
-            this.assert.throws (() => { throw error }, expected, name);
+            this.assertEqualError (error, expected, name);
           }, // assertWindowError
         };
         return scriptLoaded.then (function () {

@@ -367,6 +367,29 @@ value, which must be a JavaScript function.
 If a definition type is /string/, it must have a content.  The
 *content* of a definition is the |content| content attribute value.
 
+There is a predefined loader: |src|.  It fetches the JSON file whose
+URL is the |src| attribute value and returns the value for name
+specified by the |key| attribute.  For example,
+
+  <list-container src=data.json key=users>
+    <template><p data-field=name></template>
+    <list-main></list-main>
+  </list-container>
+
+  data.json:
+  {
+    "users": [
+      ["name": "Hanako"}
+    ]
+  }
+
+... will result in:
+
+  <list-container src=data.json key=users>
+    <template><p data-field=name></template>
+    <list-main><list-item><p data-field=name>Hanako</p></list-item></list-main>
+  </list-container>
+
 * Template processing
 
 When a /name/ element is created from an /object/ using /template/,

@@ -164,6 +164,59 @@
       this.assert.equal (items[1].firstChild.getAttribute ('value'), 'c', 'value=""');
     });
   </test-code>
+  
+  <test-code name="src">
+    /*
+      <list-container src=list-container-data-1.json key=abc>
+        <template><span data-field=name></span></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    return this.wait ().then (() => {
+      return e.loaded;
+    }).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, 'A.');
+      this.assert.equal (items[1].textContent, 'B.');
+    });
+  </test-code>
+  
+  <test-code name="src no key">
+    /*
+      <list-container src=list-container-data-1.json>
+        <template><span data-field=name></span></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    return this.wait ().then (() => {
+      return e.loaded;
+    }).then (() => {
+      throw "e.loaded not failed";
+    }, (error) => {  
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 0);
+      this.assertEqualError (error, new Error ("|key| is not specified"));
+    });
+  </test-code>
+  
+  <test-code name="src bad json">
+    /*
+      <list-container src=data:,null key=abc>
+        <template><span data-field=name></span></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    return this.wait ().then (() => {
+      return e.loaded;
+    }).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 0);
+    });
+  </test-code>
 
   <script src=runtests.js></script>
 </body>
