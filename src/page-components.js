@@ -253,6 +253,12 @@
         return this.lcRequestRender ();
       });
     }, // load
+    loadPrev: function () {
+      return this.load (this.lcPrev);
+    }, // loadPrev
+    loadNext: function () {
+      return this.load (this.lcNext);
+    }, // loadNext
     lcClearList: function () {
       this.lcData = [];
       this.lcDataChanges = {append: [], prepend: [], changed: false};
@@ -314,14 +320,14 @@
         if (e.localName === 'a') {
           e.href = this.lcPrev.linkURL || 'javascript:';
         }
-        e.onclick = () => { this.load (this.lcPrev); return false };
+        e.onclick = () => { this.loadPrev (); return false };
       });
       this.querySelectorAll ('a.list-next, button.list-next').forEach ((e) => {
         e.hidden = ! this.lcNext.has;
         if (e.localName === 'a') {
           e.href = this.lcNext.linkURL || 'javascript:';
         }
-        e.onclick = () => { this.load (this.lcNext); return false };
+        e.onclick = () => { this.loadNext (); return false };
       });
       
       // XXX template selector
