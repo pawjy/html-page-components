@@ -218,6 +218,209 @@
     });
   </test-code>
 
+  <script>
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'pagingLoader');
+    handler.pcHandler = (opts) => {
+      var ref = parseFloat (opts.ref);
+      if (!Number.isFinite (ref)) ref = 0;
+      return {
+        data: [{"value":++ref}, {"value": ++ref}],
+        next: {ref: ref, has: true},
+        prev: {ref: ref-4, has: false},
+      };
+    };
+    document.head.appendChild (handler);
+  </script>
+  <script>
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'pagingNoPageLoader');
+    handler.pcHandler = (opts) => {
+      var ref = parseFloat (opts.ref);
+      if (!Number.isFinite (ref)) ref = 0;
+      return {
+        data: [{"value":++ref}, {"value": ++ref}],
+      };
+    };
+    document.head.appendChild (handler);
+  </script>
+
+  <script>
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'pagingAppendLoader');
+    handler.pcHandler = (opts) => {
+      var ref = parseFloat (opts.ref);
+      if (!Number.isFinite (ref)) ref = 0;
+      return {
+        data: [{"value":++ref}, {"value": ++ref}],
+        next: {ref: ref, has: true, append: true},
+        prev: {ref: ref-4, has: false, prepend: true},
+      };
+    };
+    document.head.appendChild (handler);
+  </script>
+  
+  <test-code name="paging">
+    /*
+      <list-container loader=pagingLoader key=data>
+        <template><span data-field=value></span></template>
+        <list-main></list-main>
+        <a class=list-next>Next</a>
+        <a class=list-prev>Prev</a>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    var n = this.currentScript.querySelector ('.list-next');
+    var p = this.currentScript.querySelector ('.list-prev');
+    return this.wait (100).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, '1');
+      this.assert.equal (items[1].textContent, '2');
+      this.assert.equal (n.href, 'javascript:');
+      this.assert.equal (n.hidden, false);
+      this.assert.equal (p.href, 'javascript:');
+      this.assert.equal (p.hidden, true);
+      n.click ();
+      return this.wait (100);
+    }).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, '3');
+      this.assert.equal (items[1].textContent, '4');
+      p.click ();
+      return this.wait (100);
+    }).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, '1');
+      this.assert.equal (items[1].textContent, '2');
+      p.click ();
+      return this.wait (100);
+    }).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, '-1');
+      this.assert.equal (items[1].textContent, '0');
+    });
+  </test-code>
+  
+  <test-code name="paging no page data">
+    /*
+      <list-container loader=pagingNoPageLoader key=data>
+        <template><span data-field=value></span></template>
+        <list-main></list-main>
+        <a class=list-next>Next</a>
+        <a class=list-prev>Prev</a>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    var n = this.currentScript.querySelector ('.list-next');
+    var p = this.currentScript.querySelector ('.list-prev');
+    return this.wait (100).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, '1');
+      this.assert.equal (items[1].textContent, '2');
+      this.assert.equal (n.href, 'javascript:');
+      this.assert.equal (n.hidden, true);
+      this.assert.equal (p.href, 'javascript:');
+      this.assert.equal (p.hidden, true);
+      n.click ();
+      return this.wait (100);
+    }).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, '1');
+      this.assert.equal (items[1].textContent, '2');
+      p.click ();
+      return this.wait (100);
+    }).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, '1');
+      this.assert.equal (items[1].textContent, '2');
+    });
+  </test-code>
+  
+  <test-code name="paging button">
+    /*
+      <list-container loader=pagingLoader key=data>
+        <template><span data-field=value></span></template>
+        <list-main></list-main>
+        <button class=list-next>Next</button>
+        <button class=list-prev>Prev</button>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    var n = this.currentScript.querySelector ('.list-next');
+    var p = this.currentScript.querySelector ('.list-prev');
+    return this.wait (100).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, '1');
+      this.assert.equal (items[1].textContent, '2');
+      this.assert.equal (n.href, undefined);
+      this.assert.equal (n.hidden, false);
+      this.assert.equal (p.href, undefined);
+      this.assert.equal (p.hidden, true);
+      n.click ();
+      return this.wait (100);
+    }).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, '3');
+      this.assert.equal (items[1].textContent, '4');
+      p.click ();
+      return this.wait (100);
+    }).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, '1');
+      this.assert.equal (items[1].textContent, '2');
+    });
+  </test-code>
+  
+  <test-code name="paging append/prepend">
+    /*
+      <list-container loader=pagingAppendLoader key=data>
+        <template><span data-field=value></span></template>
+        <list-main></list-main>
+        <button class=list-next>Next</button>
+        <button class=list-prev>Prev</button>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    var n = this.currentScript.querySelector ('.list-next');
+    var p = this.currentScript.querySelector ('.list-prev');
+    return this.wait (100).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, '1');
+      this.assert.equal (items[1].textContent, '2');
+      n.click ();
+      return this.wait (100);
+    }).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 4);
+      this.assert.equal (items[0].textContent, '1');
+      this.assert.equal (items[1].textContent, '2');
+      this.assert.equal (items[2].textContent, '3');
+      this.assert.equal (items[3].textContent, '4');
+      p.click ();
+      return this.wait (100);
+    }).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 6);
+      this.assert.equal (items[0].textContent, '0');
+      this.assert.equal (items[1].textContent, '-1');
+      this.assert.equal (items[2].textContent, '1');
+      this.assert.equal (items[3].textContent, '2');
+      this.assert.equal (items[4].textContent, '3');
+      this.assert.equal (items[5].textContent, '4');
+    });
+  </test-code>
+
   <script src=runtests.js></script>
 </body>
 </html>

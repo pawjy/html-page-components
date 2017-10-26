@@ -201,19 +201,34 @@
     }, // cbClick
   }; // button[is=command-button]
 
-  defs.loader.src = function () {
+  defs.loader.src = function (opts) {
     if (!this.hasAttribute ('src')) return {};
-    return fetch (this.getAttribute ('src')).then ((res) => res.json ()).then ((json) => {
+    var url = this.getAttribute ('src');
+    if (opts.ref) {
+      url += /\?/.test (url) ? '&' : '?';
+      url += 'ref=' + encodeURIComponent (opts.ref);
+    }
+    if (opts.limit) {
+      url += /\?/.test (url) ? '&' : '?';
+      url += 'limit=' + encodeURIComponent (opts.limit);
+    }
+    return fetch (url).then ((res) => res.json ()).then ((json) => {
       if (!this.hasAttribute ('key')) throw new Error ("|key| is not specified");
-      return {data: (json || {})[this.getAttribute ('key')]};
+      json = json || {};
+      return {
+        data: json[this.getAttribute ('key')],
+        prev: {ref: json.prev_ref, has: json.has_prev, limit: opts.limit,
+               prepend: true},
+        next: {ref: json.next_ref, has: json.has_next, limit: opts.limit,
+               append: true},
+      };
     });
   }; // src
   
   selectors.push ('list-container');
   elementProps["list-container"] = {
     pcInit: function () {
-      // XXX observe only template children and list-main descendants
-      var selector = 'template, list-main';
+      var selector = 'template, list-main, a.list-prev, a.list-next, button.list-prev, button.list-next';
       new MutationObserver ((mutations) => {
         mutations.forEach ((m) => {
           Array.prototype.forEach.call (m.addedNodes, (e) => {
@@ -227,13 +242,26 @@
         });
       }).observe (this, {childList: true, subtree: true});
       
-      this.lcData = [];
-      this.lcLoad ().then (() => {
-        return this.lcRequestRender ();
-      });
+      this.load ({});
     }, // pcInit
 
-    lcLoad: function () {
+    load: function (opts) {
+      if (!opts.prepend && !opts.append) this.lcClearList ();
+      return this.lcLoad (opts).then (() => {
+        return this.lcRequestRender ();
+      });
+    }, // load
+    lcClearList: function () {
+      this.lcData = [];
+      this.lcDataChanges = {append: [], prepend: [], changed: false};
+      this.lcPrev = {};
+      this.lcNext = {};
+      
+      var listContainer = this.querySelector ('list-main');
+      if (listContainer) listContainer.textContent = '';
+    }, // lcClearList
+    
+    lcLoad: function (opts) {
       var resolve;
       var reject;
       this.loaded = new Promise ((a, b) => {
@@ -241,12 +269,28 @@
         reject = b;
       });
       return getDef ("loader", this.getAttribute ('loader') || 'src').then ((loader) => {
-        return loader.apply (this);
+        return loader.call (this, opts);
       }).then ((result) => {
         // XXX filter=""
         // XXX sort
         // XXX object as list
-        this.lcData = result.data;
+        if (opts.prepend) {
+          var newObjects = result.data.reverse ();
+          this.lcData = newObjects.concat (this.lcData);
+          this.lcDataChanges.prepend
+              = newObjects.concat (this.lcDataChanges.prepend);
+          this.lcPrev = result.prev || {};
+        } else if (opts.append) {
+          this.lcData = this.lcData.concat (result.data);
+          this.lcDataChanges.append
+              = this.lcDataChanges.append.concat (result.data);
+          this.lcNext = result.next || {};
+        } else {
+          this.lcData = result.data || [];
+          this.lcDataChanges = {prepend: [], append: [], changed: true};
+          this.lcPrev = result.prev || {};
+          this.lcNext = result.next || {};
+        }
         resolve ();
       }).catch ((e) => {
         reject (e);
@@ -259,10 +303,24 @@
       this.lcRenderRequestedTimer = setTimeout (() => this.lcRender (), 0);
     }, // lcRequestRender
     lcRender: function () {
-      console.log("render");
       // XXX type=""
       var listContainer = this.querySelector ('list-main');
       if (!listContainer) return;
+
+      this.querySelectorAll ('a.list-prev, button.list-prev').forEach ((e) => {
+        e.hidden = ! this.lcPrev.has;
+        if (e.localName === 'a') {
+          e.href = this.lcPrev.linkURL || 'javascript:';
+        }
+        e.onclick = () => { this.load (this.lcPrev); return false };
+      });
+      this.querySelectorAll ('a.list-next, button.list-next').forEach ((e) => {
+        e.hidden = ! this.lcNext.has;
+        if (e.localName === 'a') {
+          e.href = this.lcNext.linkURL || 'javascript:';
+        }
+        e.onclick = () => { this.load (this.lcNext); return false };
+      });
       
       // XXX template selector
       var template;
@@ -273,12 +331,31 @@
       });
       if (!template) template = document.createElement ('template');
 
-      listContainer.textContent = '';
-      return $promised.forEach ((object) => {
-        return createFromTemplate (template, 'list-item', object).then ((e) => {
-          listContainer.appendChild (e);
-        });
-      }, this.lcData);
+      var changes = this.lcDataChanges;
+      this.lcDataChanges = {changed: false, prepend: [], append: []};
+      if (changes.changed) {
+        return $promised.forEach ((object) => {
+          return createFromTemplate (template, 'list-item', object).then ((e) => {
+            listContainer.appendChild (e);
+          });
+        }, this.lcData);
+      } else {
+        var f = document.createDocumentFragment ();
+        return Promise.all ([
+          $promised.forEach ((object) => {
+            return createFromTemplate (template, 'list-item', object).then ((e) => {
+              f.appendChild (e);
+            });
+          }, changes.prepend).then (() => {
+            listContainer.insertBefore (f, listContainer.firstChild);
+          }),
+          $promised.forEach ((object) => {
+            return createFromTemplate (template, 'list-item', object).then ((e) => {
+              listContainer.appendChild (e);
+            });
+          }, changes.append),
+        ]);
+      }
 
       // XXX loaded-actions=""
       // XXX action-status integration

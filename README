@@ -64,7 +64,17 @@ element is the first |template| element descendant of the
 
 A |list-container| element is rendered when the element is inserted
 and has |list-main| element and |template| element descendants, or
-when a |list-main| or |template| element descendant is inserted.
+when a |list-main| or |template| element or pager button descendant is
+inserted.
+
+A *pager button* is a next page button or a previous page button.  A
+*next page button* is an |a| or |button| element which has a
+|list-next| class.  A *previous page button* is an |a| or |button|
+element which has a |list-prev| class.  A page button's |hidden|
+attribute is set or removed appropriately, according to whether there
+is the next or previous page or not.  When a page button is clicked,
+the list is updated to inculude the previous or next page
+appropriately and the |list-container| element is rendered.
 
 ** <image-editor>
 
@@ -359,8 +369,33 @@ There are following definition types:
   loader (handler)
 
     A handler for |list-container| element's loader.  It is expected
-    to return an object (a promise fulfulled with an object) whose
-    |data| is the list, as an array.
+    to return an object (or a promise fulfulled with an object) with
+    following name/value pairs:
+
+      data
+
+        The list, as a JavaScript array.  This value is required.  If
+        there is no object, an empty array should be specified.
+
+      next, prev
+
+        An object on the next or previous "page", with following
+        name/value pairs:
+
+          ref
+
+            An opaque string to identify the page.
+
+          has
+
+            Whether there is the page or not.
+
+          append, prepend
+
+            Whether the page should be appended or prepended to the
+            current list or not.  At most one of them can be set to
+            true.  If none is set to true, the current list is cleared
+            and then the new list items are inserted.
 
 If a definition type is /handler/, it must have a handler.  The
 *handler* of a definition is the |pcHandler| JavaScript property
