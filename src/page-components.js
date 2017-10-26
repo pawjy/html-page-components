@@ -212,7 +212,9 @@
       url += /\?/.test (url) ? '&' : '?';
       url += 'limit=' + encodeURIComponent (opts.limit);
     }
-    return fetch (url).then ((res) => res.json ()).then ((json) => {
+    return fetch (url, {
+      credentials: "same-origin",
+    }).then ((res) => res.json ()).then ((json) => {
       if (!this.hasAttribute ('key')) throw new Error ("|key| is not specified");
       json = json || {};
       return {
