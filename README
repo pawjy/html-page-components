@@ -76,6 +76,18 @@ is the next or previous page or not.  When a page button is clicked,
 the list is updated to inculude the previous or next page
 appropriately and the |list-container| element is rendered.
 
+A |list-container| element has following methods:
+
+  loadNext
+
+    Load and render the next page.  This is equivalent to clicking a
+    next page button.
+
+  loadPrev
+
+    Load and render the previous page.  This is equivalent to clicking
+    a previous page button.
+
 ** <image-editor>
 
 An |image-editor| element represents an editable image.  Its content
