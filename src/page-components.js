@@ -205,6 +205,10 @@
   elementProps['popup-menu'] = {
     pcInit: function () {
       this.addEventListener ('click', (ev) => this.pmClick (ev));
+      var mo = new MutationObserver ((mutations) => {
+        this.pmToggle (this.hasAttribute ('open'));
+      });
+      mo.observe (this, {attributeFilter: ['open']});
       setTimeout (() => this.pmLayout (), 100);
     }, // pcInit
     pmClick: function (ev) {
@@ -249,6 +253,12 @@
       }
       if (show) {
         this.setAttribute ('open', '');
+      } else {
+        this.removeAttribute ('open');
+      }
+    }, // toggle
+    pmToggle: function (show) {
+      if (show) {
         if (!this.pmGlobalClickHandler) {
           this.pmGlobalClickHandler = (ev) => {
             if (ev.pmEventHandledBy === this) return;
@@ -258,13 +268,12 @@
           this.pmLayout ();
         }
       } else {
-        this.removeAttribute ('open');
         if (this.pmGlobalClickHandler) {
           window.removeEventListener ('click', this.pmGlobalClickHandler);
           delete this.pmGlobalClickHandler;
         }
       }
-    }, // toggle
+    }, // pmToggle
 
     pmLayout: function () {
       if (!this.hasAttribute ('open')) return;
@@ -273,8 +282,12 @@
       var menu = this.querySelector ('menu-main');
       if (!button || !menu) return;
 
+      menu.style.top = 'auto';
+      menu.style.left = 'auto';
+      var menuWidth = menu.offsetWidth;
+      var menuTop = menu.offsetTop;
+      var menuHeight = menu.offsetHeight;
       if (getComputedStyle (menu).direction === 'rtl') {
-        var menuWidth = menu.offsetWidth;
         var parent = menu.offsetParent || document.documentElement;
         if (button.offsetLeft + menuWidth > parent.offsetWidth) {
           menu.style.left = button.offsetLeft + button.offsetWidth - menuWidth + 'px';
@@ -283,7 +296,6 @@
         }
       } else {
         var right = button.offsetLeft + button.offsetWidth;
-        var menuWidth = menu.offsetWidth;
         if (right > menuWidth) {
           menu.style.left = (right - menuWidth) + 'px';
         } else {

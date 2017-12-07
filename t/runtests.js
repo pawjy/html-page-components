@@ -35,7 +35,8 @@
   qunitLoaded.then (function () {
     document.querySelectorAll ('test-code').forEach (function (e) {
       QUnit.test (e.getAttribute ('name'), function (assert) {
-        var code = new Function (e.textContent);
+        var AsyncFunction = Object.getPrototypeOf (async function (){}).constructor;
+        var code = new AsyncFunction (e.textContent);
         var context = {
           currentScript: e,
           wait: (n) => new Promise ((ok) => setTimeout (ok, n || 0)),

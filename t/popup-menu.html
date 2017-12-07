@@ -27,7 +27,7 @@
     e.toggle (true);
     this.assert.equal (e.getAttribute ('open'), '');
   </test-code>
-  
+
   <test-code name="toggle">
     /*
       <popup-menu>
@@ -39,24 +39,31 @@
     e.toggle ();
     this.assert.equal (e.getAttribute ('open'), '');
     this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+    await this.wait ();
     e.toggle ();
     this.assert.equal (e.getAttribute ('open'), null);
     this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none');
+    await this.wait ();
     e.toggle ();
     this.assert.equal (e.getAttribute ('open'), '');
     this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+    await this.wait ();
     e.toggle (true);
     this.assert.equal (e.getAttribute ('open'), '');
     this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+    await this.wait ();
     e.toggle (true);
     this.assert.equal (e.getAttribute ('open'), '');
     this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+    await this.wait ();
     e.toggle (false);
     this.assert.equal (e.getAttribute ('open'), null);
     this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none');
+    await this.wait ();
     e.toggle (false);
     this.assert.equal (e.getAttribute ('open'), null);
     this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none');
+    await this.wait ();
     e.toggle (true);
     this.assert.equal (e.getAttribute ('open'), '');
     this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
@@ -92,27 +99,34 @@
       </popup-menu>
     */
     var e = this.currentScript.querySelector ('popup-menu');
-    
+
     e.querySelector ('button').click ();
     this.assert.equal (e.getAttribute ('open'), '');
     this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+    await this.wait ();
     document.body.click ();
     this.assert.equal (e.getAttribute ('open'), null);
     this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none', 'close by clicking an element outside of the popup-menu');
-    
+      
+    await this.wait ();
     e.querySelector ('button').click ();
     this.assert.equal (e.getAttribute ('open'), '');
+    await this.wait ();
     e.querySelector ('menu-main').click ();
     this.assert.equal (e.getAttribute ('open'), '', 'Clicking the menu does not close the menu');
+    await this.wait ();
     e.querySelector ('button.button2').click ();
     this.assert.equal (e.querySelector ('button.button2').clicked, true, 'button click event fired as usual');
     this.assert.equal (e.getAttribute ('open'), null, 'Menu is closed');
 
+    await this.wait ();
     e.querySelector ('button').click ();
     this.assert.equal (e.getAttribute ('open'), '');
+    await this.wait ();
     e.querySelector ('a').click ();
     this.assert.equal (e.getAttribute ('open'), null, 'Menu is closed');
 
+    await this.wait ();
     document.body.click ();
     this.assert.equal (e.getAttribute ('open'), null, 'Menu is not opened');
   </test-code>
@@ -135,6 +149,7 @@
     this.assert.equal (e.getAttribute ('open'), '', 'e is opened');
     this.assert.equal (f.getAttribute ('open'), null, 'f is not changed');
     
+    await this.wait ();
     f.querySelector ('button').click ();
     this.assert.equal (e.getAttribute ('open'), null, 'e is closed');
     this.assert.equal (f.getAttribute ('open'), '', 'f is opened');
@@ -152,6 +167,7 @@
     e.querySelector ('button').click ();
     this.assert.equal (e.getAttribute ('open'), '', 'e is opened');
     
+    await this.wait ();
     e.querySelector ('menu-main button').click ();
     this.assert.equal (e.getAttribute ('open'), '', 'e is still opened');
   </test-code>
@@ -166,6 +182,7 @@
     var e = this.currentScript.querySelector ('popup-menu');
     this.assert.equal (e.getAttribute ('open'), '');
     this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+    await this.wait ();
     e.toggle ();
     this.assert.equal (e.getAttribute ('open'), null);
     this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none');
@@ -226,7 +243,9 @@
     var button = e.querySelector ('button');
     var menu = e.querySelector ('menu-main');
     this.assert.equal (menu.offsetLeft + menu.offsetWidth, button.offsetLeft + button.offsetWidth);
+    await this.wait ();
     e.toggle ();
+    await this.wait ();
     e.toggle ();
     this.assert.equal (menu.offsetLeft + menu.offsetWidth, button.offsetLeft + button.offsetWidth);
   </test-code>
@@ -244,7 +263,9 @@
     var button = e.querySelector ('button');
     var menu = e.querySelector ('menu-main');
     this.assert.equal (menu.offsetLeft, 0);
+    await this.wait ();
     e.toggle ();
+    await this.wait ();
     e.toggle ();
     this.assert.equal (menu.offsetLeft, 0);
   </test-code>
@@ -307,6 +328,30 @@
     var button = e.querySelector ('button');
     var menu = e.querySelector ('menu-main');
     this.assert.equal (menu.offsetLeft, button.offsetLeft);
+  </test-code>
+  
+  <test-code name="hide by clicking another menu">
+    /*
+      <popup-menu>
+        <button type=button>A</button>
+        <menu-main>BBBBBB</menu-main>
+      </popup-menu>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    var menu = e.querySelector ('menu-main');
+    var button = e.querySelector ('button');
+    
+    e.setAttribute ('open', '');
+    await this.wait ();
+    this.assert.equal (e.getAttribute ('open'), '', 'e is opened');
+    this.assert.equal (getComputedStyle (menu).display, 'block', 'default style');
+    this.assert.equal (menu.offsetLeft, 0);
+    
+    e.removeAttribute ('open');
+    await this.wait ();
+    this.assert.equal (e.getAttribute ('open'), null, 'e is closed');
+    this.assert.equal (getComputedStyle (menu).display, 'none');
+    
   </test-code>
 
   <script src=runtests.js></script>
