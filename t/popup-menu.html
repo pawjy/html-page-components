@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+  <test-code name="empty / toggle">
+    /*
+      <popup-menu></popup-menu>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    e.toggle ();
+    this.assert.equal (e.getAttribute ('open'), '');
+    e.toggle ();
+    this.assert.equal (e.getAttribute ('open'), null);
+    e.toggle ();
+    this.assert.equal (e.getAttribute ('open'), '');
+    e.toggle (true);
+    this.assert.equal (e.getAttribute ('open'), '');
+    e.toggle (true);
+    this.assert.equal (e.getAttribute ('open'), '');
+    e.toggle (false);
+    this.assert.equal (e.getAttribute ('open'), null);
+    e.toggle (false);
+    this.assert.equal (e.getAttribute ('open'), null);
+    e.toggle (true);
+    this.assert.equal (e.getAttribute ('open'), '');
+  </test-code>
+  
+  <test-code name="toggle">
+    /*
+      <popup-menu>
+        <button type=button>A</button>
+        <menu-main>B</menu-main>
+      </popup-menu>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    e.toggle ();
+    this.assert.equal (e.getAttribute ('open'), '');
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+    e.toggle ();
+    this.assert.equal (e.getAttribute ('open'), null);
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none');
+    e.toggle ();
+    this.assert.equal (e.getAttribute ('open'), '');
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+    e.toggle (true);
+    this.assert.equal (e.getAttribute ('open'), '');
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+    e.toggle (true);
+    this.assert.equal (e.getAttribute ('open'), '');
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+    e.toggle (false);
+    this.assert.equal (e.getAttribute ('open'), null);
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none');
+    e.toggle (false);
+    this.assert.equal (e.getAttribute ('open'), null);
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none');
+    e.toggle (true);
+    this.assert.equal (e.getAttribute ('open'), '');
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+  </test-code>
+  
+  <test-code name="button click">
+    /*
+      <popup-menu>
+        <button type=button>A</button>
+        <menu-main>B</menu-main>
+      </popup-menu>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    e.querySelector ('button').click ();
+    this.assert.equal (e.getAttribute ('open'), '');
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+    e.querySelector ('button').click ();
+    this.assert.equal (e.getAttribute ('open'), null);
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none');
+    e.querySelector ('button').click ();
+    this.assert.equal (e.getAttribute ('open'), '');
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+    e.querySelector ('button').click ();
+    this.assert.equal (e.getAttribute ('open'), null);
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none');
+  </test-code>
+  
+  <test-code name="hide by click-outside">
+    /*
+      <popup-menu>
+        <button type=button>A</button>
+        <menu-main>B <button class=button2 onclick="this.clicked = true">2</button> <a href=javascript:>3</a></menu-main>
+      </popup-menu>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    
+    e.querySelector ('button').click ();
+    this.assert.equal (e.getAttribute ('open'), '');
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+    document.body.click ();
+    this.assert.equal (e.getAttribute ('open'), null);
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none', 'close by clicking an element outside of the popup-menu');
+    
+    e.querySelector ('button').click ();
+    this.assert.equal (e.getAttribute ('open'), '');
+    e.querySelector ('menu-main').click ();
+    this.assert.equal (e.getAttribute ('open'), '', 'Clicking the menu does not close the menu');
+    e.querySelector ('button.button2').click ();
+    this.assert.equal (e.querySelector ('button.button2').clicked, true, 'button click event fired as usual');
+    this.assert.equal (e.getAttribute ('open'), null, 'Menu is closed');
+
+    e.querySelector ('button').click ();
+    this.assert.equal (e.getAttribute ('open'), '');
+    e.querySelector ('a').click ();
+    this.assert.equal (e.getAttribute ('open'), null, 'Menu is closed');
+
+    document.body.click ();
+    this.assert.equal (e.getAttribute ('open'), null, 'Menu is not opened');
+  </test-code>
+  
+  <test-code name="hide by clicking another menu">
+    /*
+      <popup-menu>
+        <button type=button>A</button>
+        <menu-main>B</menu-main>
+      </popup-menu>
+      <popup-menu>
+        <button type=button>A</button>
+        <menu-main>B</menu-main>
+      </popup-menu>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    var f = this.currentScript.querySelector ('popup-menu:nth-child(2)');
+    
+    e.querySelector ('button').click ();
+    this.assert.equal (e.getAttribute ('open'), '', 'e is opened');
+    this.assert.equal (f.getAttribute ('open'), null, 'f is not changed');
+    
+    f.querySelector ('button').click ();
+    this.assert.equal (e.getAttribute ('open'), null, 'e is closed');
+    this.assert.equal (f.getAttribute ('open'), '', 'f is opened');
+  </test-code>
+  
+  <test-code name="not hidden if command's click's propagation is stopped">
+    /*
+      <popup-menu>
+        <button type=button>A</button>
+        <menu-main>B <button onclick="event.stopPropagation ()">C</button></menu-main>
+      </popup-menu>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    
+    e.querySelector ('button').click ();
+    this.assert.equal (e.getAttribute ('open'), '', 'e is opened');
+    
+    e.querySelector ('menu-main button').click ();
+    this.assert.equal (e.getAttribute ('open'), '', 'e is still opened');
+  </test-code>
+  
+  <test-code name="open by default">
+    /*
+      <popup-menu open>
+        <button type=button>A</button>
+        <menu-main>B</menu-main>
+      </popup-menu>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    this.assert.equal (e.getAttribute ('open'), '');
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
+    e.toggle ();
+    this.assert.equal (e.getAttribute ('open'), null);
+    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none');
+  </test-code>
+
+  <script src=runtests.js></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->

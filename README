@@ -19,6 +19,11 @@ elements rendered as intended.
 Following elements and API are available once the script has been
 loaded:
 
+  <button is=command-button>
+  <popup-menu>
+  <list-container>
+  <image-editor>
+
 ** <button is=command-button>
 
 A |button| element whose |is| attribute value is |command-button|
@@ -41,6 +46,47 @@ setting these two values:
 
   element.cbCommands[name]   An object.  It can have any property.
   element[name]  A function.  This is the method implementing the command.
+
+** <popup-menu>
+
+A |popup-menu| element represents a button with popup-menu.  Its
+content must be a |button| element followed by a |menu-main| element.
+
+The |button| element child, if any, represents the button which is
+associated with a popup menu.  Its |type| attribute should be in the
+Button state (i.e. |<button type=button>|).
+
+The |menu-main| element child, if any, represents the popuped menu.
+Its content model is phrasing content if any |popup-menu| parent is a
+phrasing content, flow content otherwise.
+
+The |open| content attribute of the |popup-menu| element is a boolean
+attribute.  It represents whether the popup menu is shown or not.  If
+specified, the popup menu, if any, is shown.
+
+A |popup-menu| element has the following method:
+
+  toggle
+
+    If no argument is specified, change whether the element has an
+    |open| attribute or not.
+
+    If the argument is true, set the |open| attribute of the element,
+    if not yet.
+
+    If the argument is false, remove the |open| attribute of the
+    element, if any.
+
+Clicking the |button| element child is equivalent to invoking the
+|popup-menu| element's |toggle| method.
+
+While the popup menu is open, clicking outside of the |popup-menu|
+element is equivalent to invoking the |toggle| method with argument
+false.
+
+Clicking a |button| or |a| element descendant of the |menu-main|
+element is equivalent to invoking the |toggle| method with argument
+false (unless the |click| event's propagation has been stopped).
 
 ** <list-container>
 
