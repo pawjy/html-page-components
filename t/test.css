@@ -1,5 +1,9 @@
 @import "../css/default.css";
 
+html {
+  overflow: scroll;
+}
+
 test-code {
   position: absolute;
   visibility: hidden;

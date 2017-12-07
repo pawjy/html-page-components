@@ -67,6 +67,7 @@
 
   var div2 = document.createElement ('div');
   div2.id = "qunit";
+  div2.dir = 'ltr';
   document.body.appendChild (div2);
 }) ();
 /*

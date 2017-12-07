@@ -170,6 +170,144 @@
     this.assert.equal (e.getAttribute ('open'), null);
     this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none');
   </test-code>
+  
+  <test-code name="menu align (left)">
+    /*
+      <popup-menu open>
+        <button type=button>A</button>
+        <menu-main>BBBBBBBBBBBBBBBB</menu-main>
+      </popup-menu>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    var button = e.querySelector ('button');
+    var menu = e.querySelector ('menu-main');
+    this.assert.equal (menu.offsetLeft, 0);
+  </test-code>
+  
+  <test-code name="menu align (right) rtl">
+    /*
+    <div style=direction:rtl>
+      <popup-menu open>
+        <button type=button>A</button>
+        <menu-main>BBBBBBBBBBBBBBBB</menu-main>
+      </popup-menu>
+    </div>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    var button = e.querySelector ('button');
+    var menu = e.querySelector ('menu-main');
+    this.assert.equal (menu.offsetLeft + menu.offsetWidth, button.offsetLeft + button.offsetWidth);
+  </test-code>
+  
+  <test-code name="menu align (left)">
+    /*
+      <popup-menu>
+        <button type=button>A</button>
+        <menu-main>BBBBBBBBBBBBBBBB</menu-main>
+      </popup-menu>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    e.toggle ();
+    var button = e.querySelector ('button');
+    var menu = e.querySelector ('menu-main');
+    this.assert.equal (menu.offsetLeft, 0);
+  </test-code>
+  
+  <test-code name="menu align (right)">
+    /*
+      <div style=text-align:right>
+      <popup-menu open>
+        <button type=button>A</button>
+        <menu-main>B</menu-main>
+      </popup-menu>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    var button = e.querySelector ('button');
+    var menu = e.querySelector ('menu-main');
+    this.assert.equal (menu.offsetLeft + menu.offsetWidth, button.offsetLeft + button.offsetWidth);
+    e.toggle ();
+    e.toggle ();
+    this.assert.equal (menu.offsetLeft + menu.offsetWidth, button.offsetLeft + button.offsetWidth);
+  </test-code>
+  
+  <test-code name="menu align (end) rtl">
+    /*
+      <div style=text-align:left;direction:rtl>
+      <popup-menu open>
+        <button type=button>A</button>
+        <menu-main>B</menu-main>
+      </popup-menu>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    var button = e.querySelector ('button');
+    var menu = e.querySelector ('menu-main');
+    this.assert.equal (menu.offsetLeft, 0);
+    e.toggle ();
+    e.toggle ();
+    this.assert.equal (menu.offsetLeft, 0);
+  </test-code>
+
+  <test-code name="menu align (large menu)">
+    /*
+      <div style=text-align:right>
+      <popup-menu open>
+        <button type=button>A</button>
+        <menu-main style="width:150vw">B</menu-main>
+      </popup-menu>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    var button = e.querySelector ('button');
+    var menu = e.querySelector ('menu-main');
+    this.assert.equal (menu.offsetLeft, 0);
+  </test-code>
+
+  <test-code name="menu align (large menu) rtl">
+    /*
+      <div style=direction:rtl>
+      <popup-menu open>
+        <button type=button>A</button>
+        <menu-main style="width:150vw">B</menu-main>
+      </popup-menu>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    var button = e.querySelector ('button');
+    var menu = e.querySelector ('menu-main');
+    this.assert.equal (menu.offsetLeft + menu.offsetWidth, button.offsetLeft + button.offsetWidth);
+  </test-code>
+
+  <test-code name="menu align (center)">
+    /*
+      <div style=width:100em;padding-left:30em>
+      <popup-menu open>
+        <button type=button>A</button>
+        <menu-main style="width:20em">B</menu-main>
+      </popup-menu>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    var button = e.querySelector ('button');
+    var menu = e.querySelector ('menu-main');
+    this.assert.equal (menu.offsetLeft + menu.offsetWidth, button.offsetLeft + button.offsetWidth);
+  </test-code>
+
+  <test-code name="menu align (center) rtl">
+    /*
+      <div style=width:100em;padding-right:30em>
+      <popup-menu open>
+        <button type=button>A</button>
+        <menu-main style="width:20em">B</menu-main>
+      </popup-menu>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    var button = e.querySelector ('button');
+    var menu = e.querySelector ('menu-main');
+    this.assert.equal (menu.offsetLeft, button.offsetLeft);
+  </test-code>
 
   <script src=runtests.js></script>
 </body>
