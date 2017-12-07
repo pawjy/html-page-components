@@ -201,6 +201,70 @@
     }, // cbClick
   }; // button[is=command-button]
 
+  selectors.push ('popup-menu');
+  elementProps['popup-menu'] = {
+    pcInit: function () {
+      this.addEventListener ('click', (ev) => this.pmClick (ev));
+    }, // pcInit
+    pmClick: function (ev) {
+      var current = ev.target;
+      var targetType = 'outside';
+      while (current) {
+        if (current === this) {
+          targetType = 'this';
+          break;
+        } else if (current.localName === 'button') {
+          if (current.parentNode === this) {
+            targetType = 'button';
+            break;
+          } else {
+            targetType = 'command';
+            break;
+          }
+        } else if (current.localName === 'a') {
+          targetType = 'command';
+          break;
+        } else if (current.localName === 'menu-main' &&
+                   current.parentNode === this) {
+          targetType = 'menu';
+          break;
+        }
+        current = current.parentNode;
+      } // current
+
+      if (targetType === 'button') {
+        this.toggle ();
+      } else if (targetType === 'menu') {
+        //
+      } else {
+        this.toggle (false);
+      }
+      ev.pmEventHandledBy = this;
+    }, // pmClick
+
+    toggle: function (show) {
+      if (show === undefined) {
+        show = !this.hasAttribute ('open');
+      }
+      if (show) {
+        this.setAttribute ('open', '');
+        if (!this.pmGlobalClickHandler) {
+          this.pmGlobalClickHandler = (ev) => {
+            if (ev.pmEventHandledBy === this) return;
+            this.toggle (false);
+          };
+          window.addEventListener ('click', this.pmGlobalClickHandler);
+        }
+      } else {
+        this.removeAttribute ('open');
+        if (this.pmGlobalClickHandler) {
+          window.removeEventListener ('click', this.pmGlobalClickHandler);
+          delete this.pmGlobalClickHandler;
+        }
+      }
+    }, // toggle
+  }; // popup-menu
+  
   defs.loader.src = function (opts) {
     if (!this.hasAttribute ('src')) return {};
     var url = this.getAttribute ('src');
