@@ -205,6 +205,7 @@
   elementProps['popup-menu'] = {
     pcInit: function () {
       this.addEventListener ('click', (ev) => this.pmClick (ev));
+      setTimeout (() => this.pmLayout (), 100);
     }, // pcInit
     pmClick: function (ev) {
       var current = ev.target;
@@ -254,6 +255,7 @@
             this.toggle (false);
           };
           window.addEventListener ('click', this.pmGlobalClickHandler);
+          this.pmLayout ();
         }
       } else {
         this.removeAttribute ('open');
@@ -263,6 +265,32 @@
         }
       }
     }, // toggle
+
+    pmLayout: function () {
+      if (!this.hasAttribute ('open')) return;
+      
+      var button = this.querySelector ('button');
+      var menu = this.querySelector ('menu-main');
+      if (!button || !menu) return;
+
+      if (getComputedStyle (menu).direction === 'rtl') {
+        var menuWidth = menu.offsetWidth;
+        var parent = menu.offsetParent || document.documentElement;
+        if (button.offsetLeft + menuWidth > parent.offsetWidth) {
+          menu.style.left = button.offsetLeft + button.offsetWidth - menuWidth + 'px';
+        } else {
+          menu.style.left = button.offsetLeft + 'px';
+        }
+      } else {
+        var right = button.offsetLeft + button.offsetWidth;
+        var menuWidth = menu.offsetWidth;
+        if (right > menuWidth) {
+          menu.style.left = (right - menuWidth) + 'px';
+        } else {
+          menu.style.left = 'auto';
+        }
+      }
+    }, // pmLayout
   }; // popup-menu
   
   defs.loader.src = function (opts) {
