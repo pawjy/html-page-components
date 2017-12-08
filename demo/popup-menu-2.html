@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html dir=rtl>
+<title>popup-menu</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js></script>
+<style>
+  popup-menu > button::after {
+    content: "v";
+    padding-right: .3em;
+  }
+  popup-menu[open] > button::after {
+    content: "^";
+    padding-right: .3em;
+  }
+  menu-main {
+    background: #eee;
+    color: black;
+    border: 1px black solid;
+    padding: .5em;
+  }
+</style>
+
+<p>Menu:
+<popup-menu>
+  <button type=button>Button</button>
+  <menu-main>
+    <button type=button>Open</button>
+    <button type=button>Edit</button>
+    
+    <button type=button>Delete</button>
+  </menu-main>
+</popup-menu>
+<p>Foo bar baz abc def xyz
+<div style="text-align:left">
+<popup-menu>
+  <button type=button>Button</button>
+  <menu-main>
+    <button type=button>Open</button>
+    <button type=button>Edit</button>
+    
+    <button type=button>Delete</button>
+  </menu-main>
+</popup-menu>
+</div>
+<div style="margin-right: 15em">
+<popup-menu>
+  <button type=button>Button</button>
+  <menu-main>
+    <button type=button>Open</button>
+    <button type=button>Edit</button>
+    
+    <button type=button>Delete</button>
+  </menu-main>
+</popup-menu>
+</div>
+<p>Menu:</p>
+dddddddddddddddddddddddddddddddddddd<popup-menu>
+  <button type=button>Button</button>
+  <menu-main>
+    <p>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCCCCCCCCCCCCCCCCCCCCDDDDDDDDD
+    <p>
+    <button type=button>Open</button>
+    <button type=button>Edit</button>
+    
+    <button type=button>Delete</button>
+  </menu-main>
+</popup-menu>

@@ -7,6 +7,10 @@ popup-menu[open] > menu-main:not([hidden]) {
   position: absolute;
 }
 
+tab-set > section:not(.active) {
+  display: none;
+}
+
 image-editor:not([hidden]) {
   display: inline-block;
   position: relative;

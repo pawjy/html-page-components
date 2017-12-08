@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<title>popup-menu</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js async></script>
+<style>
+  popup-menu > button::after {
+    content: "v";
+    padding-left: .3em;
+  }
+  popup-menu[open] > button::after {
+    content: "^";
+    padding-left: .3em;
+  }
+  menu-main {
+    background: #eee;
+    color: black;
+    border: 1px black solid;
+    padding: .5em;
+  }
+</style>
+
+<p>Menu:
+<popup-menu>
+  <button type=button>Button</button>
+  <menu-main>
+    <button type=button>Open</button>
+    <button type=button>Edit</button>
+    
+    <button type=button>Delete</button>
+  </menu-main>
+</popup-menu>
+<p>Foo bar baz abc def xyz
+<div style="text-align:right">
+<popup-menu>
+  <button type=button>Button</button>
+  <menu-main>
+    <button type=button>Open</button>
+    <button type=button>Edit</button>
+    
+    <button type=button>Delete</button>
+  </menu-main>
+</popup-menu>
+</div>
+<div style="margin-left: 15em">
+<popup-menu>
+  <button type=button>Button</button>
+  <menu-main>
+    <button type=button>Open</button>
+    <button type=button>Edit</button>
+    
+    <button type=button>Delete</button>
+  </menu-main>
+</popup-menu>
+</div>
+<p>Menu:</p>
+dddddddddddddddddddddddddddddddddddd<popup-menu>
+  <button type=button>Button</button>
+  <menu-main>
+    <p>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCCCCCCCCCCCCCCCCCCCCDDDDDDDDD
+    <p>
+    <button type=button>Open</button>
+    <button type=button>Edit</button>
+    
+    <button type=button>Delete</button>
+    </p>
+  </menu-main>
+</popup-menu>
+
+x<popup-menu>
+  <button type=button>Button</button>
+  <menu-main>
+    <p>AAAAAAAAAAAAAAAAAAAAA
+    <p>
+    <button type=button>Open</button>
+    <button type=button>Edit</button>
+    <p style=margin-top:15em>    
+    <button type=button>Delete</button>
+    <p>AAAAAAAAAAAAAAAAAAAAA</p>
+  </menu-main>
+</popup-menu>
+
+<p style=margin-bottom:10em>abc
+<p>xyz
+<p style=margin-bottom:10em>abc
+<p>xyz
