@@ -382,7 +382,22 @@
                append: true},
       };
     });
-  }; // src
+  }; // loader=src
+
+  defs.filter["default"] = function (data) {
+    var list = data.data;
+    console.log(data);
+    if (!Array.isArray (list)) {
+      list = Object.values (list);
+    }
+    // XXX sort=""
+    if (this.hasAttribute ('reverse')) list = list.reverse ();
+    return {
+      data: list,
+      prev: data.prev,
+      next: data.next,
+    };
+  }; // filter=default
   
   selectors.push ('list-container');
   elementProps["list-container"] = {
@@ -443,14 +458,10 @@
       return getDef ("loader", this.getAttribute ('loader') || 'src').then ((loader) => {
         return loader.call (this, opts);
       }).then ((result) => {
-        var filterName = this.getAttribute ('filter');
-        if (!filterName) return result;
-        return getDef ("filter", filterName).then ((filter) => {
+        return getDef ("filter", this.getAttribute ('filter') || 'default').then ((filter) => {
           return filter.call (this, result);
         });
       }).then ((result) => {
-        // XXX sort
-        // XXX object as list
         if (opts.prepend) {
           var newObjects = result.data.reverse ();
           this.lcData = newObjects.concat (this.lcData);
