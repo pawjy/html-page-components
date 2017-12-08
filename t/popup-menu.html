@@ -346,12 +346,6 @@
     this.assert.equal (e.getAttribute ('open'), '', 'e is opened');
     this.assert.equal (getComputedStyle (menu).display, 'block', 'default style');
     this.assert.equal (menu.offsetLeft, 0);
-
-    // XXX
-    e.style.visibility = 'visible';
-    e.style.background = 'blue';
-    e.id = 'for-screenshot';
-    return;   
     
     e.removeAttribute ('open');
     await this.wait ();
