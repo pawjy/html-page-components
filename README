@@ -135,11 +135,10 @@ objects.  The list is constructed by the following steps:
      attributes).
 
   2. Filter.  The filter whose name is equal to the |filter| attribute
-     value is invoked for the element with the argument of the result
-     of the loader.  A *filter* is a definition of type |filter|.  A
-     filter is expected to mutate the loaded data to the structure
-     interpretable as list data.  If there is no |filter| attribute,
-     the result of this step is the result of the loader.
+     value, whose default is |default|, is invoked for the element
+     with the argument of the result of the loader.  A *filter* is a
+     definition of type |filter|.  A filter is expected to mutate the
+     loaded data to the structure interpretable as list data.
 
   3. The result of the filter is expected to be a *list description
      object*, which is a JavaScript object with following name/value
@@ -548,6 +547,11 @@ specified by the |key| attribute.  For example,
     <template><p data-field=name></template>
     <list-main><list-item><p data-field=name>Hanako</p></list-item></list-main>
   </list-container>
+
+There is a predefined filter: |default|.  It replaces the input's
+|data| to the result of |Object.values (/input/.data)| if the input's
+|data| is not a JavaScript |Array|.  It reverses the list if the
+|list-container| element has the |reverse| attribute specified.
 
 * Template processing
 

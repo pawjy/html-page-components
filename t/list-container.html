@@ -211,11 +211,12 @@
     */
     var e = this.currentScript.querySelector ('list-container');
     return this.wait ().then (() => {
-      return e.loaded;
+      return e.loaded.catch ((e) => { });
     }).then (() => {
       var items = e.querySelectorAll ('list-main list-item');
       this.assert.equal (items.length, 0);
     });
+    <!-- XXX action-status integration -->
   </test-code>
 
   <script>
@@ -523,6 +524,40 @@
     this.assert.equal (list.children[0].textContent, 'a');
     this.assert.equal (list.children[1].textContent, 'b');
     this.assert.equal (list.children[2].textContent, 'c');
+  </test-code>
+
+  <test-code name="default filter object to list">
+    /*
+      <list-container loader=localLoader>
+        <loader-data>
+          {"data": {"A": {"name": "a"}}}
+        </loader-data>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    var list = e.querySelector ('list-main');
+    this.assert.equal (list.children.length, 1);
+    this.assert.equal (list.children[0].textContent, 'a');
+  </test-code>
+
+  <test-code name="default filter reverse">
+    /*
+      <list-container loader=localLoader reverse>
+        <loader-data>
+          {"data": [{"name": "a"}, {"name": "b"}, {"name": "c"}]}
+        </loader-data>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    var list = e.querySelector ('list-main');
+    this.assert.equal (list.children.length, 3);
+    this.assert.equal (list.children[0].textContent, 'c');
+    this.assert.equal (list.children[1].textContent, 'b');
+    this.assert.equal (list.children[2].textContent, 'a');
   </test-code>
   
   
