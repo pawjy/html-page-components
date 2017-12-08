@@ -123,9 +123,52 @@ A |list-container| element represents a dynamic list of items.  Its
 content model is transparent.
 
 A |list-container| element has a *list*, which is a list of JavaScript
-objects.  The list is constructed by the loader whose name is
-specified by the |loader| attribute value of the element, defaulted to
-|src|.  A *loader* is a definition of type |loader|.
+objects.  The list is constructed by the following steps:
+
+  1. Loader.  The loader whose name is equal to the |loader| attribute
+     value, whose default is |src|, is invoked for the element with
+     the argument of the load options.  A *loader* is a definition of
+     type |loader|.  A loader is expected to prepare the list data
+     (e.g. by fetching from the server).  Note that a loader might
+     depend on the content attributes of the |list-container| element
+     (e.g. the |src| loader depends on the |src| and |key|
+     attributes).
+
+  2. Filter.  The filter whose name is equal to the |filter| attribute
+     value is invoked for the element with the argument of the result
+     of the loader.  A *filter* is a definition of type |filter|.  A
+     filter is expected to mutate the loaded data to the structure
+     interpretable as list data.  If there is no |filter| attribute,
+     the result of this step is the result of the loader.
+
+  3. The result of the filter is expected to be a *list description
+     object*, which is a JavaScript object with following name/value
+     pairs:
+
+       data
+
+         The list, as a JavaScript array.  This value is required.  If
+         there is no object, an empty array should be specified.
+
+       next, prev
+
+         An object on the next or previous "page", with following
+         name/value pairs:
+
+           ref
+
+             An opaque string to identify the page.
+
+           has
+
+             Whether there is the page or not.
+
+           append, prepend
+
+             Whether the page should be appended or prepended to the
+             current list or not.  At most one of them can be set to
+             true.  If none is set to true, the current list is
+             cleared and then the new list items are inserted.
 
 A |list-container| element has at most one *list item insertion
 point*.  If the |list-container| element's |type| attribute value, if
@@ -461,36 +504,20 @@ There are following definition types:
   loader (handler)
 
     A handler for |list-container| element's loader.  It is expected
-    to return an object (or a promise fulfulled with an object) with
-    following name/value pairs:
-
-      data
-
-        The list, as a JavaScript array.  This value is required.  If
-        there is no object, an empty array should be specified.
-
-      next, prev
-
-        An object on the next or previous "page", with following
-        name/value pairs:
-
-          ref
-
-            An opaque string to identify the page.
-
-          has
-
-            Whether there is the page or not.
-
-          append, prepend
-
-            Whether the page should be appended or prepended to the
-            current list or not.  At most one of them can be set to
-            true.  If none is set to true, the current list is cleared
-            and then the new list items are inserted.
+    to return an object (or a promise fulfulled with an object).
 
     The |this| value used when the handler is invoked is the
-    |list-container| element.
+    |list-container| element.  The handler is invoked with the
+    argument of the load options.
+
+  filter (handler)
+
+    A handler for |list-container| element's filter.  It is expected
+    to return an object (or a promise fulfilled with an object).
+
+    The |this| value used when the handler is invoked is the
+    |list-container| element.  The handler is invoked with the
+    argument of the result of the previous step.
 
 If a definition type is /handler/, it must have a handler.  The
 *handler* of a definition is the |pcHandler| JavaScript property

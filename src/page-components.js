@@ -26,6 +26,7 @@
 
   var definables = {
     loader: {type: 'handler'},
+    filter: {type: 'handler'},
     filltype: {type: 'map'},
   };
   var defs = {};
@@ -39,7 +40,7 @@
   var addDef = function (e) {
     var type = e.localName;
     if (!(e.namespaceURI === 'data:,pc' && definables[type])) return;
-    
+
     var name = e.getAttribute ('name');
     if (defs[type][name]) {
       throw new Error ("Duplicate |"+type+"|: |"+name+"|");
@@ -442,7 +443,12 @@
       return getDef ("loader", this.getAttribute ('loader') || 'src').then ((loader) => {
         return loader.call (this, opts);
       }).then ((result) => {
-        // XXX filter=""
+        var filterName = this.getAttribute ('filter');
+        if (!filterName) return result;
+        return getDef ("filter", filterName).then ((filter) => {
+          return filter.call (this, result);
+        });
+      }).then ((result) => {
         // XXX sort
         // XXX object as list
         if (opts.prepend) {
