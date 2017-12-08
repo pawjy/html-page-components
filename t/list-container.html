@@ -459,6 +459,45 @@
     });
   </test-code>
 
+  <script>
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'localLoader');
+    handler.pcHandler = function (opts) {
+      return JSON.parse (this.querySelector ('loader-data').textContent);
+    };
+    document.head.appendChild (handler);
+  </script>
+
+  <test-code name="type=table">
+    /*
+      <list-container loader=localLoader key=data type=table>
+        <loader-data>
+          {"data": [{"name": "a"}, {"name": "b"}]}
+        </loader-data>
+        <template><td data-field=name></template>
+        <list-main></list-main>
+        <table>
+          <thead>
+            <tr>
+              <th>Name
+          <tbody>
+          <tbody>
+        </table>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    this.assert.equal (e.querySelector ('list-main').children.length, 0);
+    this.assert.equal (e.querySelector ('tbody:nth-of-type(1)').children.length, 2);
+    var row1 = e.querySelector ('tbody > :nth-child(1)');
+    this.assert.equal (row1.localName, 'tr');
+    this.assert.equal (row1.innerHTML, '&lt;td data-field="name">a&lt;/td>');
+    var row2 = e.querySelector ('tbody > :nth-child(2)');
+    this.assert.equal (row2.localName, 'tr');
+    this.assert.equal (row2.innerHTML, '&lt;td data-field="name">b&lt;/td>');
+    this.assert.equal (e.querySelector ('tbody:nth-of-type(2)').children.length, 0);
+  </test-code>
+  
+  
   <script src=runtests.js></script>
 </body>
 </html>

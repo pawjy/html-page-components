@@ -127,15 +127,20 @@ objects.  The list is constructed by the loader whose name is
 specified by the |loader| attribute value of the element, defaulted to
 |src|.  A *loader* is a definition of type |loader|.
 
-The first |list-main| element descendant of a |list-container| element
-is the *list item insertion point* of the |list-container| element.
-When the |list-container| element is *rendered*, any child of the list
-item insertion point is discarded and the |list-item| elements created
-from the items of the list of the element using the selected template
-of the |list-container| element are inserted into the list item
-insertion point.  The selected template of the |list-container|
-element is the first |template| element descendant of the
-|list-container| element.
+A |list-container| element has at most one *list item insertion
+point*.  If the |list-container| element's |type| attribute value, if
+specified, is |table|, the first |tbody| element descendant of the
+|list-container| element is the list item insertion point.  Otherwise,
+the first |list-main| element descendant of the |list-container|
+element is the list item insertion point.  When the |list-container|
+element is *rendered*, any child of the list item insertion point is
+discarded and the item elements created from the items of the list of
+the element using the selected template of the |list-container|
+element are inserted into the list item insertion point.  The selected
+template of the |list-container| element is the first |template|
+element descendant of the |list-container| element.  An item element
+is a |tr| element if the list item insertion point is a |tbody|
+element, or the |list-item| element otherwise.
 
 A |list-container| element is rendered when the element is inserted
 and has |list-main| element and |template| element descendants, or
@@ -483,6 +488,9 @@ There are following definition types:
             current list or not.  At most one of them can be set to
             true.  If none is set to true, the current list is cleared
             and then the new list items are inserted.
+
+    The |this| value used when the handler is invoked is the
+    |list-container| element.
 
 If a definition type is /handler/, it must have a handler.  The
 *handler* of a definition is the |pcHandler| JavaScript property

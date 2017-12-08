@@ -391,7 +391,6 @@
         mutations.forEach ((m) => {
           Array.prototype.forEach.call (m.addedNodes, (e) => {
             if (e.nodeType === e.ELEMENT_NODE) {
-              console.log(e);
               if (e.matches (selector) || e.querySelector (selector)) {
                 this.lcRequestRender ();
               }
@@ -421,9 +420,17 @@
       this.lcPrev = {};
       this.lcNext = {};
       
-      var listContainer = this.querySelector ('list-main');
+      var listContainer = this.lcGetListContainer ();
       if (listContainer) listContainer.textContent = '';
     }, // lcClearList
+    lcGetListContainer: function () {
+      var type = this.getAttribute ('type');
+      if (type === 'table') {
+        return this.querySelector ('tbody');
+      } else {
+        return this.querySelector ('list-main');
+      }
+    }, // lcGetListContainer
     
     lcLoad: function (opts) {
       var resolve;
@@ -467,8 +474,7 @@
       this.lcRenderRequestedTimer = setTimeout (() => this.lcRender (), 0);
     }, // lcRequestRender
     lcRender: function () {
-      // XXX type=""
-      var listContainer = this.querySelector ('list-main');
+      var listContainer = this.lcGetListContainer ();
       if (!listContainer) return;
 
       this.querySelectorAll ('a.list-prev, button.list-prev').forEach ((e) => {
@@ -497,9 +503,12 @@
 
       var changes = this.lcDataChanges;
       this.lcDataChanges = {changed: false, prepend: [], append: []};
+      var itemLN = {
+        tbody: 'tr',
+      }[listContainer.localName] || 'list-item';
       if (changes.changed) {
         return $promised.forEach ((object) => {
-          return createFromTemplate (template, 'list-item', object).then ((e) => {
+          return createFromTemplate (template, itemLN, object).then ((e) => {
             listContainer.appendChild (e);
           });
         }, this.lcData);
@@ -507,14 +516,14 @@
         var f = document.createDocumentFragment ();
         return Promise.all ([
           $promised.forEach ((object) => {
-            return createFromTemplate (template, 'list-item', object).then ((e) => {
+            return createFromTemplate (template, itemLN, object).then ((e) => {
               f.appendChild (e);
             });
           }, changes.prepend).then (() => {
             listContainer.insertBefore (f, listContainer.firstChild);
           }),
           $promised.forEach ((object) => {
-            return createFromTemplate (template, 'list-item', object).then ((e) => {
+            return createFromTemplate (template, itemLN, object).then ((e) => {
               listContainer.appendChild (e);
             });
           }, changes.append),
