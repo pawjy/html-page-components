@@ -508,6 +508,9 @@
         }
         e.onclick = () => { this.loadNext (); return false };
       });
+      this.querySelectorAll ('list-is-empty').forEach ((e) => {
+        e.hidden = this.lcData.length > 0;
+      });
       
       // XXX template selector
       var template;
