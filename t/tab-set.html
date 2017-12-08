@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+  <test-code name="empty">
+    /*
+      <tab-set></tab-set>
+    */
+      
+    var e = this.currentScript.querySelector ('tab-set');
+    this.assert.equal (e.firstChild, null);
+  </test-code>
+  
+  <test-code name="no menu">
+    /*
+      <tab-set>
+        <section>A</section>
+        <section>B</section>
+      </tab-set>
+    */
+      
+    var e = this.currentScript.querySelector ('tab-set');
+    var s1 = e.querySelector ('section:nth-of-type(1)');
+    var s2 = e.querySelector ('section:nth-of-type(2)');
+    this.assert.equal (getComputedStyle (s1).display, 'none', 'default style');
+    this.assert.equal (getComputedStyle (s2).display, 'none', 'default style');
+  </test-code>
+  
+  <test-code name="a section">
+    /*
+      <tab-set>
+        <tab-menu></tab-menu>
+        <section><h1>A</h1>a</section>
+      </tab-set>
+    */
+      
+    var e = this.currentScript.querySelector ('tab-set');
+    var menu = e.querySelector ('tab-menu');
+    var s1 = e.querySelector ('section:nth-of-type(1)');
+    this.assert.equal (menu.children.length, 1);
+    this.assert.equal (menu.children[0].localName, 'a');
+    this.assert.equal (menu.children[0].href, 'javascript:');
+    this.assert.equal (menu.children[0].className, 'active');
+    this.assert.equal (getComputedStyle (s1).display, 'block', 'browser default style');
+    this.assert.equal (s1.className, 'active');
+
+    menu.children[0].click ();
+    await this.wait ();
+    this.assert.equal (menu.children.length, 1);
+    this.assert.equal (menu.children[0].localName, 'a');
+    this.assert.equal (menu.children[0].href, 'javascript:');
+    this.assert.equal (menu.children[0].className, 'active');
+    this.assert.equal (menu.children[0].textContent, 'A');
+    this.assert.equal (getComputedStyle (s1).display, 'block', 'browser default style');
+    this.assert.equal (s1.className, 'active');
+  </test-code>
+  
+  <test-code name="sections">
+    /*
+      <tab-set>
+        <tab-menu></tab-menu>
+        <section><h1>A</h1>a</section>
+        <section><h1>B</h1>b</section>
+      </tab-set>
+    */
+      
+    var e = this.currentScript.querySelector ('tab-set');
+    var menu = e.querySelector ('tab-menu');
+    var s1 = e.querySelector ('section:nth-of-type(1)');
+    var s2 = e.querySelector ('section:nth-of-type(2)');
+    this.assert.equal (menu.children.length, 2);
+    this.assert.equal (menu.children[0].localName, 'a');
+    this.assert.equal (menu.children[0].href, 'javascript:');
+    this.assert.equal (menu.children[0].className, 'active');
+    this.assert.equal (menu.children[0].textContent, 'A');
+    this.assert.equal (menu.children[1].localName, 'a');
+    this.assert.equal (menu.children[1].href, 'javascript:');
+    this.assert.equal (menu.children[1].className, '');
+    this.assert.equal (menu.children[1].textContent, 'B');
+    this.assert.equal (getComputedStyle (s1).display, 'block', 'browser default style');
+    this.assert.equal (s1.className, 'active');
+    this.assert.equal (getComputedStyle (s2).display, 'none', 'default style');
+    this.assert.equal (s2.className, '');
+
+    menu.children[1].click ();
+    await this.wait ();
+    this.assert.equal (menu.children.length, 2);
+    this.assert.equal (menu.children[0].localName, 'a');
+    this.assert.equal (menu.children[0].href, 'javascript:');
+    this.assert.equal (menu.children[0].className, '');
+    this.assert.equal (menu.children[1].localName, 'a');
+    this.assert.equal (menu.children[1].href, 'javascript:');
+    this.assert.equal (menu.children[1].className, 'active');
+    this.assert.equal (getComputedStyle (s1).display, 'none', 'default style');
+    this.assert.equal (s1.className, '');
+    this.assert.equal (getComputedStyle (s2).display, 'block', 'browser default style');
+    this.assert.equal (s2.className, 'active');
+  </test-code>
+  
+  <test-code name="implied heading">
+    /*
+      <tab-set>
+        <tab-menu></tab-menu>
+        <section>a</section>
+        <section><h1>B</h1>b</section>
+      </tab-set>
+    */
+      
+    var e = this.currentScript.querySelector ('tab-set');
+    var menu = e.querySelector ('tab-menu');
+    var s1 = e.querySelector ('section:nth-of-type(1)');
+    var s2 = e.querySelector ('section:nth-of-type(2)');
+    this.assert.equal (menu.children.length, 2);
+    this.assert.equal (menu.children[0].textContent, '§');
+    this.assert.equal (menu.children[1].textContent, 'B');
+  </test-code>
+
+  <script src=runtests.js></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->

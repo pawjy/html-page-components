@@ -304,6 +304,58 @@
       }
     }, // pmLayout
   }; // popup-menu
+
+  selectors.push ('tab-set');
+  elementProps['tab-set'] = {
+    pcInit: function () {
+      new MutationObserver (() => this.tsInit ()).observe (this, {childList: true});
+      Promise.resolve ().then (() => this.tsInit ());
+    }, // pcInit
+    tsInit: function () {
+      var tabMenu = null;
+      var tabSections = [];
+      Array.prototype.forEach.call (this.children, function (f) {
+        if (f.localName === 'section') {
+          tabSections.push (f);
+        } else if (f.localName === 'tab-menu') {
+          tabMenu = f;
+        }
+      });
+      
+      if (!tabMenu) return;
+
+      tabMenu.textContent = '';
+      tabSections.forEach ((f) => {
+        var header = f.querySelector ('h1');
+        var a = document.createElement ('a');
+        a.href = 'javascript:';
+        a.onclick = () => this.tsShowTab (a.tsSection);
+        a.textContent = header ? header.textContent : '§';
+        a.tsSection = f;
+        tabMenu.appendChild (a);
+      });
+
+      if (tabSections.length) this.tsShowTab (tabSections[0]);
+    }, // tsInit
+    tsShowTab: function (f) {
+      var tabMenu = null;
+      var tabSections = [];
+      Array.prototype.forEach.call (this.children, function (f) {
+        if (f.localName === 'section') {
+          tabSections.push (f);
+        } else if (f.localName === 'tab-menu') {
+          tabMenu = f;
+        }
+      });
+
+      tabMenu.querySelectorAll ('a').forEach ((g) => {
+        g.classList.toggle ('active', g.tsSection === f);
+      });
+      tabSections.forEach ((g) => {
+        g.classList.toggle ('active', f === g);
+      });
+    }, // tsShowTab
+  }; // tab-set
   
   defs.loader.src = function (opts) {
     if (!this.hasAttribute ('src')) return {};

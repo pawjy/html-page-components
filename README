@@ -9,7 +9,11 @@ this document.
 The |css/default.css| file describes the default style for these
 elements.  Though the file itself is not required to be loaded itself,
 some of style rules in the file are effectively required for these
-elements rendered as intended.
+elements rendered as intended.  It only has minumum rules to render
+the elements implemented by the scripts.  Additional
+application-specific style rules are expected to be added to the
+application's style sheet such that the elements are rendered
+prettily.
 
   <link rel=stylesheet href=css/default.css>
   <script src=src/page-components.js async></script>
@@ -21,6 +25,7 @@ loaded:
 
   <button is=command-button>
   <popup-menu>
+  <tab-set>
   <list-container>
   <image-editor>
 
@@ -87,6 +92,30 @@ false.
 Clicking a |button| or |a| element descendant of the |menu-main|
 element is equivalent to invoking the |toggle| method with argument
 false (unless the |click| event's propagation has been stopped).
+
+** <tab-set>
+
+A |tab-set| element represents a set of sections where one of them are
+expected to be shown at once and can be switched by user's direction.
+Its content model is a |tab-menu| element followed by one or more
+|section| elements.
+
+The |tab-menu| child element, if any, represents the menu the user can
+select the section to show.  Its content is set to the list of the
+anchors corresponding to the sections in the set.
+
+The |section| child elements represent the sections of the set.  A
+|section| element should have a |h1| element descendant, which labels
+the section.  The content of that element is used as the label of the
+anchor corresponding to the section in the menu.
+
+If there is one or more sections in a set, one of them is selected at
+a time.  The selected section has the class |active|.  The anchor in
+the menu corresponding to the selected section also has the class
+|active|.  No other section or anchor in the menu has the class
+|active|.
+
+By default the first section is selected.
 
 ** <list-container>
 
