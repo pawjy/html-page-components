@@ -198,6 +198,13 @@ is the next or previous page or not.  When a page button is clicked,
 the list is updated to inculude the previous or next page
 appropriately and the |list-container| element is rendered.
 
+A |list-container| element can contain |list-is-empty| element
+descendants.  The content model of a |list-is-empty| element is
+transparent.  Whenever the |list-container| element is rendered, the
+|list-is-empty| element descendants' |hidden| attributes are updated
+such that they are hidden if the |list-container| element's list has
+one or more list items.
+
 A |list-container| element has following methods:
 
   loadNext

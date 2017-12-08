@@ -559,6 +559,40 @@
     this.assert.equal (list.children[1].textContent, 'b');
     this.assert.equal (list.children[2].textContent, 'a');
   </test-code>
+
+  <test-code name="list-is-empty">
+    /*
+      <list-container loader=localLoader>
+        <loader-data>
+          {"data": [{"name": "a"}, {"name": "b"}, {"name": "c"}]}
+        </loader-data>
+        <template><p data-field=name></template>
+        <list-is-empty>A</list-is-empty>
+        <list-main></list-main>
+        <list-is-empty>B</list-is-empty>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    this.assert.equal (e.querySelectorAll ('list-is-empty')[0].hidden, true);
+    this.assert.equal (e.querySelectorAll ('list-is-empty')[1].hidden, true);
+  </test-code>
+
+  <test-code name="list-is-empty empty">
+    /*
+      <list-container loader=localLoader>
+        <loader-data>
+          {"data": []}
+        </loader-data>
+        <template><p data-field=name></template>
+        <list-is-empty>A</list-is-empty>
+        <list-main></list-main>
+        <list-is-empty>B</list-is-empty>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    this.assert.equal (e.querySelectorAll ('list-is-empty')[0].hidden, false);
+    this.assert.equal (e.querySelectorAll ('list-is-empty')[1].hidden, false);
+  </test-code>
   
   
   <script src=runtests.js></script>
