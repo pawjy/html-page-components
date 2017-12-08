@@ -470,7 +470,7 @@
 
   <test-code name="type=table">
     /*
-      <list-container loader=localLoader key=data type=table>
+      <list-container loader=localLoader type=table>
         <loader-data>
           {"data": [{"name": "a"}, {"name": "b"}]}
         </loader-data>
@@ -495,6 +495,34 @@
     this.assert.equal (row2.localName, 'tr');
     this.assert.equal (row2.innerHTML, '&lt;td data-field="name">b&lt;/td>');
     this.assert.equal (e.querySelector ('tbody:nth-of-type(2)').children.length, 0);
+  </test-code>
+
+  <test-code name="filter">
+    /*
+      <list-container loader=localLoader filter=testFilter1>
+        <loader-data>
+          {"values": [{"name": "a"}, {"name": "b"}]}
+        </loader-data>
+        <template><p data-field=value></template>
+        <list-main></list-main>
+        <script>
+          var handler = document.createElementNS ('data:,pc', 'filter');
+          handler.setAttribute ('name', 'testFilter1');
+          handler.pcHandler = function (data) {
+            var newList = data.values.map ((i) => {return {value: i.name}});
+            newList.push ({value: "c"});
+            return {data: newList};
+          };
+          document.head.appendChild (handler);
+        </script>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    var list = e.querySelector ('list-main');
+    this.assert.equal (list.children.length, 3);
+    this.assert.equal (list.children[0].textContent, 'a');
+    this.assert.equal (list.children[1].textContent, 'b');
+    this.assert.equal (list.children[2].textContent, 'c');
   </test-code>
   
   
