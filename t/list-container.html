@@ -616,7 +616,25 @@
     this.assert.equal (e.querySelectorAll ('list-is-empty')[0].hidden, false);
     this.assert.equal (e.querySelectorAll ('list-is-empty')[1].hidden, false);
   </test-code>
-  
+
+  <test-code name="template-set">
+    /*
+      <list-container loader=localLoader template=templateSet1>
+        <loader-data>
+          {"data": [{"name":1},{"name":2}]}
+        </loader-data>
+        <list-main></list-main>
+      </list-container>
+      <template-set name=templateSet1>
+        <template>a<span data-field=name></span>b</template>
+      </template-set>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    await this.wait ();
+    var list = e.querySelector ('list-main');
+    this.assert.equal (list.children.length, 2);
+    this.assert.equal (list.textContent, 'a1ba2b');
+  </test-code>
   
   <script src=runtests.js></script>
 </body>
