@@ -159,7 +159,24 @@
     });
   }; // $fill
 
-  var createFromTemplate = function (template, localName, object) {
+  var TemplateManager = function () { };
+  var getTemplateManager = function (e) {
+    // XXX template selector
+
+    var template;
+    Array.prototype.slice.call (e.children).forEach ((f) => {
+      if (f.localName === 'template') {
+        template = f;
+      }
+    });
+    if (!template) template = document.createElement ('template');
+    var tm = new TemplateManager;
+    tm.template = template;
+    return tm;
+  }; // getTemplateManager
+
+  TemplateManager.prototype.create = function (localName, object) {
+    var template = this.template;
     return waitDefsByString (template.getAttribute ('data-requires') || '').then (() => {
       var e = document.createElement (localName);
       e.className = template.className;
@@ -167,7 +184,7 @@
       $fill (e, object);
       return e;
     });
-  }; // createFromTemplate
+  }; // create
   
   var selectors = [];
   var elementProps = {};
@@ -513,16 +530,8 @@
       this.querySelectorAll ('list-is-empty').forEach ((e) => {
         e.hidden = this.lcData.length > 0;
       });
-      
-      // XXX template selector
-      var template;
-      Array.prototype.slice.call (this.children).forEach ((e) => {
-        if (e.localName === 'template') {
-          template = e;
-        }
-      });
-      if (!template) template = document.createElement ('template');
 
+      var tm = getTemplateManager (this);
       var changes = this.lcDataChanges;
       this.lcDataChanges = {changed: false, prepend: [], append: []};
       var itemLN = {
@@ -530,7 +539,7 @@
       }[listContainer.localName] || 'list-item';
       if (changes.changed) {
         return $promised.forEach ((object) => {
-          return createFromTemplate (template, itemLN, object).then ((e) => {
+          return tm.create (itemLN, object).then ((e) => {
             listContainer.appendChild (e);
           });
         }, this.lcData);
@@ -538,14 +547,14 @@
         var f = document.createDocumentFragment ();
         return Promise.all ([
           $promised.forEach ((object) => {
-            return createFromTemplate (template, itemLN, object).then ((e) => {
+            return tm.create (itemLN, object).then ((e) => {
               f.appendChild (e);
             });
           }, changes.prepend).then (() => {
             listContainer.insertBefore (f, listContainer.firstChild);
           }),
           $promised.forEach ((object) => {
-            return createFromTemplate (template, itemLN, object).then ((e) => {
+            return tm.create (itemLN, object).then ((e) => {
               listContainer.appendChild (e);
             });
           }, changes.append),
