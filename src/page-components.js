@@ -386,7 +386,6 @@
 
   defs.filter["default"] = function (data) {
     var list = data.data;
-    console.log(data);
     if (!Array.isArray (list)) {
       list = Object.values (list);
     }
@@ -402,7 +401,7 @@
   selectors.push ('list-container');
   elementProps["list-container"] = {
     pcInit: function () {
-      var selector = 'template, list-main, a.list-prev, a.list-next, button.list-prev, button.list-next';
+      var selector = 'template, a.list-prev, a.list-next, button.list-prev, button.list-next, ' + this.lcGetListContainerSelector ();
       new MutationObserver ((mutations) => {
         mutations.forEach ((m) => {
           Array.prototype.forEach.call (m.addedNodes, (e) => {
@@ -439,13 +438,16 @@
       var listContainer = this.lcGetListContainer ();
       if (listContainer) listContainer.textContent = '';
     }, // lcClearList
-    lcGetListContainer: function () {
+    lcGetListContainerSelector: function () {
       var type = this.getAttribute ('type');
       if (type === 'table') {
-        return this.querySelector ('tbody');
+        return 'tbody';
       } else {
-        return this.querySelector ('list-main');
+        return 'list-main';
       }
+    }, // lcGetListContainerSelector
+    lcGetListContainer: function () {
+      return this.querySelector (this.lcGetListContainerSelector ());
     }, // lcGetListContainer
     
     lcLoad: function (opts) {
