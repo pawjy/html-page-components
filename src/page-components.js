@@ -27,6 +27,7 @@
   var definables = {
     loader: {type: 'handler'},
     filter: {type: 'handler'},
+    templateselector: {type: 'handler'},
     filltype: {type: 'map'},
     templateSet: {type: 'element'},
   };
@@ -191,11 +192,11 @@
     pcCreateTemplateList: function () {
       this.pcTemplateList = {};
       Array.prototype.slice.call (this.querySelectorAll ('template')).forEach ((g) => {
-        this.pcTemplateList[""] = g;
+        this.pcTemplateList[g.getAttribute ('data-name') || ""] = g;
       });
 
       Promise.resolve ().then (() => {
-        var event = new Event ('pcTemplateSetUpdated', {});
+        var event = new Event ('pctemplatesetupdated', {});
         event.pcTemplateSet = this;
         var nodes;
         if (this.localName === 'template-set') {
@@ -207,18 +208,24 @@
         nodes.forEach ((e) => e.dispatchEvent (event));
       });
     }, // pcCreateTemplateList
-    pcCreateElementFromTemplate: function (localName, object) {
-      // XXX template selector
-      var template = this.pcTemplateList[""];
-    
-      return waitDefsByString (template.getAttribute ('data-requires') || '').then (() => {
-        var e = document.createElement (localName);
-        e.className = template.className;
-        e.appendChild (template.content.cloneNode (true));
-        $fill (e, object);
-        return e;
+    createFromTemplate: function (localName, object) {
+      var selectorName = this.getAttribute ('templateselector') || 'default';
+      return getDef ('templateselector', selectorName).then ((selector) => {
+        return selector.call (this, this.pcTemplateList, object);
+      }).then ((template) => {
+        if (!template) {
+          console.log ('Template is not selected (templateselector=' + selectorName + ')', this);
+          template = document.createElement ('template');
+        }
+        return waitDefsByString (template.getAttribute ('data-requires') || '').then (() => {
+          var e = document.createElement (localName);
+          e.className = template.className;
+          e.appendChild (template.content.cloneNode (true));
+          $fill (e, object);
+          return e;
+        });
       });
-    }, // pcCreateElementFromTemplate
+    }, // createFromTemplate
   }; // templateSetMembers
 
   var installTemplateSetMembers = function (e) {
@@ -240,9 +247,12 @@
       }
       addElementDef ('templateSet', name, this);
       installTemplateSetMembers (this);
-      this.create = this.pcCreateElementFromTemplate;
     }, // pcInit
   }; // <template-set>
+
+  defs.templateselector["default"] = function (templates) {
+    return templates[""];
+  }; // empty
   
   selectors.push ('button[is=command-button]');
   elementProps.button = {
@@ -467,6 +477,8 @@
           Array.prototype.forEach.call (m.addedNodes, (e) => {
             if (e.nodeType === e.ELEMENT_NODE) {
               if (e.matches (selector) || e.querySelector (selector)) {
+                var listContainer = this.lcGetListContainer ();
+                if (listContainer) listContainer.textContent = '';
                 this.lcDataChanges.changed = true;
                 this.lcRequestRender ();
               }
@@ -476,8 +488,11 @@
       }).observe (this, {childList: true, subtree: true});
 
       installTemplateSetMembers (this);
-      this.addEventListener ('pcTemplateSetUpdated', (ev) => {
+      this.addEventListener ('pctemplatesetupdated', (ev) => {
         this.lcTemplateSet = ev.pcTemplateSet;
+
+        var listContainer = this.lcGetListContainer ();
+        if (listContainer) listContainer.textContent = '';
         this.lcDataChanges.changed = true;
         this.lcRequestRender ();
       });
@@ -596,7 +611,7 @@
       }[listContainer.localName] || 'list-item';
       if (changes.changed) {
         return $promised.forEach ((object) => {
-          return tm.pcCreateElementFromTemplate (itemLN, object).then ((e) => {
+          return tm.createFromTemplate (itemLN, object).then ((e) => {
             listContainer.appendChild (e);
           });
         }, this.lcData);
@@ -604,14 +619,14 @@
         var f = document.createDocumentFragment ();
         return Promise.all ([
           $promised.forEach ((object) => {
-            return tm.pcCreateElementFromTemplate (itemLN, object).then ((e) => {
+            return tm.createFromTemplate (itemLN, object).then ((e) => {
               f.appendChild (e);
             });
           }, changes.prepend).then (() => {
             listContainer.insertBefore (f, listContainer.firstChild);
           }),
           $promised.forEach ((object) => {
-            return tm.pcCreateElementFromTemplate (itemLN, object).then ((e) => {
+            return tm.createFromTemplate (itemLN, object).then ((e) => {
               listContainer.appendChild (e);
             });
           }, changes.append),

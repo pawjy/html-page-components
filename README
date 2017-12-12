@@ -385,8 +385,18 @@ template set of the element is the |template-set| element whose name
 is the |template| attribute value.  Otherwise, if the element has no
 |template| attribute, the element itself is the template set.
 
-The *selected template* for an element is a |template| element child
-of the template set of the element.
+The *template map* of a template set is a map whose values are the
+|template| element children of the template set.  Their names are the
+|data-name| attribute value of the value's |template| element, if
+specified, or the empty string.  The |data-name| attribute value (or
+the empty string, if not specified) must be unique in the template
+set.
+
+The *selected template* for an element is a |template| element chosen
+by the template selector specified by the |templateselector| attribute
+of the template set (whose default is |default|).  A *template
+selector* is a definition of type |templateselector|.  A template
+selector is expected to choose a template from the template map.
 
   For example, in the fragment:
 
@@ -588,6 +598,18 @@ There are following definition types:
     The |this| value used when the handler is invoked is the
     |list-container| element.  The handler is invoked with the
     argument of the result of the previous step.
+
+  templateselector (handler)
+
+    A handler for template set's template selector.  It is expected to
+    return a |template| element (or a promise fulfilled with a
+    |template| element) chosen from the argument.
+
+    The |this| value used when the handler is invoked is the template
+    set.  The handler is invoked with two arguments: the candidate
+    template map and the object for which a template should be chosen.
+    Note that the template map (which is a JavaScript object used to
+    represent name/value pairs) might be empty.
 
 If a definition type is /handler/, it must have a handler.  The
 *handler* of a definition is the |pcHandler| JavaScript property
