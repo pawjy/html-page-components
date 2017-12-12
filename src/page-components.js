@@ -116,6 +116,18 @@
 
   var selectors = [];
   var elementProps = {};
+  
+  var upgrade = function (e) {
+    if (e.pcUpgraded) return;
+    e.pcUpgraded = true;
+
+    var props = elementProps[e.localName];
+    Object.keys (props).forEach (function (k) {
+      e[k] = props[k];
+    });
+
+    new Promise ((re) => re (e.pcInit ())).catch ((err) => console.log ("Can't upgrade an element", e, err));
+  }; // upgrade
 
   var filledAttributes = ['href', 'src', 'id', 'title'];
   var $fill = exportable.$fill = function (root, object) {
@@ -175,78 +187,62 @@
     });
   }; // $fill
 
-  var TemplateManager = function (e, onUpdated) {
-    this.tmTemplateList = {};
-    Promise.resolve ().then (() => {
-      var name = e.getAttribute ('template');
-      if (name) {
-        return getDef ('templateSet', name);
-      } else {
-        return e;
-      }
-    }).then ((f) => {
-      new MutationObserver ((mutations) => {
-        this.tmCreateTemplateList (onUpdated);
-      }).observe (f, {childList: true});
-      
-      this.tmTemplateSet = f;
-      this.tmCreateTemplateList (onUpdated);
-    });
-  }; // new TemplateManager
-  
-  TemplateManager.prototype.tmCreateTemplateList = function (onUpdated) {
-    Array.prototype.slice.call (this.tmTemplateSet.querySelectorAll ('template')).forEach ((g) => {
-      this.tmTemplateList[""] = g;
-    });
-    Promise.resolve ().then (onUpdated);
-  }; // tmCreateTemplateList
+  var templateSetMembers = {
+    pcCreateTemplateList: function () {
+      this.pcTemplateList = {};
+      Array.prototype.slice.call (this.querySelectorAll ('template')).forEach ((g) => {
+        this.pcTemplateList[""] = g;
+      });
 
-  TemplateManager.prototype.isReady = function () {
-    return !!this.tmTemplateList[""];
-  }; // isReady
-  
-  TemplateManager.prototype.create = function (localName, object) {
-    if (!this.isReady ()) return;
+      Promise.resolve ().then (() => {
+        var event = new Event ('pcTemplateSetUpdated', {});
+        event.pcTemplateSet = this;
+        var nodes;
+        if (this.localName === 'template-set') {
+          var name = this.getAttribute ('name');
+          nodes = Array.prototype.slice.call (this.getRootNode ().querySelectorAll ('list-container[template]')).filter ((e) => e.getAttribute ('template') === name); // XXX made selector configurable
+        } else {
+          nodes = [this];
+        }
+        nodes.forEach ((e) => e.dispatchEvent (event));
+      });
+    }, // pcCreateTemplateList
+    pcCreateElementFromTemplate: function (localName, object) {
+      // XXX template selector
+      var template = this.pcTemplateList[""];
     
-    // XXX template selector
-    var template = this.tmTemplateList[""];
-    
-    return waitDefsByString (template.getAttribute ('data-requires') || '').then (() => {
-      var e = document.createElement (localName);
-      e.className = template.className;
-      e.appendChild (template.content.cloneNode (true));
-      $fill (e, object);
-      return e;
-    });
-  }; // create
+      return waitDefsByString (template.getAttribute ('data-requires') || '').then (() => {
+        var e = document.createElement (localName);
+        e.className = template.className;
+        e.appendChild (template.content.cloneNode (true));
+        $fill (e, object);
+        return e;
+      });
+    }, // pcCreateElementFromTemplate
+  }; // templateSetMembers
+
+  var installTemplateSetMembers = function (e) {
+    for (var n in templateSetMembers) {
+      e[n] = templateSetMembers[n];
+    }
+    e.pcCreateTemplateList ();
+    new MutationObserver ((mutations) => {
+      e.pcCreateTemplateList ();
+    }).observe (e, {childList: true});
+  }; // installTemplateSetMembers
 
   selectors.push ('template-set');
   elementProps["template-set"] = {
     pcInit: function () {
       var name = this.getAttribute ('name');
       if (!name) {
-        console.log ('|template-set| element does not have |name|: ', this);
-        return;
+        throw new Error ('|template-set| element does not have |name| attribute');
       }
       addElementDef ('templateSet', name, this);
-
-      new MutationObserver ((mutations) => {
-        this.dispatchEvent (new Event ('tsUpdated'));
-      }).observe (this, {childList: true});
+      installTemplateSetMembers (this);
+      this.create = this.pcCreateElementFromTemplate;
     }, // pcInit
   }; // <template-set>
-  
-  var upgrade = function (e) {
-    if (e.pcUpgraded) return;
-    e.pcUpgraded = true;
-
-    var props = elementProps[e.localName];
-    Object.keys (props).forEach (function (k) {
-      e[k] = props[k];
-    });
-
-    e.pcInit ();
-  }; // upgrade
   
   selectors.push ('button[is=command-button]');
   elementProps.button = {
@@ -479,7 +475,9 @@
         });
       }).observe (this, {childList: true, subtree: true});
 
-      this.lcTemplateManager = new TemplateManager (this, () => {
+      installTemplateSetMembers (this);
+      this.addEventListener ('pcTemplateSetUpdated', (ev) => {
+        this.lcTemplateSet = ev.pcTemplateSet;
         this.lcDataChanges.changed = true;
         this.lcRequestRender ();
       });
@@ -567,10 +565,10 @@
       }, 0);
     }, // lcRequestRender
     lcRender: function () {
+      if (!this.lcTemplateSet) return;
+      
       var listContainer = this.lcGetListContainer ();
       if (!listContainer) return;
-
-      if (!this.lcTemplateManager.isReady ()) return;
 
       this.querySelectorAll ('a.list-prev, button.list-prev').forEach ((e) => {
         e.hidden = ! this.lcPrev.has;
@@ -590,7 +588,7 @@
         e.hidden = this.lcData.length > 0;
       });
 
-      var tm = this.lcTemplateManager;
+      var tm = this.lcTemplateSet;
       var changes = this.lcDataChanges;
       this.lcDataChanges = {changed: false, prepend: [], append: []};
       var itemLN = {
@@ -598,7 +596,7 @@
       }[listContainer.localName] || 'list-item';
       if (changes.changed) {
         return $promised.forEach ((object) => {
-          return tm.create (itemLN, object).then ((e) => {
+          return tm.pcCreateElementFromTemplate (itemLN, object).then ((e) => {
             listContainer.appendChild (e);
           });
         }, this.lcData);
@@ -606,14 +604,14 @@
         var f = document.createDocumentFragment ();
         return Promise.all ([
           $promised.forEach ((object) => {
-            return tm.create (itemLN, object).then ((e) => {
+            return tm.pcCreateElementFromTemplate (itemLN, object).then ((e) => {
               f.appendChild (e);
             });
           }, changes.prepend).then (() => {
             listContainer.insertBefore (f, listContainer.firstChild);
           }),
           $promised.forEach ((object) => {
-            return tm.create (itemLN, object).then ((e) => {
+            return tm.pcCreateElementFromTemplate (itemLN, object).then ((e) => {
               listContainer.appendChild (e);
             });
           }, changes.append),

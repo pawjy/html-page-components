@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<title>list-container</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js async></script>
+
+  <script>
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'localLoader');
+    handler.pcHandler = function (opts) {
+      return JSON.parse (this.querySelector ('loader-data').textContent);
+    };
+    document.head.appendChild (handler);
+  </script>
+
+  <list-container loader=localLoader>
+    <p>Source data:
+        <loader-data>
+          {"data": {"A": {"name": "a"}}}
+        </loader-data>
+    </p>
+
+    <template>Name = <span data-field=name></span></template>
+
+    <p>List:</p>
+    <list-main></list-main>
+  </list-container>

@@ -15,6 +15,16 @@
     document.head.appendChild (handler);
   </script>
   
+  <test-code name="template-set without name">
+    /*
+      <template-set>
+        <template>a<span data-field=name></span>b</template>
+      </template-set>
+    */
+    var e = this.currentScript.querySelector ('template-set');
+    this.assert.equal (e, e);
+  </test-code>
+  
   <test-code name="template-set">
     /*
       <list-container loader=localLoader template=templateSet1>
