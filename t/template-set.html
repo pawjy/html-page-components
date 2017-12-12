@@ -38,7 +38,7 @@
       </template-set>
     */
     var e = this.currentScript.querySelector ('list-container');
-    await this.wait (300);
+    await this.wait ();
     var list = e.querySelector ('list-main');
     this.assert.equal (list.children.length, 2);
     this.assert.equal (list.textContent, 'a1ba2b');
@@ -60,7 +60,7 @@
     var te = document.createElement ('template');
     te.innerHTML = '<'+'span data-field=name>';
     t.appendChild (te);
-    await this.wait (300);
+    await this.wait (100);
     var list = e.querySelector ('list-main');
     this.assert.equal (list.children.length, 2);
     this.assert.equal (list.textContent, '12');
@@ -82,7 +82,7 @@
     te.innerHTML = '<'+'span data-field=name>';
     ts.appendChild (te);
     document.body.appendChild (ts);
-    await this.wait (300);
+    await this.wait (100);
     var list = e.querySelector ('list-main');
     this.assert.equal (list.children.length, 2);
     this.assert.equal (list.textContent, '12');
@@ -100,7 +100,7 @@
       <template-set name=templateSet4><template>{<span data-field=name></span>}</template></template-set>
     */
     var e = this.currentScript.querySelector ('list-container');
-    await this.wait (300);
+    await this.wait (100);
     var list = e.querySelector ('list-main');
     this.assert.equal (list.children.length, 2);
     this.assert.equal (list.textContent, '[1][2]');

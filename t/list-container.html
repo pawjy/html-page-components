@@ -630,7 +630,7 @@
       </template-set>
     */
     var e = this.currentScript.querySelector ('list-container');
-    await this.wait (300);
+    await this.wait ();
     var list = e.querySelector ('list-main');
     this.assert.equal (list.children.length, 2);
     this.assert.equal (list.textContent, 'a1ba2b');
