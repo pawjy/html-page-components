@@ -498,6 +498,29 @@
     this.assert.equal (e.querySelector ('tbody:nth-of-type(2)').children.length, 0);
   </test-code>
 
+  <test-code name="type=table tbody appended later">
+    /*
+      <list-container loader=localLoader type=table>
+        <loader-data>
+          {"data": [{"name": "a"}, {"name": "b"}]}
+        </loader-data>
+        <template><td data-field=name></template>
+        <list-main></list-main>
+        <table>
+          <thead>
+            <tr>
+              <th>Name
+        </table>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    var tbody = document.createElement ('tbody');
+    e.querySelector ('table').appendChild (tbody);
+    await this.wait (300);
+    this.assert.equal (e.querySelector ('list-main').children.length, 0);
+    this.assert.equal (e.querySelector ('tbody').children.length, 2);
+  </test-code>
+
   <test-code name="filter">
     /*
       <list-container loader=localLoader filter=testFilter1>
