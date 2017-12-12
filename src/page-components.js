@@ -188,6 +188,8 @@
     });
   }; // $fill
 
+  var templateSetLocalNames = {};
+  var templateSetSelector = '';
   var templateSetMembers = {
     pcCreateTemplateList: function () {
       this.pcTemplateList = {};
@@ -201,7 +203,7 @@
         var nodes;
         if (this.localName === 'template-set') {
           var name = this.getAttribute ('name');
-          nodes = Array.prototype.slice.call (this.getRootNode ().querySelectorAll ('list-container[template]')).filter ((e) => e.getAttribute ('template') === name); // XXX made selector configurable
+          nodes = Array.prototype.slice.call (this.getRootNode ().querySelectorAll (templateSetSelector)).filter ((e) => e.getAttribute ('template') === name);
         } else {
           nodes = [this];
         }
@@ -228,15 +230,30 @@
     }, // createFromTemplate
   }; // templateSetMembers
 
-  var installTemplateSetMembers = function (e) {
+  var initTemplateSet = exportable.initTemplateSet = function (e) {
+    templateSetLocalNames[e.localName] = true;
+    templateSetSelector = Object.keys (templateSetLocalNames).map ((n) => n.replace (/([^A-Za-z0-9])/g, (_) => "\\" + _.charCodeAt (0).toString (16) + " ") + '[template]').join (',');
+    
     for (var n in templateSetMembers) {
       e[n] = templateSetMembers[n];
     }
-    e.pcCreateTemplateList ();
-    new MutationObserver ((mutations) => {
+
+    var templateSetName = e.getAttribute ('template');
+    if (templateSetName) {
+      if (defs.templateSet[templateSetName]) {
+        Promise.resolve ().then (() => {
+          var event = new Event ('pctemplatesetupdated', {});
+          event.pcTemplateSet = defs.templateSet[templateSetName];
+          e.dispatchEvent (event);
+        });
+      }
+    } else {
       e.pcCreateTemplateList ();
-    }).observe (e, {childList: true});
-  }; // installTemplateSetMembers
+      new MutationObserver ((mutations) => {
+        e.pcCreateTemplateList ();
+      }).observe (e, {childList: true});
+    }
+  }; // initTemplateSet
 
   selectors.push ('template-set');
   elementProps["template-set"] = {
@@ -246,7 +263,7 @@
         throw new Error ('|template-set| element does not have |name| attribute');
       }
       addElementDef ('templateSet', name, this);
-      installTemplateSetMembers (this);
+      initTemplateSet (this);
     }, // pcInit
   }; // <template-set>
 
@@ -487,7 +504,7 @@
         });
       }).observe (this, {childList: true, subtree: true});
 
-      installTemplateSetMembers (this);
+      initTemplateSet (this);
       this.addEventListener ('pctemplatesetupdated', (ev) => {
         this.lcTemplateSet = ev.pcTemplateSet;
 

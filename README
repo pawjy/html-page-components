@@ -442,12 +442,12 @@ For example, a template:
 ... will be processed after the |filltype| definition for name
 |unit-number| is loaded.
 
-* Exportable function
+* Exportable functions
 
 By setting the |data-export| attribute of the |script| element loading
 the |page-components.js| to a space-separated list of the function
 names, the functions can be exported to the global scope.  The
-following function is available:
+following functions are available:
 
   $fill (root, object)
 
@@ -560,6 +560,30 @@ following function is available:
     The result of processing a value template /template/ is a copy of
     /template/ where any substring |{/field-name/}| is replaced by the
     field value for /field-name/.
+
+  initTemplateSet (e)
+
+    Make an autonomous custom element (i.e. an element whose name has
+    "-") a template set.  By invoking this method, its content
+    attributes |template| and |templateselector|, as well as its
+    |template| element children, are interpreted as part of the
+    template set for the element.  (Note that |template| and
+    |templateselector| attributes must be set before this function is
+    invoked.)
+
+    A template set element is fired a |pctemplatesetupdated| event
+    whenever its template set's definition is updated such that any
+    content created using the template might need to be updated.  The
+    event is fired with an event object whose |pcTemplateSet| property
+    is the template set for the element.  (Note that the
+    |pcTemplateSet| value might not be the same object as the element
+    when the |template| attribute is specified.)
+
+    A template set object has the |createFromTemplate| element, which
+    returns a promise that is fulfilled with an element created from
+    the selected template.  The method requires two arguments: the
+    name of the element to be created and the object used to select
+    and to fill (by |$fill|) the template.
 
 * Definitions
 
