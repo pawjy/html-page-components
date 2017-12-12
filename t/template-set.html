@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+
+  <script>
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'localLoader');
+    handler.pcHandler = function (opts) {
+      return JSON.parse (this.querySelector ('loader-data').textContent);
+    };
+    document.head.appendChild (handler);
+  </script>
+  
+  <test-code name="template-set">
+    /*
+      <list-container loader=localLoader template=templateSet1>
+        <loader-data>
+          {"data": [{"name":1},{"name":2}]}
+        </loader-data>
+        <list-main></list-main>
+      </list-container>
+      <template-set name=templateSet1>
+        <template>a<span data-field=name></span>b</template>
+      </template-set>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    await this.wait ();
+    var list = e.querySelector ('list-main');
+    this.assert.equal (list.children.length, 2);
+    this.assert.equal (list.textContent, 'a1ba2b');
+  </test-code>
+  
+  <test-code name="template-set dynamic template">
+    /*
+      <list-container loader=localLoader template=templateSet2>
+        <loader-data>
+          {"data": [{"name":1},{"name":2}]}
+        </loader-data>
+        <list-main></list-main>
+      </list-container>
+      <template-set name=templateSet2>
+      </template-set>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    var t = this.currentScript.querySelector ('template-set');
+    var te = document.createElement ('template');
+    te.innerHTML = '<'+'span data-field=name>';
+    t.appendChild (te);
+    await this.wait (100);
+    var list = e.querySelector ('list-main');
+    this.assert.equal (list.children.length, 2);
+    this.assert.equal (list.textContent, '12');
+  </test-code>
+  
+  <test-code name="template-set dynamic template-set">
+    /*
+      <list-container loader=localLoader template=templateSet3>
+        <loader-data>
+          {"data": [{"name":1},{"name":2}]}
+        </loader-data>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    var ts = document.createElement ('template-set');
+    ts.setAttribute ('name', 'templateSet3');
+    var te = document.createElement ('template');
+    te.innerHTML = '<'+'span data-field=name>';
+    ts.appendChild (te);
+    document.body.appendChild (ts);
+    await this.wait (100);
+    var list = e.querySelector ('list-main');
+    this.assert.equal (list.children.length, 2);
+    this.assert.equal (list.textContent, '12');
+  </test-code>
+  
+  <test-code name="duplicate template-set">
+    /*
+      <list-container loader=localLoader template=templateSet4>
+        <loader-data>
+          {"data": [{"name":1},{"name":2}]}
+        </loader-data>
+        <list-main></list-main>
+      </list-container>
+      <template-set name=templateSet4><template>[<span data-field=name></span>]</template></template-set>
+      <template-set name=templateSet4><template>{<span data-field=name></span>}</template></template-set>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    await this.wait (100);
+    var list = e.querySelector ('list-main');
+    this.assert.equal (list.children.length, 2);
+    this.assert.equal (list.textContent, '[1][2]');
+  </test-code>
+  
+  <script src=runtests.js></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->

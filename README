@@ -28,6 +28,7 @@ loaded:
   <tab-set>
   <list-container>
   <image-editor>
+  <template-set>
 
 ** <button is=command-button>
 
@@ -178,16 +179,15 @@ element is the list item insertion point.  When the |list-container|
 element is *rendered*, any child of the list item insertion point is
 discarded and the item elements created from the items of the list of
 the element using the selected template of the |list-container|
-element are inserted into the list item insertion point.  The selected
-template of the |list-container| element is the first |template|
-element descendant of the |list-container| element.  An item element
-is a |tr| element if the list item insertion point is a |tbody|
-element, or the |list-item| element otherwise.
+element are inserted into the list item insertion point.  The
+|list-container| elements support templates.  An item element is a
+|tr| element if the list item insertion point is a |tbody| element, or
+the |list-item| element otherwise.
 
 A |list-container| element is rendered when the element is inserted
-and has |list-main| element and |template| element descendants, or
-when a |list-main| or |template| element or pager button descendant is
-inserted.
+and has list item insertion point and selected template, or when a
+list item insertion point, selected template, or pager button
+descendant is inserted.
 
 A *pager button* is a next page button or a previous page button.  A
 *next page button* is an |a| or |button| element which has a
@@ -367,6 +367,70 @@ has been changed.
 The |change| event is fired at an |image-layer| element when the
 element is initialized and whenever the layer is set to a new image or
 placeholder.
+
+** <template-set>
+
+A |template-set| element is a set of template.  The element itself
+represents nothing.  Its content model is one or more |template|
+elements.
+
+A |template-set| element must have a |name| attribute, whose name
+identifies the set.  The |name| attribute value must be unique within
+the tree.
+
+A *template set* can be defined explicitly by a |template-set|
+element, or implicitly by an element which *supports templates*.  If
+an element that supports template has the |template| attribute, the
+template set of the element is the |template-set| element whose name
+is the |template| attribute value.  Otherwise, if the element has no
+|template| attribute, the element itself is the template set.
+
+The *selected template* for an element is a |template| element child
+of the template set of the element.
+
+  For example, in the fragment:
+
+    <list-container>
+      <template></template>
+    </list-container>
+
+  ... the |list-container| element's tempalte set is the element
+  itself and the |template| element child is the selected template.
+
+  In the fragment:
+
+    <list-container template=set1>
+    </list-container>
+    <template-set name=set1>
+      <template></template>
+    </template-set>
+
+  ... the |list-container| element's tempalte set is the
+  |template-set| element and the |template| element child of the
+  |template-set| is the selected template.
+
+When a /name/ element is created from an /object/ using /template/,
+
+  - Its |data-requires| attribute value is interpreted as a
+    space-separated list of the definition type-name pair separated by
+    |:| required to process the template.
+
+  - Its |class| attribute value is set to the |class| attribute value
+    of /template/.
+
+  - Its content is set to a deep clone of the template content of
+    /template/.
+
+  - The |$fill| function is invoked with it and /object/.
+
+For example, a template:
+
+  <template data-requires=filltype:unit-number>
+    <unit-number type=distance data-field=from-station></unit-number>
+  </template>
+
+... will be processed after the |filltype| definition for name
+|unit-number| is loaded.
 
 * Exportable function
 
@@ -559,31 +623,6 @@ There is a predefined filter: |default|.  It replaces the input's
 |data| to the result of |Object.values (/input/.data)| if the input's
 |data| is not a JavaScript |Array|.  It reverses the list if the
 |list-container| element has the |reverse| attribute specified.
-
-* Template processing
-
-When a /name/ element is created from an /object/ using /template/,
-
-  - Its |data-requires| attribute value is interpreted as a
-    space-separated list of the definition type-name pair separated by
-    |:| required to process the template.
-
-  - Its |class| attribute value is set to the |class| attribute value
-    of /template/.
-
-  - Its content is set to a deep clone of the template content of
-    /template/.
-
-  - The |$fill| function is invoked with it and /object/.
-
-For example, a template:
-
-  <template data-requires=filltype:unit-number>
-    <unit-number type=distance data-field=from-station></unit-number>
-  </template>
-
-... will be processed after the |filltype| definition for name
-|unit-number| is loaded.
 
 * Author
 

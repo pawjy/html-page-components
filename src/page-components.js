@@ -28,6 +28,7 @@
     loader: {type: 'handler'},
     filter: {type: 'handler'},
     filltype: {type: 'map'},
+    templateSet: {type: 'element'},
   };
   var defs = {};
   var defLoadedPromises = {};
@@ -40,6 +41,7 @@
   var addDef = function (e) {
     var type = e.localName;
     if (!(e.namespaceURI === 'data:,pc' && definables[type])) return;
+    if (definables[type].type === 'element') return;
 
     var name = e.getAttribute ('name');
     if (defs[type][name]) {
@@ -59,6 +61,17 @@
       }
     }
   }; // addDef
+  var addElementDef = (type, name, e) => {
+    if (defs[type][name]) {
+      throw new Error ("Duplicate |"+type+"|: |"+name+"|");
+    }
+    defs[type][name] = e;
+    if (defLoadedCallbacks[type][name]) {
+      defLoadedCallbacks[type][name] (e);
+      delete defLoadedCallbacks[type][name];
+      delete defLoadedPromises[type][name];
+    }
+  }; // addElementDef
   new MutationObserver (function (mutations) {
     mutations.forEach
         ((m) => Array.prototype.forEach.call (m.addedNodes, addDef));
@@ -100,6 +113,9 @@
   defs.filltype.output = 'idlattribute';
   // <progress>
   // <meter>
+
+  var selectors = [];
+  var elementProps = {};
 
   var filledAttributes = ['href', 'src', 'id', 'title'];
   var $fill = exportable.$fill = function (root, object) {
@@ -159,24 +175,42 @@
     });
   }; // $fill
 
-  var TemplateManager = function () { };
-  var getTemplateManager = function (e) {
-    // XXX template selector
-
-    var template;
-    Array.prototype.slice.call (e.children).forEach ((f) => {
-      if (f.localName === 'template') {
-        template = f;
+  var TemplateManager = function (e, onUpdated) {
+    this.tmTemplateList = {};
+    Promise.resolve ().then (() => {
+      var name = e.getAttribute ('template');
+      if (name) {
+        return getDef ('templateSet', name);
+      } else {
+        return e;
       }
+    }).then ((f) => {
+      new MutationObserver ((mutations) => {
+        this.tmCreateTemplateList (onUpdated);
+      }).observe (f, {childList: true});
+      
+      this.tmTemplateSet = f;
+      this.tmCreateTemplateList (onUpdated);
     });
-    if (!template) template = document.createElement ('template');
-    var tm = new TemplateManager;
-    tm.template = template;
-    return tm;
-  }; // getTemplateManager
+  }; // new TemplateManager
+  
+  TemplateManager.prototype.tmCreateTemplateList = function (onUpdated) {
+    Array.prototype.slice.call (this.tmTemplateSet.querySelectorAll ('template')).forEach ((g) => {
+      this.tmTemplateList[""] = g;
+    });
+    Promise.resolve ().then (onUpdated);
+  }; // tmCreateTemplateList
 
+  TemplateManager.prototype.isReady = function () {
+    return !!this.tmTemplateList[""];
+  }; // isReady
+  
   TemplateManager.prototype.create = function (localName, object) {
-    var template = this.template;
+    if (!this.isReady ()) return;
+    
+    // XXX template selector
+    var template = this.tmTemplateList[""];
+    
     return waitDefsByString (template.getAttribute ('data-requires') || '').then (() => {
       var e = document.createElement (localName);
       e.className = template.className;
@@ -185,10 +219,23 @@
       return e;
     });
   }; // create
-  
-  var selectors = [];
-  var elementProps = {};
 
+  selectors.push ('template-set');
+  elementProps["template-set"] = {
+    pcInit: function () {
+      var name = this.getAttribute ('name');
+      if (!name) {
+        console.log ('|template-set| element does not have |name|: ', this);
+        return;
+      }
+      addElementDef ('templateSet', name, this);
+
+      new MutationObserver ((mutations) => {
+        this.dispatchEvent (new Event ('tsUpdated'));
+      }).observe (this, {childList: true});
+    }, // pcInit
+  }; // <template-set>
+  
   var upgrade = function (e) {
     if (e.pcUpgraded) return;
     e.pcUpgraded = true;
@@ -418,19 +465,24 @@
   selectors.push ('list-container');
   elementProps["list-container"] = {
     pcInit: function () {
-      var selector = 'template, a.list-prev, a.list-next, button.list-prev, button.list-next, ' + this.lcGetListContainerSelector ();
+      var selector = 'a.list-prev, a.list-next, button.list-prev, button.list-next, ' + this.lcGetListContainerSelector ();
       new MutationObserver ((mutations) => {
         mutations.forEach ((m) => {
           Array.prototype.forEach.call (m.addedNodes, (e) => {
             if (e.nodeType === e.ELEMENT_NODE) {
               if (e.matches (selector) || e.querySelector (selector)) {
+                this.lcDataChanges.changed = true;
                 this.lcRequestRender ();
               }
             }
           });
         });
       }).observe (this, {childList: true, subtree: true});
-      
+
+      this.lcTemplateManager = new TemplateManager (this, () => {
+        this.lcDataChanges.changed = true;
+        this.lcRequestRender ();
+      });
       this.load ({});
     }, // pcInit
 
@@ -507,11 +559,18 @@
 
     lcRequestRender: function () {
       clearTimeout (this.lcRenderRequestedTimer);
-      this.lcRenderRequestedTimer = setTimeout (() => this.lcRender (), 0);
+      this.lcRenderRequested = true;
+      this.lcRenderRequestedTimer = setTimeout (() => {
+        if (!this.lcRenderRequested) false;
+        this.lcRender ();
+        this.lcRenderRequested = false;
+      }, 0);
     }, // lcRequestRender
     lcRender: function () {
       var listContainer = this.lcGetListContainer ();
       if (!listContainer) return;
+
+      if (!this.lcTemplateManager.isReady ()) return;
 
       this.querySelectorAll ('a.list-prev, button.list-prev').forEach ((e) => {
         e.hidden = ! this.lcPrev.has;
@@ -531,7 +590,7 @@
         e.hidden = this.lcData.length > 0;
       });
 
-      var tm = getTemplateManager (this);
+      var tm = this.lcTemplateManager;
       var changes = this.lcDataChanges;
       this.lcDataChanges = {changed: false, prepend: [], append: []};
       var itemLN = {
