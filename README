@@ -669,6 +669,59 @@ There is a predefined filter: |default|.  It replaces the input's
 |data| is not a JavaScript |Array|.  It reverses the list if the
 |list-container| element has the |reverse| attribute specified.
 
+* Elements
+
+An element's implementation can be defined by inserting an |element|
+element in the <data:,pc> namespace whose property |pcDef|'s value is
+the definition of the element into the |head| element.
+
+  For example, the |my-element| element can be defined by the
+  following code:
+
+    var e = document.createElementNS ('data:,pc', 'element');
+    e.pcDef = {
+      name: 'my-element',
+      props: {
+        pcInit: function () {
+          var myattr = this.getAttribute ('myattr');
+          ...
+        },
+        myMethod: function () {
+          ...
+        },
+      },
+    };
+    document.head.appendChild (e);
+
+For an autonomous custom element (i.e. a custom element with its own
+name), the definition's |name| must be specified to the element name.
+For a customized built-in element (i.e. a standard HTML element with
+the |is| attribute), the definition's |name| must be specified to the
+element name and the definition's |is| must be specified to the |is|
+attribute value.  Any element inserted into the document before or
+after the definition is initialized as specified by the definition.
+
+The definition has following name/value pairs:
+
+  name (string, required)
+
+    The element name.
+
+  is (string)
+
+    The |is| attribute value.  This field must be specified if |name|
+    does not have |-| in its value.  This value must have |-| in its
+    value.
+
+  props (dictionary)
+
+    The additional properties for the element.  The properties
+    specified here are copied into the element when the element is
+    initialized.
+
+    If there is a |pcInit| property, the |pcInit| method of the
+    element is invoked upon initialization.
+
 * Author
 
 Wakaba <wakaba@suikawiki.org>.
