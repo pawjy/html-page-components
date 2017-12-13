@@ -61,6 +61,7 @@
         delete defLoadedPromises[type][name];
       }
     }
+    e.remove ();
   }; // addDef
   var addElementDef = (type, name, e) => {
     if (defs[type][name]) {
@@ -115,20 +116,53 @@
   // <progress>
   // <meter>
 
-  var selectors = [];
-  var elementProps = {};
+  var upgradableSelectors = [];
+  var currentUpgradables = ':not(*)';
+  var newUpgradableSelectors = [];
+  var upgradedElementProps = {};
   
   var upgrade = function (e) {
     if (e.pcUpgraded) return;
     e.pcUpgraded = true;
 
-    var props = elementProps[e.localName];
+    var props = upgradedElementProps[e.localName];
     Object.keys (props).forEach (function (k) {
       e[k] = props[k];
     });
 
     new Promise ((re) => re (e.pcInit ())).catch ((err) => console.log ("Can't upgrade an element", e, err));
   }; // upgrade
+
+  new MutationObserver (function (mutations) {
+    mutations.forEach (function (m) {
+      Array.prototype.forEach.call (m.addedNodes, function (e) {
+        if (e.nodeType === e.ELEMENT_NODE) {
+          if (e.matches && e.matches (currentUpgradables)) upgrade (e);
+          Array.prototype.forEach.call
+              (e.querySelectorAll (currentUpgradables), upgrade);
+        }
+      });
+    });
+  }).observe (document, {childList: true, subtree: true});
+
+  var defineElement = function (def) {
+    upgradedElementProps[def.name] = def.props;
+    if (!def.notTopLevel) {
+      var selector = def.name;
+      if (def.is) {
+        selector += '[is="' + def.is + '"]';
+      }
+      newUpgradableSelectors.push (selector);
+      Promise.resolve ().then (() => {
+        var news = newUpgradableSelectors.join (',');
+        if (!news) return;
+        newUpgradableSelectors.forEach ((_) => upgradableSelectors.push (_));
+        newUpgradableSelectors = [];
+        currentUpgradables = upgradableSelectors.join (',');
+        Array.prototype.forEach.call (document.querySelectorAll (news), upgrade);
+      });
+    }
+  }; // defineElement
 
   var filledAttributes = ['href', 'src', 'id', 'title'];
   var $fill = exportable.$fill = function (root, object) {
@@ -258,195 +292,207 @@
     }
   }; // initTemplateSet
 
-  selectors.push ('template-set');
-  elementProps["template-set"] = {
-    pcInit: function () {
-      var name = this.getAttribute ('name');
-      if (!name) {
-        throw new Error ('|template-set| element does not have |name| attribute');
-      }
-      addElementDef ('templateSet', name, this);
-      initTemplateSet (this);
-    }, // pcInit
-  }; // <template-set>
+  defineElement ({
+    name: 'template-set',
+    props: {
+      pcInit: function () {
+        var name = this.getAttribute ('name');
+        if (!name) {
+          throw new Error
+          ('|template-set| element does not have |name| attribute');
+        }
+        addElementDef ('templateSet', name, this);
+        initTemplateSet (this);
+      }, // pcInit
+    },
+  }); // <template-set>
 
   defs.templateselector["default"] = function (templates) {
     return templates[""];
   }; // empty
-  
-  selectors.push ('button[is=command-button]');
-  elementProps.button = {
-    pcInit: function () {
-      this.addEventListener ('click', () => this.cbClick ());
-    }, // pcInit
-    cbClick: function () {
-      var selector = this.getAttribute ('data-selector');
-      var selected = document.querySelector (selector);
-      if (!selected) throw new Error ("Selector |"+selector+"| does not match any element in the document");
 
-      var command = this.getAttribute ('data-command');
-      var cmd = selected.cbCommands ? selected.cbCommands[command] : undefined;
-      if (!cmd) throw new Error ("Command |"+command+"| not defined");
+  defineElement ({
+    name: 'button',
+    is: 'command-button',
+    props: {
+      pcInit: function () {
+        this.addEventListener ('click', () => this.cbClick ());
+      }, // pcInit
+      cbClick: function () {
+        var selector = this.getAttribute ('data-selector');
+        var selected = document.querySelector (selector);
+        if (!selected) {
+          throw new Error ("Selector |"+selector+"| does not match any element in the document");
+        }
+        
+        var command = this.getAttribute ('data-command');
+        var cmd = selected.cbCommands ? selected.cbCommands[command] : undefined;
+        if (!cmd) throw new Error ("Command |"+command+"| not defined");
 
-      selected[command] ();
-    }, // cbClick
-  }; // button[is=command-button]
+        selected[command] ();
+      }, // cbClick
+    },
+  }); // button[is=command-button]
 
-  selectors.push ('popup-menu');
-  elementProps['popup-menu'] = {
-    pcInit: function () {
-      this.addEventListener ('click', (ev) => this.pmClick (ev));
-      var mo = new MutationObserver ((mutations) => {
-        this.pmToggle (this.hasAttribute ('open'));
-      });
-      mo.observe (this, {attributeFilter: ['open']});
-      setTimeout (() => this.pmLayout (), 100);
-    }, // pcInit
-    pmClick: function (ev) {
-      var current = ev.target;
-      var targetType = 'outside';
-      while (current) {
-        if (current === this) {
-          targetType = 'this';
-          break;
-        } else if (current.localName === 'button') {
-          if (current.parentNode === this) {
-            targetType = 'button';
+  defineElement ({
+    name: 'popup-menu',
+    props: {
+      pcInit: function () {
+        this.addEventListener ('click', (ev) => this.pmClick (ev));
+        var mo = new MutationObserver ((mutations) => {
+          this.pmToggle (this.hasAttribute ('open'));
+        });
+        mo.observe (this, {attributeFilter: ['open']});
+        setTimeout (() => this.pmLayout (), 100);
+      }, // pcInit
+      pmClick: function (ev) {
+        var current = ev.target;
+        var targetType = 'outside';
+        while (current) {
+          if (current === this) {
+            targetType = 'this';
             break;
-          } else {
+          } else if (current.localName === 'button') {
+            if (current.parentNode === this) {
+              targetType = 'button';
+              break;
+            } else {
+              targetType = 'command';
+              break;
+            }
+          } else if (current.localName === 'a') {
             targetType = 'command';
             break;
+          } else if (current.localName === 'menu-main' &&
+                     current.parentNode === this) {
+            targetType = 'menu';
+            break;
           }
-        } else if (current.localName === 'a') {
-          targetType = 'command';
-          break;
-        } else if (current.localName === 'menu-main' &&
-                   current.parentNode === this) {
-          targetType = 'menu';
-          break;
-        }
-        current = current.parentNode;
-      } // current
+          current = current.parentNode;
+        } // current
 
-      if (targetType === 'button') {
-        this.toggle ();
-      } else if (targetType === 'menu') {
-        //
-      } else {
-        this.toggle (false);
-      }
-      ev.pmEventHandledBy = this;
-    }, // pmClick
-
-    toggle: function (show) {
-      if (show === undefined) {
-        show = !this.hasAttribute ('open');
-      }
-      if (show) {
-        this.setAttribute ('open', '');
-      } else {
-        this.removeAttribute ('open');
-      }
-    }, // toggle
-    pmToggle: function (show) {
-      if (show) {
-        if (!this.pmGlobalClickHandler) {
-          this.pmGlobalClickHandler = (ev) => {
-            if (ev.pmEventHandledBy === this) return;
-            this.toggle (false);
-          };
-          window.addEventListener ('click', this.pmGlobalClickHandler);
-          this.pmLayout ();
-        }
-      } else {
-        if (this.pmGlobalClickHandler) {
-          window.removeEventListener ('click', this.pmGlobalClickHandler);
-          delete this.pmGlobalClickHandler;
-        }
-      }
-    }, // pmToggle
-
-    pmLayout: function () {
-      if (!this.hasAttribute ('open')) return;
-      
-      var button = this.querySelector ('button');
-      var menu = this.querySelector ('menu-main');
-      if (!button || !menu) return;
-
-      menu.style.top = 'auto';
-      menu.style.left = 'auto';
-      var menuWidth = menu.offsetWidth;
-      var menuTop = menu.offsetTop;
-      var menuHeight = menu.offsetHeight;
-      if (getComputedStyle (menu).direction === 'rtl') {
-        var parent = menu.offsetParent || document.documentElement;
-        if (button.offsetLeft + menuWidth > parent.offsetWidth) {
-          menu.style.left = button.offsetLeft + button.offsetWidth - menuWidth + 'px';
+        if (targetType === 'button') {
+          this.toggle ();
+        } else if (targetType === 'menu') {
+          //
         } else {
-          menu.style.left = button.offsetLeft + 'px';
+          this.toggle (false);
         }
-      } else {
-        var right = button.offsetLeft + button.offsetWidth;
-        if (right > menuWidth) {
-          menu.style.left = (right - menuWidth) + 'px';
+        ev.pmEventHandledBy = this;
+      }, // pmClick
+
+      toggle: function (show) {
+        if (show === undefined) {
+          show = !this.hasAttribute ('open');
+        }
+        if (show) {
+          this.setAttribute ('open', '');
         } else {
-          menu.style.left = 'auto';
+          this.removeAttribute ('open');
         }
-      }
-    }, // pmLayout
-  }; // popup-menu
+      }, // toggle
+      pmToggle: function (show) {
+        if (show) {
+          if (!this.pmGlobalClickHandler) {
+            this.pmGlobalClickHandler = (ev) => {
+              if (ev.pmEventHandledBy === this) return;
+              this.toggle (false);
+            };
+            window.addEventListener ('click', this.pmGlobalClickHandler);
+            this.pmLayout ();
+          }
+        } else {
+          if (this.pmGlobalClickHandler) {
+            window.removeEventListener ('click', this.pmGlobalClickHandler);
+            delete this.pmGlobalClickHandler;
+          }
+        }
+      }, // pmToggle
 
-  selectors.push ('tab-set');
-  elementProps['tab-set'] = {
-    pcInit: function () {
-      new MutationObserver (() => this.tsInit ()).observe (this, {childList: true});
-      Promise.resolve ().then (() => this.tsInit ());
-    }, // pcInit
-    tsInit: function () {
-      var tabMenu = null;
-      var tabSections = [];
-      Array.prototype.forEach.call (this.children, function (f) {
-        if (f.localName === 'section') {
-          tabSections.push (f);
-        } else if (f.localName === 'tab-menu') {
-          tabMenu = f;
-        }
-      });
+      pmLayout: function () {
+        if (!this.hasAttribute ('open')) return;
       
-      if (!tabMenu) return;
+        var button = this.querySelector ('button');
+        var menu = this.querySelector ('menu-main');
+        if (!button || !menu) return;
 
-      tabMenu.textContent = '';
-      tabSections.forEach ((f) => {
-        var header = f.querySelector ('h1');
-        var a = document.createElement ('a');
-        a.href = 'javascript:';
-        a.onclick = () => this.tsShowTab (a.tsSection);
-        a.textContent = header ? header.textContent : '§';
-        a.tsSection = f;
-        tabMenu.appendChild (a);
-      });
-
-      if (tabSections.length) this.tsShowTab (tabSections[0]);
-    }, // tsInit
-    tsShowTab: function (f) {
-      var tabMenu = null;
-      var tabSections = [];
-      Array.prototype.forEach.call (this.children, function (f) {
-        if (f.localName === 'section') {
-          tabSections.push (f);
-        } else if (f.localName === 'tab-menu') {
-          tabMenu = f;
+        menu.style.top = 'auto';
+        menu.style.left = 'auto';
+        var menuWidth = menu.offsetWidth;
+        var menuTop = menu.offsetTop;
+        var menuHeight = menu.offsetHeight;
+        if (getComputedStyle (menu).direction === 'rtl') {
+          var parent = menu.offsetParent || document.documentElement;
+          if (button.offsetLeft + menuWidth > parent.offsetWidth) {
+            menu.style.left = button.offsetLeft + button.offsetWidth - menuWidth + 'px';
+          } else {
+            menu.style.left = button.offsetLeft + 'px';
+          }
+        } else {
+          var right = button.offsetLeft + button.offsetWidth;
+          if (right > menuWidth) {
+            menu.style.left = (right - menuWidth) + 'px';
+          } else {
+            menu.style.left = 'auto';
+          }
         }
-      });
+      }, // pmLayout
+    },
+  }); // popup-menu
 
-      tabMenu.querySelectorAll ('a').forEach ((g) => {
-        g.classList.toggle ('active', g.tsSection === f);
-      });
-      tabSections.forEach ((g) => {
-        g.classList.toggle ('active', f === g);
-      });
-    }, // tsShowTab
-  }; // tab-set
+  defineElement ({
+    name: 'tab-set',
+    props: {
+      pcInit: function () {
+        new MutationObserver (() => this.tsInit ()).observe (this, {childList: true});
+        Promise.resolve ().then (() => this.tsInit ());
+      }, // pcInit
+      tsInit: function () {
+        var tabMenu = null;
+        var tabSections = [];
+        Array.prototype.forEach.call (this.children, function (f) {
+          if (f.localName === 'section') {
+            tabSections.push (f);
+          } else if (f.localName === 'tab-menu') {
+            tabMenu = f;
+          }
+        });
+      
+        if (!tabMenu) return;
+
+        tabMenu.textContent = '';
+        tabSections.forEach ((f) => {
+          var header = f.querySelector ('h1');
+          var a = document.createElement ('a');
+          a.href = 'javascript:';
+          a.onclick = () => this.tsShowTab (a.tsSection);
+          a.textContent = header ? header.textContent : '§';
+          a.tsSection = f;
+          tabMenu.appendChild (a);
+        });
+
+        if (tabSections.length) this.tsShowTab (tabSections[0]);
+      }, // tsInit
+      tsShowTab: function (f) {
+        var tabMenu = null;
+        var tabSections = [];
+        Array.prototype.forEach.call (this.children, function (f) {
+          if (f.localName === 'section') {
+            tabSections.push (f);
+          } else if (f.localName === 'tab-menu') {
+            tabMenu = f;
+          }
+        });
+
+        tabMenu.querySelectorAll ('a').forEach ((g) => {
+          g.classList.toggle ('active', g.tsSection === f);
+        });
+        tabSections.forEach ((g) => {
+          g.classList.toggle ('active', f === g);
+        });
+      }, // tsShowTab
+    },
+  }); // tab-set
   
   defs.loader.src = function (opts) {
     if (!this.hasAttribute ('src')) return {};
@@ -487,9 +533,10 @@
       next: data.next,
     };
   }; // filter=default
-  
-  selectors.push ('list-container');
-  elementProps["list-container"] = {
+
+  defineElement ({
+    name: 'list-container',
+    props: {
     pcInit: function () {
       var selector = 'a.list-prev, a.list-next, button.list-prev, button.list-next, ' + this.lcGetListContainerSelector ();
       new MutationObserver ((mutations) => {
@@ -653,11 +700,13 @@
       // XXX loaded-actions=""
       // XXX action-status integration
     }, // lcRender
-    
-  }; // list-container
 
-  selectors.push ('image-editor');
-  elementProps["image-editor"] = {
+    },
+  }); // list-container
+
+  defineElement ({
+    name: 'image-editor',
+    props: {
     pcInit: function () {
       this.ieResize ({resizeEvent: true});
       var mo = new MutationObserver ((mutations) => {
@@ -755,9 +804,13 @@
     getJPEGBlob: function () {
       return this.ieCanvasToBlob ('image/jpeg');
     }, // getJPEGBlob
-  }; // image-editor
+    },
+  }); // image-editor
 
-  elementProps["image-layer"] = {
+  defineElement ({
+    name: 'image-layer',
+    notTopLevel: true,
+    props: {
     pcInit: function () {
       this.ieCanvas = document.createElement ('canvas');
       this.appendChild (this.ieCanvas);
@@ -1156,20 +1209,8 @@
       this.ieScaleFactor = newScale;
       this.ieUpdateDimension ();
     }, // setScale
-  }; // image-layer
-  
-  var selector = selectors.join (',');
-  new MutationObserver (function (mutations) {
-    mutations.forEach (function (m) {
-      Array.prototype.forEach.call (m.addedNodes, function (e) {
-        if (e.nodeType === e.ELEMENT_NODE) {
-          if (e.matches && e.matches (selector)) upgrade (e);
-          Array.prototype.forEach.call (e.querySelectorAll (selector), upgrade);
-        }
-      });
-    });
-  }).observe (document, {childList: true, subtree: true});
-  Array.prototype.forEach.call (document.querySelectorAll (selector), upgrade);
+    },
+  }); // image-layer
 
   (document.currentScript.getAttribute ('data-export') || '').split (/\s+/).filter ((_) => { return _.length }).forEach ((name) => {
     self[name] = exportable[name];
