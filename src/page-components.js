@@ -150,7 +150,7 @@
     if (!def.notTopLevel) {
       var selector = def.name;
       if (def.is) {
-        selector += '[' + def.is + ']';
+        selector += '[is="' + def.is + '"]';
       }
       newUpgradableSelectors.push (selector);
       Promise.resolve ().then (() => {
