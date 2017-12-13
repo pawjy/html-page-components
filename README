@@ -385,8 +385,18 @@ template set of the element is the |template-set| element whose name
 is the |template| attribute value.  Otherwise, if the element has no
 |template| attribute, the element itself is the template set.
 
-The *selected template* for an element is a |template| element child
-of the template set of the element.
+The *template map* of a template set is a map whose values are the
+|template| element children of the template set.  Their names are the
+|data-name| attribute value of the value's |template| element, if
+specified, or the empty string.  The |data-name| attribute value (or
+the empty string, if not specified) must be unique in the template
+set.
+
+The *selected template* for an element is a |template| element chosen
+by the template selector specified by the |templateselector| attribute
+of the template set (whose default is |default|).  A *template
+selector* is a definition of type |templateselector|.  A template
+selector is expected to choose a template from the template map.
 
   For example, in the fragment:
 
@@ -432,12 +442,12 @@ For example, a template:
 ... will be processed after the |filltype| definition for name
 |unit-number| is loaded.
 
-* Exportable function
+* Exportable functions
 
 By setting the |data-export| attribute of the |script| element loading
 the |page-components.js| to a space-separated list of the function
 names, the functions can be exported to the global scope.  The
-following function is available:
+following functions are available:
 
   $fill (root, object)
 
@@ -551,6 +561,29 @@ following function is available:
     /template/ where any substring |{/field-name/}| is replaced by the
     field value for /field-name/.
 
+  initTemplateSet (e)
+
+    Make an autonomous custom element (i.e. an element whose name has
+    "-") a template set.  By invoking this method, its content
+    attributes |template| and |templateselector|, as well as its
+    |template| element children, are interpreted as part of the
+    template set for the element.  (Note that |template| and
+    |templateselector| attributes must be set before this function is
+    invoked.)
+
+    A template set element is fired a |pctemplatesetupdated| event
+    whenever its template set's definition is updated such that any
+    content created using the template might need to be updated.  The
+    event is fired with an event object whose |pcTemplateSet| property
+    is the template set for the element.  (Note that the
+    |pcTemplateSet| value might not be the same object as the element
+    when the |template| attribute is specified.)
+
+    A template set object has the |createFromTemplate| element, which
+    returns an element created from the selected template.  The method
+    requires two arguments: the name of the element to be created and
+    the object used to select and to fill (by |$fill|) the template.
+
 * Definitions
 
 The *definition* is an integration point with another script libraries
@@ -588,6 +621,18 @@ There are following definition types:
     The |this| value used when the handler is invoked is the
     |list-container| element.  The handler is invoked with the
     argument of the result of the previous step.
+
+  templateselector (handler)
+
+    A handler for template set's template selector.  It is expected to
+    return a |template| element chosen from the argument.  (It cannot
+    return a promise and cannot throw any exception.)
+
+    The |this| value used when the handler is invoked is the template
+    set.  The handler is invoked with two arguments: the candidate
+    template map and the object for which a template should be chosen.
+    Note that the template map (which is a JavaScript object used to
+    represent name/value pairs) might be empty.
 
 If a definition type is /handler/, it must have a handler.  The
 *handler* of a definition is the |pcHandler| JavaScript property

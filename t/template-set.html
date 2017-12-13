@@ -15,6 +15,16 @@
     document.head.appendChild (handler);
   </script>
   
+  <test-code name="template-set without name">
+    /*
+      <template-set>
+        <template>a<span data-field=name></span>b</template>
+      </template-set>
+    */
+    var e = this.currentScript.querySelector ('template-set');
+    this.assert.equal (e, e);
+  </test-code>
+  
   <test-code name="template-set">
     /*
       <list-container loader=localLoader template=templateSet1>
@@ -94,6 +104,62 @@
     var list = e.querySelector ('list-main');
     this.assert.equal (list.children.length, 2);
     this.assert.equal (list.textContent, '[1][2]');
+  </test-code>
+  
+  <test-code name="template-set has template selector">
+    /*
+      <list-container loader=localLoader template=templateSet5>
+        <loader-data>
+          {"data": [{"name":1},{"name":2}]}
+        </loader-data>
+        <list-main></list-main>
+      </list-container>
+      <template-set name=templateSet5 templateselector=selector5>
+        <template data-name=1><span data-field=name></span></template>
+        <template data-name=2><span data-field=name></span><span data-field=name></span></template>
+      </template-set>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+
+    var handler = document.createElementNS ('data:,pc', 'templateselector');
+    handler.setAttribute ('name', 'selector5');
+    handler.pcHandler = function (map, object) {
+      return map[object.name];
+    };
+    document.head.appendChild (handler);
+    
+    await this.wait (100);
+
+    var list = e.querySelector ('list-main');
+    this.assert.equal (list.children.length, 2);
+    this.assert.equal (list.textContent, '122');
+  </test-code>
+  
+  <test-code name="implicit template set has template selector">
+    /*
+      <list-container loader=localLoader templateselector=selector6>
+        <loader-data>
+          {"data": [{"name":1},{"name":2}]}
+        </loader-data>
+        <list-main></list-main>
+        <template data-name=1>x<span data-field=name></span></template>
+        <template data-name=2>x<span data-field=name></span><span data-field=name></span></template>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+
+    var handler = document.createElementNS ('data:,pc', 'templateselector');
+    handler.setAttribute ('name', 'selector6');
+    handler.pcHandler = function (map, object) {
+      return map[object.name];
+    };
+    document.head.appendChild (handler);
+    
+    await this.wait (100);
+
+    var list = e.querySelector ('list-main');
+    this.assert.equal (list.children.length, 2);
+    this.assert.equal (list.textContent, 'x1x22');
   </test-code>
   
   <script src=runtests.js></script>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+  
+  <test-code name="custom template set">
+    /*
+      <my-element>
+        <template>a<span data-field=name></span>b</template>
+      </my-element>
+    */
+    var e = this.currentScript.querySelector ('my-element');
+    initTemplateSet (e);
+
+    await this.wait ();
+
+    var obj = {name: "A"};
+    var item = e.createFromTemplate ('test-item', obj);
+    
+    this.assert.equal (item.localName, 'test-item');
+    this.assert.equal (item.textContent, 'aAb');
+  </test-code>
+  
+  <test-code name="custom template set with template selector">
+    /*
+      <my-element templateselector=selector6>
+        <template data-name=A>1<span data-field=name></span></template>
+        <template data-name=B>2<span data-field=name></span></template>
+        <my-item1></my-item1>
+        <my-item2></my-item2>
+      </my-element>
+    */
+    var e = this.currentScript.querySelector ('my-element');
+    initTemplateSet (e);
+
+    var handler = document.createElementNS ('data:,pc', 'templateselector');
+    handler.setAttribute ('name', 'selector6');
+    handler.pcHandler = function (map, object) {
+      return map[object.name];
+    };
+    document.head.appendChild (handler);
+
+    var obj1 = {name: "A"};
+    var obj2 = {name: "B"};
+    
+    var item1 = e.querySelector ('my-item1');
+    var item2 = e.querySelector ('my-item2');
+    e.addEventListener ('pctemplatesetupdated', (ev) => {
+      var f = ev.pcTemplateSet;
+      
+      item1.textContent = '';
+      item1.appendChild (f.createFromTemplate ('test-item1', obj1));
+      
+      item2.textContent = '';
+      item2.appendChild (f.createFromTemplate ('test-item2', obj2));
+    });
+      
+    await this.wait (100);
+
+    this.assert.equal (item1.firstChild.localName, 'test-item1');
+    this.assert.equal (item1.textContent, '1A');
+
+    this.assert.equal (item2.firstChild.localName, 'test-item2');
+    this.assert.equal (item2.textContent, '2B');
+  </test-code>
+  
+  <test-code name="custom template set referencing external template-set">
+    /*
+      <my-element template=set7>
+        <my-item1></my-item1>
+        <my-item2></my-item2>
+      </my-element>
+      <template-set name=set7 templateselector=selector7>
+        <template data-name=A>1<span data-field=name></span></template>
+        <template data-name=B>2<span data-field=name></span></template>
+      </template-set>
+    */
+    var e = this.currentScript.querySelector ('my-element');
+    initTemplateSet (e);
+
+    var handler = document.createElementNS ('data:,pc', 'templateselector');
+    handler.setAttribute ('name', 'selector7');
+    handler.pcHandler = function (map, object) {
+      return map[object.name];
+    };
+    document.head.appendChild (handler);
+
+    var obj1 = {name: "A"};
+    var obj2 = {name: "B"};
+    
+    var item1 = e.querySelector ('my-item1');
+    var item2 = e.querySelector ('my-item2');
+    e.addEventListener ('pctemplatesetupdated', (ev) => {
+      var f = ev.pcTemplateSet;
+      
+      item1.textContent = '';
+      item1.appendChild (f.createFromTemplate ('test-item1', obj1));
+      
+      item2.textContent = '';
+      item2.appendChild (f.createFromTemplate ('test-item2', obj2));
+    });
+      
+    await this.wait (100);
+
+    this.assert.equal (item1.firstChild.localName, 'test-item1');
+    this.assert.equal (item1.textContent, '1A');
+
+    this.assert.equal (item2.firstChild.localName, 'test-item2');
+    this.assert.equal (item2.textContent, '2B');
+  </test-code>
+  
+  <script src=runtests.js data-export=initTemplateSet></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->
