@@ -14,6 +14,17 @@
   meta.content = "width=device-width";
   document.head.appendChild (meta);
 
+  // XXX for backward compatibility: remove this later!
+  if (!Node.prototype.getRootNode) {
+    Node.prototype.getRootNode = function () {
+      var node = this;
+      while (node.parentNode) {
+        node = node.parentNode;
+      }
+      return node;
+    };
+  }
+
   var qunitLoaded = new Promise (function (ok, error) {
     var script = document.createElement ('script');
     script.src = 'https://code.jquery.com/qunit/qunit-2.2.0.js';

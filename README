@@ -580,10 +580,9 @@ following functions are available:
     when the |template| attribute is specified.)
 
     A template set object has the |createFromTemplate| element, which
-    returns a promise that is fulfilled with an element created from
-    the selected template.  The method requires two arguments: the
-    name of the element to be created and the object used to select
-    and to fill (by |$fill|) the template.
+    returns an element created from the selected template.  The method
+    requires two arguments: the name of the element to be created and
+    the object used to select and to fill (by |$fill|) the template.
 
 * Definitions
 
@@ -626,8 +625,8 @@ There are following definition types:
   templateselector (handler)
 
     A handler for template set's template selector.  It is expected to
-    return a |template| element (or a promise fulfilled with a
-    |template| element) chosen from the argument.
+    return a |template| element chosen from the argument.  (It cannot
+    return a promise and cannot throw any exception.)
 
     The |this| value used when the handler is invoked is the template
     set.  The handler is invoked with two arguments: the candidate

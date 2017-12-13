@@ -197,7 +197,12 @@
         this.pcTemplateList[g.getAttribute ('data-name') || ""] = g;
       });
 
-      Promise.resolve ().then (() => {
+      this.pcSelectorUpdatedDispatched = false;
+      this.pcSelectorName = this.getAttribute ('templateselector') || 'default';
+      return getDef ('templateselector', this.pcSelectorName).then ((_) => {
+        this.pcSelector = _;
+        return Promise.all (Object.values (this.pcTemplateList).map ((e) => waitDefsByString (e.getAttribute ('data-requires') || '')));
+      }).then (() => {
         var event = new Event ('pctemplatesetupdated', {});
         event.pcTemplateSet = this;
         var nodes;
@@ -207,26 +212,22 @@
         } else {
           nodes = [this];
         }
+        this.pcSelectorUpdatedDispatched = true;
         nodes.forEach ((e) => e.dispatchEvent (event));
       });
     }, // pcCreateTemplateList
     createFromTemplate: function (localName, object) {
-      var selectorName = this.getAttribute ('templateselector') || 'default';
-      return getDef ('templateselector', selectorName).then ((selector) => {
-        return selector.call (this, this.pcTemplateList, object);
-      }).then ((template) => {
-        if (!template) {
-          console.log ('Template is not selected (templateselector=' + selectorName + ')', this);
-          template = document.createElement ('template');
-        }
-        return waitDefsByString (template.getAttribute ('data-requires') || '').then (() => {
-          var e = document.createElement (localName);
-          e.className = template.className;
-          e.appendChild (template.content.cloneNode (true));
-          $fill (e, object);
-          return e;
-        });
-      });
+      if (!this.pcSelector) throw new DOMException ('The template set is not ready', 'InvalidStateError');
+      var template = this.pcSelector.call (this, this.pcTemplateList, object); // or throw
+      if (!template) {
+        console.log ('Template is not selected (templateselector=' + selectorName + ')', this);
+        template = document.createElement ('template');
+      }
+      var e = document.createElement (localName);
+      e.className = template.className;
+      e.appendChild (template.content.cloneNode (true));
+      $fill (e, object);
+      return e;
     }, // createFromTemplate
   }; // templateSetMembers
 
@@ -240,10 +241,12 @@
 
     var templateSetName = e.getAttribute ('template');
     if (templateSetName) {
-      if (defs.templateSet[templateSetName]) {
+      var ts = defs.templateSet[templateSetName];
+      if (ts && ts.pcSelectorUpdatedDispatched) {
         Promise.resolve ().then (() => {
+          if (!ts.pcSelectorUpdatedDispatched) return;
           var event = new Event ('pctemplatesetupdated', {});
-          event.pcTemplateSet = defs.templateSet[templateSetName];
+          event.pcTemplateSet = ts;
           e.dispatchEvent (event);
         });
       }
@@ -628,24 +631,21 @@
       }[listContainer.localName] || 'list-item';
       if (changes.changed) {
         return $promised.forEach ((object) => {
-          return tm.createFromTemplate (itemLN, object).then ((e) => {
-            listContainer.appendChild (e);
-          });
+          var e = tm.createFromTemplate (itemLN, object);
+          listContainer.appendChild (e);
         }, this.lcData);
       } else {
         var f = document.createDocumentFragment ();
         return Promise.all ([
           $promised.forEach ((object) => {
-            return tm.createFromTemplate (itemLN, object).then ((e) => {
-              f.appendChild (e);
-            });
+            var e = tm.createFromTemplate (itemLN, object);
+            f.appendChild (e);
           }, changes.prepend).then (() => {
             listContainer.insertBefore (f, listContainer.firstChild);
           }),
           $promised.forEach ((object) => {
-            return tm.createFromTemplate (itemLN, object).then ((e) => {
-              listContainer.appendChild (e);
-            });
+            var e = tm.createFromTemplate (itemLN, object);
+            listContainer.appendChild (e);
           }, changes.append),
         ]);
       }

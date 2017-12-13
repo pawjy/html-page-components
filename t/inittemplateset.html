@@ -18,7 +18,7 @@
     await this.wait ();
 
     var obj = {name: "A"};
-    var item = await e.createFromTemplate ('test-item', obj);
+    var item = e.createFromTemplate ('test-item', obj);
     
     this.assert.equal (item.localName, 'test-item');
     this.assert.equal (item.textContent, 'aAb');
@@ -52,10 +52,10 @@
       var f = ev.pcTemplateSet;
       
       item1.textContent = '';
-      f.createFromTemplate ('test-item1', obj1).then ((_) => item1.appendChild (_));
+      item1.appendChild (f.createFromTemplate ('test-item1', obj1));
       
       item2.textContent = '';
-      f.createFromTemplate ('test-item2', obj2).then ((_) => item2.appendChild (_));
+      item2.appendChild (f.createFromTemplate ('test-item2', obj2));
     });
       
     await this.wait (100);
@@ -97,10 +97,10 @@
       var f = ev.pcTemplateSet;
       
       item1.textContent = '';
-      f.createFromTemplate ('test-item1', obj1).then ((_) => item1.appendChild (_));
+      item1.appendChild (f.createFromTemplate ('test-item1', obj1));
       
       item2.textContent = '';
-      f.createFromTemplate ('test-item2', obj2).then ((_) => item2.appendChild (_));
+      item2.appendChild (f.createFromTemplate ('test-item2', obj2));
     });
       
     await this.wait (100);
