@@ -30,6 +30,7 @@
     templateselector: {type: 'handler'},
     filltype: {type: 'map'},
     templateSet: {type: 'element'},
+    element: {type: 'customElement'},
   };
   var defs = {};
   var defLoadedPromises = {};
@@ -44,22 +45,31 @@
     if (!(e.namespaceURI === 'data:,pc' && definables[type])) return;
     if (definables[type].type === 'element') return;
 
-    var name = e.getAttribute ('name');
+    var name;
+    if (definables[type].type === 'customElement') {
+      name = e.pcDef ? e.pcDef.name : null;
+    } else {
+      name = e.getAttribute ('name');
+    }
+
     if (defs[type][name]) {
       throw new Error ("Duplicate |"+type+"|: |"+name+"|");
     } else {
       var value = null;
       if (definables[type].type === 'handler') {
         value = e.pcHandler || (() => {});
+      } else if (definables[type].type === 'customElement') {
+        defineElement (e.pcDef);
+        value = true;
       } else {
         value = e.getAttribute ('content');
       }
       defs[type][name] = value;
-      if (defLoadedCallbacks[type][name]) {
-        defLoadedCallbacks[type][name] (value);
-        delete defLoadedCallbacks[type][name];
-        delete defLoadedPromises[type][name];
-      }
+    }
+    if (defLoadedCallbacks[type][name]) {
+      defLoadedCallbacks[type][name] (value);
+      delete defLoadedCallbacks[type][name];
+      delete defLoadedPromises[type][name];
     }
     e.remove ();
   }; // addDef
@@ -130,7 +140,7 @@
       e[k] = props[k];
     });
 
-    new Promise ((re) => re (e.pcInit ())).catch ((err) => console.log ("Can't upgrade an element", e, err));
+    new Promise ((re) => re (e.pcInit ? e.pcInit () : null)).catch ((err) => console.log ("Can't upgrade an element", e, err));
   }; // upgrade
 
   new MutationObserver (function (mutations) {
@@ -146,7 +156,7 @@
   }).observe (document, {childList: true, subtree: true});
 
   var defineElement = function (def) {
-    upgradedElementProps[def.name] = def.props;
+    upgradedElementProps[def.name] = def.props || {};
     if (!def.notTopLevel) {
       var selector = def.name;
       if (def.is) {
