@@ -130,6 +130,7 @@
   var currentUpgradables = ':not(*)';
   var newUpgradableSelectors = [];
   var upgradedElementProps = {};
+  var upgrader = {};
   
   var upgrade = function (e) {
     if (e.pcUpgraded) return;
@@ -140,7 +141,7 @@
       e[k] = props[k];
     });
 
-    new Promise ((re) => re (e.pcInit ? e.pcInit () : null)).catch ((err) => console.log ("Can't upgrade an element", e, err));
+    new Promise ((re) => re (upgrader[e.localName].call (e))).catch ((err) => console.log ("Can't upgrade an element", e, err));
   }; // upgrade
 
   new MutationObserver (function (mutations) {
@@ -157,6 +158,10 @@
 
   var defineElement = function (def) {
     upgradedElementProps[def.name] = def.props || {};
+    upgrader[def.name] = def.templateSet ? function () {
+      initTemplateSet (this);
+      this.pcInit ();
+    } : upgradedElementProps[def.name].pcInit || function () { };
     if (!def.notTopLevel) {
       var selector = def.name;
       if (def.is) {
@@ -264,7 +269,7 @@
       if (!this.pcSelector) throw new DOMException ('The template set is not ready', 'InvalidStateError');
       var template = this.pcSelector.call (this, this.pcTemplateList, object); // or throw
       if (!template) {
-        console.log ('Template is not selected (templateselector=' + selectorName + ')', this);
+        console.log ('Template is not selected (templateselector=' + this.pcSelectorName + ')', this);
         template = document.createElement ('template');
       }
       var e = document.createElement (localName);
@@ -275,7 +280,7 @@
     }, // createFromTemplate
   }; // templateSetMembers
 
-  var initTemplateSet = exportable.initTemplateSet = function (e) {
+  var initTemplateSet = function (e) {
     templateSetLocalNames[e.localName] = true;
     templateSetSelector = Object.keys (templateSetLocalNames).map ((n) => n.replace (/([^A-Za-z0-9])/g, (_) => "\\" + _.charCodeAt (0).toString (16) + " ") + '[template]').join (',');
     
@@ -564,7 +569,6 @@
         });
       }).observe (this, {childList: true, subtree: true});
 
-      initTemplateSet (this);
       this.addEventListener ('pctemplatesetupdated', (ev) => {
         this.lcTemplateSet = ev.pcTemplateSet;
 
@@ -712,6 +716,7 @@
     }, // lcRender
 
     },
+    templateSet: true,
   }); // list-container
 
   defineElement ({

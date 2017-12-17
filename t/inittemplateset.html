@@ -6,14 +6,25 @@
 </head>
 <body>
   
+  <script>
+    function define (def) {
+      var e = document.createElementNS ('data:,pc', 'element');
+      e.pcDef = def;
+      document.head.appendChild (e);
+    }
+  </script>
+  
   <test-code name="custom template set">
     /*
-      <my-element>
+      <my-element1>
         <template>a<span data-field=name></span>b</template>
-      </my-element>
+      </my-element1>
     */
-    var e = this.currentScript.querySelector ('my-element');
-    initTemplateSet (e);
+    var e = this.currentScript.querySelector ('my-element1');
+    define ({
+      name: 'my-element1',
+      templateSet: true,
+    });
 
     await this.wait ();
 
@@ -26,15 +37,18 @@
   
   <test-code name="custom template set with template selector">
     /*
-      <my-element templateselector=selector6>
+      <my-element2 templateselector=selector6>
         <template data-name=A>1<span data-field=name></span></template>
         <template data-name=B>2<span data-field=name></span></template>
         <my-item1></my-item1>
         <my-item2></my-item2>
-      </my-element>
+      </my-element2>
     */
-    var e = this.currentScript.querySelector ('my-element');
-    initTemplateSet (e);
+    var e = this.currentScript.querySelector ('my-element2');
+    define ({
+      name: 'my-element2',
+      templateSet: true,
+    });
 
     var handler = document.createElementNS ('data:,pc', 'templateselector');
     handler.setAttribute ('name', 'selector6');
@@ -69,17 +83,20 @@
   
   <test-code name="custom template set referencing external template-set">
     /*
-      <my-element template=set7>
+      <my-element3 template=set7>
         <my-item1></my-item1>
         <my-item2></my-item2>
-      </my-element>
+      </my-element3>
       <template-set name=set7 templateselector=selector7>
         <template data-name=A>1<span data-field=name></span></template>
         <template data-name=B>2<span data-field=name></span></template>
       </template-set>
     */
-    var e = this.currentScript.querySelector ('my-element');
-    initTemplateSet (e);
+    var e = this.currentScript.querySelector ('my-element3');
+    define ({
+      name: 'my-element3',
+      templateSet: true,
+    });
 
     var handler = document.createElementNS ('data:,pc', 'templateselector');
     handler.setAttribute ('name', 'selector7');
@@ -112,7 +129,35 @@
     this.assert.equal (item2.textContent, '2B');
   </test-code>
   
-  <script src=runtests.js data-export=initTemplateSet></script>
+  <test-code name="custom template set with initializer">
+    /*
+      <my-element4>
+        <template>a<span data-field=name></span>b</template>
+      </my-element4>
+    */
+    var e = this.currentScript.querySelector ('my-element4');
+    var v = Math.random ();
+    define ({
+      name: 'my-element4',
+      templateSet: true,
+      props: {
+        pcInit: function () {
+          this.testField = v;
+        },
+      },
+    });
+
+    await this.wait ();
+
+    var obj = {name: "A"};
+    var item = e.createFromTemplate ('test-item', obj);
+    
+    this.assert.equal (item.localName, 'test-item');
+    this.assert.equal (item.textContent, 'aAb');
+    this.assert.equal (e.testField, v);
+  </test-code>
+  
+  <script src=runtests.js></script>
 </body>
 </html>
 <!--

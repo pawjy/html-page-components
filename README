@@ -442,12 +442,12 @@ For example, a template:
 ... will be processed after the |filltype| definition for name
 |unit-number| is loaded.
 
-* Exportable functions
+* Exportable function
 
 By setting the |data-export| attribute of the |script| element loading
 the |page-components.js| to a space-separated list of the function
 names, the functions can be exported to the global scope.  The
-following functions are available:
+following function is available:
 
   $fill (root, object)
 
@@ -561,29 +561,6 @@ following functions are available:
     /template/ where any substring |{/field-name/}| is replaced by the
     field value for /field-name/.
 
-  initTemplateSet (e)
-
-    Make an autonomous custom element (i.e. an element whose name has
-    "-") a template set.  By invoking this method, its content
-    attributes |template| and |templateselector|, as well as its
-    |template| element children, are interpreted as part of the
-    template set for the element.  (Note that |template| and
-    |templateselector| attributes must be set before this function is
-    invoked.)
-
-    A template set element is fired a |pctemplatesetupdated| event
-    whenever its template set's definition is updated such that any
-    content created using the template might need to be updated.  The
-    event is fired with an event object whose |pcTemplateSet| property
-    is the template set for the element.  (Note that the
-    |pcTemplateSet| value might not be the same object as the element
-    when the |template| attribute is specified.)
-
-    A template set object has the |createFromTemplate| element, which
-    returns an element created from the selected template.  The method
-    requires two arguments: the name of the element to be created and
-    the object used to select and to fill (by |$fill|) the template.
-
 * Definitions
 
 The *definition* is an integration point with another script libraries
@@ -669,7 +646,7 @@ There is a predefined filter: |default|.  It replaces the input's
 |data| is not a JavaScript |Array|.  It reverses the list if the
 |list-container| element has the |reverse| attribute specified.
 
-* Elements
+* Application-specific elements
 
 An element's implementation can be defined by inserting an |element|
 element in the <data:,pc> namespace whose property |pcDef|'s value is
@@ -721,6 +698,31 @@ The definition has following name/value pairs:
 
     If there is a |pcInit| property, the |pcInit| method of the
     element is invoked upon initialization.
+
+  templateSet (boolean)
+
+    If the value is true, the element is initialized as a template set
+    just before any |pcInit| method is invoked.  The element's content
+    attributes |template| and |templateselector|, as well as its
+    |template| element children, are interpreted as part of the
+    template set for the element.  (Note that |template| and
+    |templateselector| attributes must be set before this function is
+    invoked.)  This option is only available to autonomous custom
+    elements (i.e. when |name| is specified but |is| is not
+    specified).
+
+    A |pctemplatesetupdated| event is fired at the element whenever
+    its template set's definition is updated such that any content
+    created using the template might need to be updated.  The event is
+    fired with an event object whose |pcTemplateSet| property is the
+    template set for the element.  (Note that the |pcTemplateSet|
+    value might not be the same object as the element when the
+    |template| attribute is specified.)
+
+    A template set object has the |createFromTemplate| element, which
+    returns an element created from the selected template.  The method
+    requires two arguments: the name of the element to be created and
+    the object used to select and to fill (by |$fill|) the template.
 
 * Author
 
