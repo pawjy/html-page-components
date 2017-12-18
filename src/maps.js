@@ -24,6 +24,17 @@
       document.head.appendChild (script);
     });
   }; // loadGoogleMaps
+
+  var isOb = new Promise ((resolve, reject) => {
+    if (window.IntersectionObserver) return resolve ();
+
+    // Safari does not support IntersectionObserver yet.
+    var script = document.createElement ('script');
+    script.src = 'https://rawgit.com/w3c/IntersectionObserver/master/polyfill/intersection-observer.js';
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild (script);
+  });
   
   define ({
     name: 'map-area',
@@ -41,6 +52,12 @@
           });
           mo.observe (this, {attributeFilter: ['lat', 'lon']});
           this.maRedraw ({all: true});
+          return isOb;
+        }).then (() => {
+          this.maISObserver = new IntersectionObserver (() => {
+            this.maRedraw ({size: true});
+          });
+          this.maISObserver.observe (this);
         });
       }, // pcInit
       maRedraw: function (opts) {
@@ -52,9 +69,16 @@
         this.maRedrawTimer = setTimeout (() => this.ma_Redraw (), 300);
       }, // maRedraw
       ma_Redraw: function () {
+        var isShown = this.offsetWidth > 0 && this.offsetHeight > 0;
+        if (!isShown) return;
+        
         var updates = this.maRedrawNeedUpdated;
         this.maRedrawNeedUpdated = {};
 
+        if (updates.size || updates.all) {
+          google.maps.event.trigger (this.maGoogleMap, 'resize');
+        }
+        
         if (updates.latlon || updates.all) {
           this.maGoogleMap.setCenter ({
             lat: this.maAttrFloat ('lat', 0),
@@ -62,9 +86,6 @@
           });
         }
 
-        if (updates.size || updates.all) {
-          google.maps.event.trigger (this.maGoogleMap, 'resize');
-        }
       }, // ma_Redraw
 
       maAttrFloat: function (name, def) {
