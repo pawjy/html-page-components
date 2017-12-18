@@ -94,7 +94,7 @@ sub execute_test_html_file {
     my $p = $wd->new_session (desired => $wd_desired_capabilities)->then (sub {
       my $session = $_[0];
       my $p = Promise->resolve (1)->then (sub {
-        return set_script_timeout ($wd, $session->session_id, 5000);
+        return set_script_timeout ($wd, $session->session_id, 15000);
       })->then (sub {
         return $session->go (Web::URL->parse_string ($test_url));
       })->then (sub {

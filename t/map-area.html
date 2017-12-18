@@ -32,6 +32,9 @@
     this.assert.equal (bounds.east, 2.68341064453125);
     this.assert.equal (bounds.south, -0.8239462091017559);
     this.assert.equal (bounds.west, -2.68341064453125);
+
+    var gm = e.googleMap;
+    this.assert.equal (!!gm, true);
   </test-code>
 
   <test-code name="map-area lat lon">

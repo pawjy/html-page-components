@@ -502,6 +502,15 @@ The following properties are available:
     This method must be invoked after the initialization; otherwise
     the method returns |null|.
 
+  googleMap
+
+    The Google Maps API's |google.maps.Map| object of the map of the
+    element.  If the element's map is not a Google Maps API's map, an
+    exception is thrown.
+
+    This property getter must be invoked after the initialization;
+    otherwise the property getter returns |null|.
+
 A |pcRedraw| event, which bubbles, is fired at the element when the
 map's visible area has been changed; e.g., when the map is
 initialized, the map's center has been moved, the zoom level has been

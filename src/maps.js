@@ -40,6 +40,12 @@
     name: 'map-area',
     props: {
       pcInit: function () {
+        Object.defineProperty (this, 'googleMap', {
+          get: function () {
+            return this.maGoogleMap || null;
+          },
+        });
+
         this.maRedrawNeedUpdated = {};
         return this.ready = loadGoogleMaps ().then (() => {
           this.maGoogleMap = new google.maps.Map (this, {
