@@ -5,16 +5,38 @@
 <script src=../src/page-components.js async></script>
 <script src=../src/maps.js async></script>
 
-<map-area></map-area>
-
 <tab-set>
   <tab-menu></tab-menu>
-  <section>
+  <section id=map-section-1>
     <h1>Map #1</h1>
     <map-area lat=35.2 lon=135.4></map-area>
+    <output name=bounds></output>
+    <script>
+    (() => {
+      var s = document.querySelector ('#map-section-1');
+      s.querySelector ('map-area').addEventListener ('pcRedraw', (ev) => {
+        var o = s.querySelector ('output');
+        var b = ev.target.getMapBounds ();
+        o.textContent = [b.north, b.east, b.south, b.west].join (' ');
+      });
+    }) ();
+    </script>
   </section>
-  <section>
+  <section id=map-section-2>
     <h1>Map #2</h1>
     <map-area lat=-30.2 lon=-85.4></map-area>
+    <output name=bounds></output>
+    <script>
+    (() => {
+      var s = document.querySelector ('#map-section-2');
+      s.querySelector ('map-area').addEventListener ('pcRedraw', (ev) => {
+        var o = s.querySelector ('output');
+        var b = ev.target.getMapBounds ();
+        o.textContent = [b.north, b.east, b.south, b.west].join (' ');
+      });
+    }) ();
+    </script>
   </section>
 </tab-set>
+
+<map-area></map-area>

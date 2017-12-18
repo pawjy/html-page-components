@@ -47,6 +47,9 @@
                      lng: this.maAttrFloat ('lon', 0)},
             zoom: 8,
           });
+          this.maGoogleMap.addListener ('bounds_changed', () => {
+            this.maRedrawEvent ();
+          });
           var mo = new MutationObserver ((mutations) => {
             this.maRedraw ({latlon: true});
           });
@@ -60,6 +63,13 @@
           this.maISObserver.observe (this);
         });
       }, // pcInit
+      maRedrawEvent: function () {
+        clearTimeout (this.maRedrawEventTimer);
+        this.maRedrawEventTimer = setTimeout (() => this.ma_RedrawEvent (), 100);
+      }, // maRedrawEvent
+      ma_RedrawEvent: function () {
+        this.dispatchEvent (new Event ('pcRedraw', {bubbles: true}));
+      }, // ma_RedrawEvent
       maRedraw: function (opts) {
         this.maNeedRedraw = true;
         for (var n in opts) {

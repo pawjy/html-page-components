@@ -502,6 +502,13 @@ The following properties are available:
     This method must be invoked after the initialization; otherwise
     the method returns |null|.
 
+A |pcRedraw| event, which bubbles, is fired at the element when the
+map's visible area has been changed; e.g., when the map is
+initialized, the map's center has been moved, the zoom level has been
+changed, the map's dimension has been changed, and so on.  This event
+can be used as the oppotunity to relocate map overlay objects or to
+recalculate any associated data outside of the map.
+
 * Exportable function
 
 By setting the |data-export| attribute of the |script| element loading
