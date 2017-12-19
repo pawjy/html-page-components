@@ -44,7 +44,7 @@
   });
 
   if (document.currentScript.hasAttribute ('data-maps')) {
-    document.documentElement.setAttribute ('data-google-map-key', 'AIzaSyCeVv3Uyen18Jk8wZoyrJvxPjqIdPevE7M');
+    document.documentElement.setAttribute ('data-google-maps-key', 'AIzaSyCeVv3Uyen18Jk8wZoyrJvxPjqIdPevE7M');
     var script = document.createElement ('script');
     script.src = '../src/maps.js';
     document.head.appendChild (script);

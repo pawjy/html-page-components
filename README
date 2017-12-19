@@ -458,9 +458,11 @@ addition to the main script:
 
   <script src=js/maps.js async data-google-maps-key=...></script>
 
-By default it displays the map using Google Maps API.  Its API key
-must be specified to the |script| element as the |data-google-map-key|
-attribute value.
+It displays the map using Google Maps API.  Its API key must be
+specified to the |script| element as the |data-google-maps-key|
+attribute value of the root element (the |html| element).  If there is
+the |data-google-maps-libraries| attribute for the root element, its
+value is used as the |libraries| parameter to the Google Maps API.
 
 The following content attributes are available:
 
