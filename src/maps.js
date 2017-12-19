@@ -10,7 +10,9 @@
     return gmPromise = gmPromise || new Promise ((resolve, reject) => {
       var functionName = ("maGoogleLoaded" + Math.random ()).replace (/\./g, '');
       var script = document.createElement ('script');
-      script.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent (document.documentElement.getAttribute ('data-google-map-key')) + '&callback=' + encodeURIComponent (functionName);
+      script.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent (document.documentElement.getAttribute ('data-google-maps-key')) + '&callback=' + encodeURIComponent (functionName);
+      var ls = document.documentElement.getAttribute ('data-google-maps-libraries');
+      if (ls) script.src += '&libraries=' + encodeURIComponent (ls);
       script.async = true;
       //script.onload = resolve;
       script.onerror = () => {
