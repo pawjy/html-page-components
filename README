@@ -3,8 +3,11 @@ HTML page components
 
 * Files
 
-The |src/page-components.js| file implements elements described in
-this document.
+The |src/page-components.js| file implements most elements described
+in this document.
+
+The |src/maps.js| file implements some elements described in this
+document.
 
 The |css/default.css| file describes the default style for these
 elements.  Though the file itself is not required to be loaded itself,
@@ -29,6 +32,10 @@ loaded:
   <list-container>
   <image-editor>
   <template-set>
+
+The following element is defined in another script file:
+
+  <map-area>
 
 ** <button is=command-button>
 
@@ -441,6 +448,75 @@ For example, a template:
 
 ... will be processed after the |filltype| definition for name
 |unit-number| is loaded.
+
+** <map-area>
+
+The |map-area| element represents a map.  Its content model is empty.
+
+To enable this element, the |maps.js| script must be loaded in
+addition to the main script:
+
+  <script src=js/maps.js async data-google-maps-key=...></script>
+
+By default it displays the map using Google Maps API.  Its API key
+must be specified to the |script| element as the |data-google-map-key|
+attribute value.
+
+The following content attributes are available:
+
+  lat (float)
+
+    The initial latitude of the center point of the map.  The default
+    is zero.
+
+  lon (float)
+
+    The initial longitude of the center point of the map.  The default
+    is zero.
+
+The following properties are available:
+
+  ready (promise)
+
+    The promise which is fulfilled after the initialization of the
+    element.
+
+  getMapCenter ()
+
+    Returns the center of the map of the element at the time of the
+    invocation.  The returned value is an object whose |lat| is the
+    latitude as a number and |lon| is the longitude as a number.
+
+    This method must be invoked after the initialization; otherwise
+    the method returns |null|.
+
+  getMapBounds ()
+
+    Returns the bounds of the map of the element at the time of the
+    invocation.  The returned value is an object whose |north| is the
+    latitude of the northmost edge of the map, |east| is the longitude
+    of the eastmost edge of the map, |south| is the latitude of the
+    southmost edge of the map, and |west| is the longitude of the
+    westmost edge of the map.
+
+    This method must be invoked after the initialization; otherwise
+    the method returns |null|.
+
+  googleMap
+
+    The Google Maps API's |google.maps.Map| object of the map of the
+    element.  If the element's map is not a Google Maps API's map, an
+    exception is thrown.
+
+    This property getter must be invoked after the initialization;
+    otherwise the property getter returns |null|.
+
+A |pcRedraw| event, which bubbles, is fired at the element when the
+map's visible area has been changed; e.g., when the map is
+initialized, the map's center has been moved, the zoom level has been
+changed, the map's dimension has been changed, and so on.  This event
+can be used as the oppotunity to relocate map overlay objects or to
+recalculate any associated data outside of the map.
 
 * Exportable function
 

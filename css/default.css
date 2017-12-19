@@ -67,6 +67,12 @@ image-editor > image-layer > canvas {
   vertical-align: bottom;
 }
 
+map-area:not([hidden]) {
+  display: block;
+  width: 100%;
+  height: 300px;
+}
+
 /*
 
 Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the

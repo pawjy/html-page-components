@@ -43,6 +43,13 @@
     document.body.appendChild (script);
   });
 
+  if (document.currentScript.hasAttribute ('data-maps')) {
+    document.documentElement.setAttribute ('data-google-map-key', 'AIzaSyCeVv3Uyen18Jk8wZoyrJvxPjqIdPevE7M');
+    var script = document.createElement ('script');
+    script.src = '../src/maps.js';
+    document.head.appendChild (script);
+  }
+
   qunitLoaded.then (function () {
     document.querySelectorAll ('test-code').forEach (function (e) {
       QUnit.test (e.getAttribute ('name'), function (assert) {
