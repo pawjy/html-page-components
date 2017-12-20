@@ -59,14 +59,14 @@
             this.maRedrawEvent ();
           });
           var mo = new MutationObserver ((mutations) => {
-            this.maRedraw ({latlon: true});
+            this.maRedraw ({latlon: true, _ByLatLonAttr: true});
           });
           mo.observe (this, {attributeFilter: ['lat', 'lon']});
-          this.maRedraw ({all: true});
+          this.maRedraw ({all: true, _ByInit: true});
           return isOb;
         }).then (() => {
           this.maISObserver = new IntersectionObserver (() => {
-            this.maRedraw ({size: true});
+            this.maRedraw ({size: true, _ByIntersection: true});
           });
           this.maISObserver.observe (this);
         });
@@ -76,10 +76,12 @@
         this.maRedrawEventTimer = setTimeout (() => this.ma_RedrawEvent (), 100);
       }, // maRedrawEvent
       ma_RedrawEvent: function () {
+        var isShown = this.offsetWidth > 0 && this.offsetHeight > 0;
+        if (!isShown) return;
+        
         this.dispatchEvent (new Event ('pcRedraw', {bubbles: true}));
       }, // ma_RedrawEvent
       maRedraw: function (opts) {
-        this.maNeedRedraw = true;
         for (var n in opts) {
           if (opts[n]) this.maRedrawNeedUpdated[n] = true;
         }
