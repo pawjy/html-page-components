@@ -63,7 +63,7 @@
   <test-code name="initially hidden">
     /*
       <div style="display:none">
-        <map-area lat=20.33 lon=-120.7013></map-area>
+        <map-area lat=20.33 lon=-120.7013 initially-hidden></map-area>
       </div>
     */
     var e = this.currentScript.querySelector ('map-area');
@@ -91,7 +91,7 @@
 
   <test-code name="initial redraw event">
     /*
-      <template><map-area lat=20.33 lon=-120.7013></map-area></template>
+      <template><map-area lat=20.33 lon=-120.7013 init-redraw></map-area></template>
     */
     var t = this.currentScript.querySelector ('template');
     this.currentScript.appendChild (t.content.cloneNode (true));
@@ -204,7 +204,7 @@
 
   <test-code name="no redraw event before init 2">
     /*
-      <template><map-area lat=20.33 lon=-120.7013 b></map-area></template>
+      <template><map-area lat=-20.33 lon=-120.7013 b></map-area></template>
     */
     var t = this.currentScript.querySelector ('template');
     this.currentScript.appendChild (t.content.cloneNode (true));
@@ -219,7 +219,7 @@
     await this.wait (500);
     this.assert.equal (invoked, 0);
     
-    e.googleMap.setCenter ({lat: 53, lng: -31});
+    e.googleMap.setCenter ({lat: 53, lng: 31});
     
     e.hidden = false;
     await this.wait (500);
@@ -227,8 +227,49 @@
     this.assert.equal (invoked > 0, true, 'invoked = ' + invoked);
 
     var center = e.getMapCenter ();
-    this.assert.equal (center.lat, 20.33);
-    this.assert.equal (center.lon, -120.7013);
+    this.assert.equal (center.lat > 0, true, center.lat);
+    this.assert.equal (center.lon > 0, true, center.lon);
+  </test-code>
+
+  <test-code name="lat/lon race">
+    var e = document.createElement ('map-area');
+    e.setAttribute ('lat', 42);
+    e.setAttribute ('lon', 21);
+    this.currentScript.appendChild (e);
+
+    await Promise.resolve ();
+    await e.ready;
+
+    e.googleMap.setCenter ({lat: -5, lng: -10});
+
+    await this.wait (500);
+    
+    var center = e.getMapCenter ();
+    this.assert.equal (center.lat, -5);
+    this.assert.equal (center.lon, -10);
+  </test-code>
+
+  <test-code name="lat/lon race">
+    var e = document.createElement ('map-area');
+    e.setAttribute ('lat', 42);
+    e.setAttribute ('lon', 21);
+    e.hidden = true;
+    this.currentScript.appendChild (e);
+
+    await Promise.resolve ();
+    await e.ready;
+
+    e.googleMap.setCenter ({lat: -5, lng: -10});
+
+    await this.wait (500);
+    
+    e.hidden = false;
+    
+    await this.wait (500);
+    
+    var center = e.getMapCenter ();
+    this.assert.equal (center.lat < 0, true, center.lat);
+    this.assert.equal (center.lon < 0, true, center.lon);
   </test-code>
   
   <script src=runtests.js data-maps></script>
