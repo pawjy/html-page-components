@@ -350,6 +350,52 @@
   }); // button[is=command-button]
 
   defineElement ({
+    name: 'button',
+    is: 'mode-button',
+    props: {
+      pcInit: function () {
+        this.addEventListener ('click', () => this.mbClick ());
+
+        this.getRootNode ().addEventListener ('pcModeChange', (ev) => {
+          if (ev.mode !== this.name) return;
+          
+          var selector = this.getAttribute ('data-selector');
+          var selected = document.querySelector (selector);
+          if (!selected) return;
+          if (selected !== ev.target) return;
+
+          var name = this.name;
+          if (!name) return;
+
+          this.classList.toggle ('selected', selected[name] == this.value);
+        });
+        // XXX disconnect
+
+        var selector = this.getAttribute ('data-selector');
+        var selected = document.querySelector (selector);
+        var name = this.name;
+        if (selected && name) {
+          this.classList.toggle ('selected', selected[name] == this.value);
+        }
+      }, // pcInit
+      mbClick: function () {
+        var selector = this.getAttribute ('data-selector');
+        var selected = document.querySelector (selector);
+        if (!selected) {
+          throw new Error ("Selector |"+selector+"| does not match any element in the document");
+        }
+
+        var name = this.name;
+        if (!name) {
+          throw new Error ("The |mode-button| element has no name");
+        }
+        
+        selected[name] = this.value;
+      }, // mbClick
+    },
+  }); // button[is=mode-button]
+  
+  defineElement ({
     name: 'popup-menu',
     props: {
       pcInit: function () {

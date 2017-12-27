@@ -1,0 +1,49 @@
+<!DOCTPE HTML>
+<title>Mode switch button</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js async></script>
+<style>
+  button.selected {
+    background: gray;
+    color: white;
+  }
+</style>
+
+<p>
+<button is=mode-button type=button data-selector=modal-object name=abc value=x>abc=x</button>
+<button is=mode-button type=button data-selector=modal-object name=abc value=y>abc=y</button>
+<button is=mode-button type=button data-selector=modal-object name=abc value=z>abc=z</button>
+
+<p><modal-object></modal-object>
+
+<script>
+  var e = document.createElementNS ('data:,pc', 'element');
+  e.pcDef = {
+    name: 'modal-object',
+    props: {
+      pcInit: function () {
+        var updated = () => {
+          this.textContent = abcValue;
+          var ev = new Event ('pcModeChange', {bubbles: true});
+          ev.mode = 'abc';
+          Promise.resolve ().then (() => this.dispatchEvent (ev));
+        };
+
+        var abcValue = this.abc || 'x';
+        updated ();
+        Object.defineProperty (this, 'abc', {
+          get: () => {
+            return abcValue;
+          },
+          set: (newValue) => {
+            if (abcValue !== newValue) {
+              abcValue = newValue;
+              updated ();
+            }
+          },
+        });
+      }, // pcInit
+    },
+  };
+  document.head.appendChild (e);
+</script>
