@@ -27,6 +27,7 @@ Following elements and API are available once the script has been
 loaded:
 
   <button is=command-button>
+  <button is=mode-button>
   <popup-menu>
   <tab-set>
   <list-container>
@@ -44,10 +45,10 @@ represents a command button.  (Be aware that this implementation does
 not support mutation of |is| attribute; it must be set to a value
 before the element's insertion into the document.)
 
-The element must has a |data-selector| attribute.  Its value is a
+The element must have a |data-selector| attribute.  Its value is a
 group of selectors that selects an element in the document.
 
-The element must has a |data-command| attribute whose value is the
+The element must have a |data-command| attribute whose value is the
 name of the command.
 
 When the element is clicked, the command specified by the
@@ -59,6 +60,34 @@ setting these two values:
 
   element.cbCommands[name]   An object.  It can have any property.
   element[name]  A function.  This is the method implementing the command.
+
+** <button is=mode-button>
+
+A |button| element whose |is| attribute value is |mode-button|
+represents one of buttons used to select modes of another element.
+(Be aware that this implementation does not support mutation of |is|
+attribute; it must be set to a value before the element's insertion
+into the document.)
+
+The element must have a |data-selector| attribute.  Its value is a
+group of selectors that selects an element in the document.
+
+The element must have a |name| attribute.  Its value is the name of
+the mode (i.e. one of the property names for the element selected by
+the |data-selector| attribute value).
+
+The element must have a |value| attribute.  Its value is the value of
+the mode (i.e. the property value for the property identified by the
+|name| attribute value).
+
+The |selected| class is added to the element when the mode is set to
+the value equals to the |value| attribute value, and is removed when
+the mode is set to another value.
+
+The element selected by the |data-selector| attribute is expected to
+be fired a bubbling |pcModeChange| event whose |mode| property is set
+to the value equal to the |name| attribute value when a new mode value
+is set.
 
 ** <popup-menu>
 

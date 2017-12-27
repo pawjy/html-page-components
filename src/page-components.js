@@ -136,12 +136,12 @@
     if (e.pcUpgraded) return;
     e.pcUpgraded = true;
 
-    var props = upgradedElementProps[e.localName];
+    var props = (upgradedElementProps[e.localName] || {})[e.getAttribute ('is')] || {};
     Object.keys (props).forEach (function (k) {
       e[k] = props[k];
     });
 
-    new Promise ((re) => re (upgrader[e.localName].call (e))).catch ((err) => console.log ("Can't upgrade an element", e, err));
+    new Promise ((re) => re ((upgrader[e.localName] || {})[e.getAttribute ('is')].call (e))).catch ((err) => console.log ("Can't upgrade an element", e, err));
   }; // upgrade
 
   new MutationObserver (function (mutations) {
@@ -157,16 +157,16 @@
   }).observe (document, {childList: true, subtree: true});
 
   var defineElement = function (def) {
-    upgradedElementProps[def.name] = def.props || {};
-    upgrader[def.name] = def.templateSet ? function () {
+    upgradedElementProps[def.name] = upgradedElementProps[def.name] || {};
+    upgradedElementProps[def.name][def.is || null] = def.props || {};
+    upgrader[def.name] = upgrader[def.name] || {};
+    upgrader[def.name][def.is || null] = def.templateSet ? function () {
       initTemplateSet (this);
       this.pcInit ();
-    } : upgradedElementProps[def.name].pcInit || function () { };
+    } : upgradedElementProps[def.name][def.is || null].pcInit || function () { };
     if (!def.notTopLevel) {
       var selector = def.name;
-      if (def.is) {
-        selector += '[is="' + def.is + '"]';
-      }
+      if (def.is) selector += '[is="' + def.is + '"]';
       newUpgradableSelectors.push (selector);
       Promise.resolve ().then (() => {
         var news = newUpgradableSelectors.join (',');
@@ -349,6 +349,52 @@
     },
   }); // button[is=command-button]
 
+  defineElement ({
+    name: 'button',
+    is: 'mode-button',
+    props: {
+      pcInit: function () {
+        this.addEventListener ('click', () => this.mbClick ());
+
+        this.getRootNode ().addEventListener ('pcModeChange', (ev) => {
+          if (ev.mode !== this.name) return;
+          
+          var selector = this.getAttribute ('data-selector');
+          var selected = document.querySelector (selector);
+          if (!selected) return;
+          if (selected !== ev.target) return;
+
+          var name = this.name;
+          if (!name) return;
+
+          this.classList.toggle ('selected', selected[name] == this.value);
+        });
+        // XXX disconnect
+
+        var selector = this.getAttribute ('data-selector');
+        var selected = document.querySelector (selector);
+        var name = this.name;
+        if (selected && name) {
+          this.classList.toggle ('selected', selected[name] == this.value);
+        }
+      }, // pcInit
+      mbClick: function () {
+        var selector = this.getAttribute ('data-selector');
+        var selected = document.querySelector (selector);
+        if (!selected) {
+          throw new Error ("Selector |"+selector+"| does not match any element in the document");
+        }
+
+        var name = this.name;
+        if (!name) {
+          throw new Error ("The |mode-button| element has no name");
+        }
+        
+        selected[name] = this.value;
+      }, // mbClick
+    },
+  }); // button[is=mode-button]
+  
   defineElement ({
     name: 'popup-menu',
     props: {
