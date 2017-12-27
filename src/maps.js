@@ -49,17 +49,26 @@
         });
 
         this.maRedrawNeedUpdated = {};
-        return this.ready = loadGoogleMaps ().then (() => {
+        this.ready = new Promise ((r) => this.maRedrawNeedUpdated.onready = r);
+        loadGoogleMaps ().then (() => {
           this.maGoogleMap = new google.maps.Map (this, {
             center: {lat: this.maAttrFloat ('lat', 0),
                      lng: this.maAttrFloat ('lon', 0)},
             zoom: 8,
           });
           this.maGoogleMap.addListener ('bounds_changed', () => {
+            var v = this.maGoogleMap.getCenter ();
+            this.maCenter = {
+              lat: v.lat (),
+              lon: v.lng (),
+            };
             this.maRedrawEvent ();
           });
           var mo = new MutationObserver ((mutations) => {
-            this.maRedraw ({latlon: true, _ByLatLonAttr: true});
+            this.maGoogleMap.setCenter ({
+              lat: this.maAttrFloat ('lat', 0),
+              lng: this.maAttrFloat ('lon', 0),
+            });
           });
           mo.observe (this, {attributeFilter: ['lat', 'lon']});
           this.maRedraw ({all: true, _ByInit: true});
@@ -90,22 +99,25 @@
       }, // maRedraw
       ma_Redraw: function () {
         var isShown = this.offsetWidth > 0 && this.offsetHeight > 0;
-        if (!isShown) return;
         
         var updates = this.maRedrawNeedUpdated;
-        this.maRedrawNeedUpdated = {};
+        if (isShown) {
+          this.maShown = true;
+          this.maRedrawNeedUpdated = {};
 
-        if (updates.size || updates.all) {
-          google.maps.event.trigger (this.maGoogleMap, 'resize');
-        }
+          if (updates.size || updates.all) {
+            google.maps.event.trigger (this.maGoogleMap, 'resize');
+            if (this.maCenter) this.maGoogleMap.setCenter ({
+              lat: this.maCenter.lat,
+              lng: this.maCenter.lon,
+            });
+          }
+        } // isShown
         
-        if (updates.latlon || updates.all) {
-          this.maGoogleMap.setCenter ({
-            lat: this.maAttrFloat ('lat', 0),
-            lng: this.maAttrFloat ('lon', 0),
-          });
+        if (updates.onready) {
+          updates.onready ();
+          delete updates.onready;
         }
-
       }, // ma_Redraw
 
       maAttrFloat: function (name, def) {
@@ -118,12 +130,7 @@
       }, // maAttrFloat
 
       getMapCenter: function () {
-        if (!this.maGoogleMap) return null;
-        var v = this.maGoogleMap.getCenter ();
-        return {
-          lat: v.lat (),
-          lon: v.lng (),
-        };
+        return this.maCenter; // or null
       }, // getMapCenter
       getMapBounds: function () {
         if (!this.maGoogleMap) return null;
