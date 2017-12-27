@@ -136,12 +136,12 @@
     if (e.pcUpgraded) return;
     e.pcUpgraded = true;
 
-    var props = upgradedElementProps[e.localName];
+    var props = (upgradedElementProps[e.localName] || {})[e.getAttribute ('is')] || {};
     Object.keys (props).forEach (function (k) {
       e[k] = props[k];
     });
 
-    new Promise ((re) => re (upgrader[e.localName].call (e))).catch ((err) => console.log ("Can't upgrade an element", e, err));
+    new Promise ((re) => re ((upgrader[e.localName] || {})[e.getAttribute ('is')].call (e))).catch ((err) => console.log ("Can't upgrade an element", e, err));
   }; // upgrade
 
   new MutationObserver (function (mutations) {
@@ -157,16 +157,16 @@
   }).observe (document, {childList: true, subtree: true});
 
   var defineElement = function (def) {
-    upgradedElementProps[def.name] = def.props || {};
-    upgrader[def.name] = def.templateSet ? function () {
+    upgradedElementProps[def.name] = upgradedElementProps[def.name] || {};
+    upgradedElementProps[def.name][def.is || null] = def.props || {};
+    upgrader[def.name] = upgrader[def.name] || {};
+    upgrader[def.name][def.is || null] = def.templateSet ? function () {
       initTemplateSet (this);
       this.pcInit ();
-    } : upgradedElementProps[def.name].pcInit || function () { };
+    } : upgradedElementProps[def.name][def.is || null].pcInit || function () { };
     if (!def.notTopLevel) {
       var selector = def.name;
-      if (def.is) {
-        selector += '[is="' + def.is + '"]';
-      }
+      if (def.is) selector += '[is="' + def.is + '"]';
       newUpgradableSelectors.push (selector);
       Promise.resolve ().then (() => {
         var news = newUpgradableSelectors.join (',');
