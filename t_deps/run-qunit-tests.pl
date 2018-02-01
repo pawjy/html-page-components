@@ -94,11 +94,9 @@ sub execute_test_html_file {
     my $p = $wd->new_session (desired => $wd_desired_capabilities)->then (sub {
       my $session = $_[0];
       my $p = Promise->resolve (1)->then (sub {
-        return set_script_timeout ($wd, $session->session_id, 30000);
-      })->then (sub {
         return $session->go (Web::URL->parse_string ($test_url));
       })->then (sub {
-        return execute_async ($wd, $session->session_id, q{
+        return $session->execute (q{
           return Promise.resolve().then(function () {
             var bannerElem = document.querySelector("#qunit-banner");
             var testFinished = bannerElem.classList.contains("qunit-pass") || bannerElem.classList.contains("qunit-fail");
@@ -121,11 +119,11 @@ sub execute_test_html_file {
           });
         })->then (sub {
           my $result = $_[0];
-          $all_tests_passed = $result->{value}->{allTestsPassed};
+          $all_tests_passed = $result->json->{value}->{allTestsPassed};
 
           my $fh = IO::File->new($test_result_file_path, ">:encoding(utf-8)");
           die "File open failed: $test_result_file_path" if not defined $fh;
-          print $fh $result->{value}->{testResultsHtmlString};
+          print $fh $result->json->{value}->{testResultsHtmlString};
           undef $fh;
         }, sub {
           my $error = $_[0];
@@ -179,35 +177,6 @@ sub execute_test_html_file {
   })->to_cv->recv;
 
   return $all_tests_passed;
-}
-
-sub set_script_timeout {
-  my ($wd, $session_id, $timeout_ms) = @_;
-  return $wd->http_post (['session', $session_id, 'timeouts'], {
-    type => 'script',
-    ms => $timeout_ms,
-  })->then (sub {
-    my $res = $_[0];
-    die $res if $res->is_error;
-  });
-}
-
-sub execute_async {
-  my ($wd, $session_id, $script) = @_;
-  return $wd->http_post (['session', $session_id, 'execute_async'], {
-    script => qq{
-      // Callback for Execute Async Script command.
-      var callback = arguments[arguments.length - 1];
-      Promise.resolve().then(function () {
-        $script
-      }).then(function (value) { callback(value) });
-    },
-    args => [],
-  })->then (sub {
-    my $res = $_[0];
-    die $res if $res->is_error;
-    return $res->json;
-  });
 }
 
 my $exit_code = run_tests();

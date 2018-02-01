@@ -635,6 +635,65 @@
     this.assert.equal (list.children.length, 2);
     this.assert.equal (list.textContent, 'a1ba2b');
   </test-code>
+
+  <test-code name="list-container pcRendered">
+    /*
+      <list-container loader=pcRenderedTestLoader>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+
+    var invoked = false;
+    var target;
+    this.currentScript.addEventListener ('pcRendered', (ev) => {
+      invoked = true;
+      target = ev.target;
+    });
+
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'pcRenderedTestLoader');
+      handler.pcHandler = function (opts) {
+      return {data: []};
+    };
+    document.head.appendChild (handler);
+
+    await this.wait (100);
+
+    this.assert.equal (invoked, true);
+    this.assert.equal (target, e);
+  </test-code>
+
+  <test-code name="list-container pcRendered with item">
+    /*
+      <list-container loader=pcRenderedTestLoader2>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+
+    var invoked = false;
+    var target;
+    this.currentScript.addEventListener ('pcRendered', (ev) => {
+      invoked = true;
+      target = ev.target;
+    });
+
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'pcRenderedTestLoader2');
+      handler.pcHandler = function (opts) {
+      return {data: [{name: "item1"}, {name: "item2"}]};
+    };
+    document.head.appendChild (handler);
+
+    await this.wait (100);
+
+    this.assert.equal (invoked, true);
+    this.assert.equal (target, e);
+    this.assert.equal (target.querySelector ('list-main').textContent, 'item1item2');
+  </test-code>
   
   <script src=runtests.js></script>
 </body>

@@ -225,6 +225,9 @@ and has list item insertion point and selected template, or when a
 list item insertion point, selected template, or pager button
 descendant is inserted.
 
+After a |list-container| element is rendered, a |pcRendered| event,
+which bubbles, is fired at the |list-container| element.
+
 A *pager button* is a next page button or a previous page button.  A
 *next page button* is an |a| or |button| element which has a
 |list-next| class.  A *previous page button* is an |a| or |button|
