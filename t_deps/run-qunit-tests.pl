@@ -119,11 +119,11 @@ sub execute_test_html_file {
           });
         })->then (sub {
           my $result = $_[0];
-          $all_tests_passed = $result->{value}->{allTestsPassed};
+          $all_tests_passed = $result->json->{value}->{allTestsPassed};
 
           my $fh = IO::File->new($test_result_file_path, ">:encoding(utf-8)");
           die "File open failed: $test_result_file_path" if not defined $fh;
-          print $fh $result->{value}->{testResultsHtmlString};
+          print $fh $result->json->{value}->{testResultsHtmlString};
           undef $fh;
         }, sub {
           my $error = $_[0];
