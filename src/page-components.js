@@ -701,14 +701,14 @@
       clearTimeout (this.lcRenderRequestedTimer);
       this.lcRenderRequested = true;
       this.lcRenderRequestedTimer = setTimeout (() => {
-        if (!this.lcRenderRequested) false;
+        if (!this.lcRenderRequested) return;
         this.lcRender ();
         this.lcRenderRequested = false;
       }, 0);
     }, // lcRequestRender
     lcRender: function () {
       if (!this.lcTemplateSet) return;
-      
+
       var listContainer = this.lcGetListContainer ();
       if (!listContainer) return;
 
@@ -736,29 +736,34 @@
       var itemLN = {
         tbody: 'tr',
       }[listContainer.localName] || 'list-item';
-      if (changes.changed) {
-        return $promised.forEach ((object) => {
-          var e = tm.createFromTemplate (itemLN, object);
-          listContainer.appendChild (e);
-        }, this.lcData);
-      } else {
-        var f = document.createDocumentFragment ();
-        return Promise.all ([
-          $promised.forEach ((object) => {
-            var e = tm.createFromTemplate (itemLN, object);
-            f.appendChild (e);
-          }, changes.prepend).then (() => {
-            listContainer.insertBefore (f, listContainer.firstChild);
-          }),
-          $promised.forEach ((object) => {
+      return Promise.resolve ().then (() => {
+        if (changes.changed) {
+          return $promised.forEach ((object) => {
             var e = tm.createFromTemplate (itemLN, object);
             listContainer.appendChild (e);
-          }, changes.append),
-        ]);
-      }
+          }, this.lcData);
+        } else {
+          var f = document.createDocumentFragment ();
+          return Promise.all ([
+            $promised.forEach ((object) => {
+              var e = tm.createFromTemplate (itemLN, object);
+              f.appendChild (e);
+            }, changes.prepend).then (() => {
+              listContainer.insertBefore (f, listContainer.firstChild);
+            }),
+            $promised.forEach ((object) => {
+              var e = tm.createFromTemplate (itemLN, object);
+              listContainer.appendChild (e);
+            }, changes.append),
+          ]);
+        }
+      }).then (() => {
+        this.dispatchEvent (new Event ('pcRendered', {bubbles: true}));
 
-      // XXX loaded-actions=""
-      // XXX action-status integration
+        // XXX loaded-actions=""
+        // XXX action-status integration
+
+      });
     }, // lcRender
 
     },
