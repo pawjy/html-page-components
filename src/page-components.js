@@ -326,6 +326,32 @@
     return templates[""];
   }; // empty
 
+  defs.filltype["enum-value"] = 'contentattribute';
+  defineElement ({
+    name: 'enum-value',
+    props: {
+      pcInit: function () {
+        var mo = new MutationObserver ((mutations) => this.evRender ());
+        mo.observe (this, {attributeFilter: ['value']});
+        this.evRender ();
+      }, // pcInit
+      evRender: function () {
+        var value = this.getAttribute ('value');
+        if (value === null) {
+          this.hidden = true;
+        } else {
+          this.hidden = false;
+          var label = this.getAttribute ('label-' + value);
+          if (label === null) {
+            this.textContent = value;
+          } else {
+            this.textContent = label;
+          }
+        }
+      }, // evRender
+    }, // props
+  }); // <enum-value>
+
   defineElement ({
     name: 'button',
     is: 'command-button',

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+  <test-code name="empty">
+    /*
+      <enum-value></enum-value>
+    */
+      
+    var e = this.currentScript.querySelector ('enum-value');
+    this.assert.equal (e.hidden, true);
+  </test-code>
+
+  <test-code name="empty (label- is not applicable)">
+    /*
+      <enum-value label-=abc></enum-value>
+    */
+      
+    var e = this.currentScript.querySelector ('enum-value');
+    this.assert.equal (e.hidden, true);
+  </test-code>
+  
+  <test-code name="empty string value">
+    /*
+      <enum-value value label-=abc></enum-value>
+    */
+      
+    var e = this.currentScript.querySelector ('enum-value');
+    this.assert.equal (e.hidden, false);
+    this.assert.equal (e.textContent, 'abc');
+  </test-code>
+  
+  <test-code name="string value">
+    /*
+      <enum-value value=abce label-abce=abc hidden></enum-value>
+    */
+      
+    var e = this.currentScript.querySelector ('enum-value');
+    this.assert.equal (e.hidden, false);
+    this.assert.equal (e.textContent, 'abc');
+  </test-code>
+  
+  <test-code name="non-attr name value">
+    /*
+      <enum-value value="ab cde" label-ab=abc></enum-value>
+    */
+      
+    var e = this.currentScript.querySelector ('enum-value');
+    this.assert.equal (e.hidden, false);
+    this.assert.equal (e.textContent, 'ab cde');
+  </test-code>
+  
+  <test-code name="value empty">
+    /*
+      <enum-value value=abc label-abc=></enum-value>
+    */
+      
+    var e = this.currentScript.querySelector ('enum-value');
+    this.assert.equal (e.hidden, false);
+    this.assert.equal (e.textContent, '');
+  </test-code>
+  
+  <test-code name="value changed">
+    /*
+      <enum-value value=abc label-abc=d label-x=yyy hidden></enum-value>
+    */
+    
+    var e = this.currentScript.querySelector ('enum-value');
+    e.setAttribute ('value', 'x');
+
+    await this.wait ();
+
+    this.assert.equal (e.hidden, false);
+    this.assert.equal (e.textContent, 'yyy');
+  </test-code>
+  
+  <test-code name="$fill">
+    /*
+      <div>
+        <enum-value data-field=abc label-42=444 hidden>aaa</enum-value>
+      </div>
+    */
+    
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {abc: 42});
+    
+    await this.wait ();
+
+    var f = e.firstElementChild;
+    this.assert.equal (f.hidden, false);
+    this.assert.equal (f.textContent, '444');
+  </test-code>
+
+  <script src=runtests.js data-export=$fill></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->
