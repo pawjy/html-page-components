@@ -14,6 +14,16 @@ sub server ($$) {
     if ($env->{REQUEST_URI} =~ m{\A((?:/[A-Za-z0-9_-][.A-Za-z0-9_-]*)+)(?:\?|\z)}) {
       my $path = $root_path->child ($1);
       return [200, [], [$path->slurp]] if $path->is_file;
+    } elsif ($env->{REQUEST_URI} eq '/') {
+      my $s = '<!DOCTYPE HTML><title>page-components</title><ul>';
+      for (sort { $a cmp $b }
+           ($root_path->child ('demo')->children (qr/\A[A-Za-z0-9_-]+\.html\z/)),
+           ($root_path->child ('t')->children (qr/\A[A-Za-z0-9_-]+\.html\z/))) {
+        my $label = $_->relative ($root_path);
+        $s .= sprintf '<li><a href="%s">%s</a>', $label, $label;
+      }
+      $s .= '</ul>';
+      return [200, ['content-type','text/html;charset=utf-8'], [$s]];
     }
     return [404, [], []];
   };

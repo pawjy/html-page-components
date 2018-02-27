@@ -14,6 +14,11 @@
   meta.content = "width=device-width";
   document.head.appendChild (meta);
 
+  var a = document.createElement ('a');
+  a.href = '/';
+  a.textContent = 'Top';
+  document.body.appendChild (a);
+
   // XXX for backward compatibility: remove this later!
   if (!Node.prototype.getRootNode) {
     Node.prototype.getRootNode = function () {
