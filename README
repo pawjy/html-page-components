@@ -26,6 +26,7 @@ prettily.
 Following elements and API are available once the script has been
 loaded:
 
+  <enum-value>
   <button is=command-button>
   <button is=mode-button>
   <popup-menu>
@@ -37,6 +38,23 @@ loaded:
 The following element is defined in another script file:
 
   <map-area>
+
+** <enum-value>
+
+An |enum-value| element represents one of possible values.
+
+The element may have a |value| content attribute, whose value
+represents the element's *value*.  If there is no element specified,
+the element's value is |null|.
+
+The element's |hidden| content attribute is set when the element's
+value is |null|.  Otherwise the attribute is not set.
+
+When the element's value is not |null|, the element's |textContent|
+IDL attribute is set to the element's label text.  The element's label
+text is the element's |label-/value/| content attribute value, where
+/value/ is the element's value.  If there is no such attribute, the
+element's label text is the element's value.
 
 ** <button is=command-button>
 
@@ -576,6 +594,8 @@ following function is available:
 
             The value of /element/ is the |value| content attribute
             value of /element/, if specified, or |null|.
+
+            |enum-value| elements are set to this mode.
 
           |idlattribute|
 
