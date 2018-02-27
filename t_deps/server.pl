@@ -11,7 +11,12 @@ sub server ($$) {
   my ($host, $port) = @_;
   my $PSGIApp = sub {
     my $env = $_[0];
-    if ($env->{REQUEST_URI} =~ m{\A((?:/[A-Za-z0-9_-][.A-Za-z0-9_-]*)+)(?:\?|\z)}) {
+    if ($env->{REQUEST_URI} eq '/submit') {
+      my $length = $env->{CONTENT_LENGTH};
+      my $buf = '';
+      $env->{'psgi.input'}->read ($buf, $length);
+      return [200, ['content-type', $env->{CONTENT_TYPE} // ''], [$buf]];
+    } elsif ($env->{REQUEST_URI} =~ m{\A((?:/[A-Za-z0-9_-][.A-Za-z0-9_-]*)+)(?:\?|\z)}) {
       my $path = $root_path->child ($1);
       return [200, [], [$path->slurp]] if $path->is_file;
     } elsif ($env->{REQUEST_URI} eq '/') {
