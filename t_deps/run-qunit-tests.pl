@@ -8,9 +8,8 @@ use Promise;
 use Web::URL;
 use Web::Driver::Client::Connection;
 
-require scalar path (__FILE__)->parent->parent->child ('t_deps')->child ('server.pl');
-
 my $root_path = path (__FILE__)->parent->parent;
+require scalar $root_path->child ('t_deps/server.pl')->absolute;
 
 {
   use Socket;
