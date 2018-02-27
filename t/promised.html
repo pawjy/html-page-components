@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+  <test-code name="$promised.forEach">
+    var v = [];
+    return $promised.forEach ((_) => {
+      v.push (_);
+    }, [1, 2]).then (() => {
+      this.assert.equal (v.length, 2);
+      this.assert.equal (v[0], 1);
+      this.assert.equal (v[1], 2);
+    });
+  </test-code>
+  
+  <test-code name="$promised.forEach promise">
+    var v = [];
+    return $promised.forEach ((_) => {
+      v.push (_);
+    }, [Promise.resolve (1), Promise.resolve (2)]).then (() => {
+      this.assert.equal (v.length, 2);
+      this.assert.equal (v[0], 1);
+      this.assert.equal (v[1], 2);
+    });
+  </test-code>
+  
+  <test-code name="$promised.forEach">
+    var v = [];
+    return $promised.forEach ((_) => {
+      return Promise.resolve ().then (() => v.push (_));
+    }, [1, 2]).then (() => {
+      this.assert.equal (v.length, 2);
+      this.assert.equal (v[0], 1);
+      this.assert.equal (v[1], 2);
+    });
+  </test-code>
+
+  <test-code name="$promised.forEach">
+    var v = [];
+    return $promised.forEach ((_) => {
+      if (_ === 2) {
+        v.push (_);
+      } else {
+        return Promise.resolve ().then (() => v.push (_));
+      }
+    }, [1, 2]).then (() => {
+      this.assert.equal (v.length, 2);
+      this.assert.equal (v[0], 1);
+      this.assert.equal (v[1], 2);
+    });
+  </test-code>
+
+  <test-code name="$promised.forEach reject">
+    var v = [];
+    return $promised.forEach ((_) => {
+      if (_ === 1 || _ === 3) {
+        v.push (_);
+      } else {
+        throw _;
+      }
+    }, [1, 2, 3]).then (() => {
+      this.assert.equal (true, false);
+    }, (e) => {
+      this.assert.equal (e, 2);
+      this.assert.equal (v.length, 1);
+      this.assert.equal (v[0], 1);
+    });
+  </test-code>
+
+  <test-code name="$promised.forEach reject">
+    var v = [];
+    return $promised.forEach ((_) => {
+      if (_ === 1 || _ === 3) {
+        v.push (_);
+      } else {
+        return Promise.reject (_);
+      }
+    }, [1, 2, 3]).then (() => {
+      this.assert.equal (true, false);
+    }, (e) => {
+      this.assert.equal (e, 2);
+      this.assert.equal (v.length, 1);
+      this.assert.equal (v[0], 1);
+    });
+  </test-code>
+
+  <hr>
+
+  <test-code name="$promised.map">
+    var v = [];
+    return $promised.map ((_) => {
+      v.push (_);
+      return _ + 4;
+    }, [1, 2]).then ((w) => {
+      this.assert.equal (v.length, 2);
+      this.assert.equal (v[0], 1);
+      this.assert.equal (v[1], 2);
+      this.assert.equal (w.length, 2);
+      this.assert.equal (w[0], 1+4);
+      this.assert.equal (w[1], 2+4);
+    });
+  </test-code>
+  
+  <test-code name="$promised.map promise">
+    var v = [];
+    return $promised.map ((_) => {
+      v.push (_);
+      return _ + 4;
+    }, [Promise.resolve (1), Promise.resolve (2)]).then ((w) => {
+      this.assert.equal (v.length, 2);
+      this.assert.equal (v[0], 1);
+      this.assert.equal (v[1], 2);
+      this.assert.equal (w.length, 2);
+      this.assert.equal (w[0], 1+4);
+      this.assert.equal (w[1], 2+4);
+    });
+  </test-code>
+  
+  <test-code name="$promised.map">
+    var v = [];
+    return $promised.map ((_) => {
+      return Promise.resolve ().then (() => { v.push (_); return _ + 4 });
+    }, [1, 2]).then ((w) => {
+      this.assert.equal (v.length, 2);
+      this.assert.equal (v[0], 1);
+      this.assert.equal (v[1], 2);
+      this.assert.equal (w.length, 2);
+      this.assert.equal (w[0], 1+4);
+      this.assert.equal (w[1], 2+4);
+    });
+  </test-code>
+
+  <test-code name="$promised.map">
+    var v = [];
+    return $promised.map ((_) => {
+      if (_ === 2) {
+        v.push (_);
+        return _ + 4;
+      } else {
+        return Promise.resolve ().then (() => { v.push (_); return _ + 4 });
+      }
+    }, [1, 2]).then ((w) => {
+      this.assert.equal (v.length, 2);
+      this.assert.equal (v[0], 1);
+      this.assert.equal (v[1], 2);
+      this.assert.equal (w.length, 2);
+      this.assert.equal (w[0], 1+4);
+      this.assert.equal (w[1], 2+4);
+    });
+  </test-code>
+
+  <test-code name="$promised.map reject">
+    var v = [];
+    return $promised.map ((_) => {
+      if (_ === 1 || _ === 3) {
+        v.push (_);
+        return v + 4;
+      } else {
+        throw _;
+      }
+    }, [1, 2, 3]).then ((w) => {
+      this.assert.equal (true, false);
+    }, (e) => {
+      this.assert.equal (e, 2);
+      this.assert.equal (v.length, 1);
+      this.assert.equal (v[0], 1);
+    });
+  </test-code>
+  
+  <script src=runtests.js data-export=$promised></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->

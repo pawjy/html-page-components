@@ -1,7 +1,7 @@
 (function () {
   var exportable = {};
 
-  var $promised = {};
+  var $promised = exportable.$promised = {};
 
   $promised.forEach = function (code, items) {
     var list = Array.prototype.slice.call (items);
