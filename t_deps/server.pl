@@ -3,6 +3,8 @@ use warnings;
 use AnyEvent::Socket;
 use Web::Transport::PSGIServerConnection;
 
+my $root_path = path (__FILE__)->parent->parent;
+
 sub server ($$) {
   my ($host, $port) = @_;
   my $PSGIApp = sub {
