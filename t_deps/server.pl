@@ -1,5 +1,7 @@
 use strict;
 use warnings;
+use Path::Tiny;
+use lib glob path (__FILE__)->parent->parent->child ('t_deps/modules/*/lib');
 use AnyEvent::Socket;
 use Web::Transport::PSGIServerConnection;
 

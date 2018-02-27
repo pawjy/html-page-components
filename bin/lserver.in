@@ -1,0 +1,5 @@
+#!/bin/bash
+{{INSTALL}}
+
+make deps
+exec ./perl bin/local-server.pl
