@@ -3,6 +3,7 @@ use warnings;
 use Path::Tiny;
 use lib glob path (__FILE__)->parent->parent->child ('t_deps/modules/*/lib');
 use AnyEvent::Socket;
+use JSON::PS;
 use Web::Transport::PSGIServerConnection;
 
 my $root_path = path (__FILE__)->parent->parent;
@@ -15,7 +16,7 @@ sub server ($$) {
       my $length = $env->{CONTENT_LENGTH};
       my $buf = '';
       $env->{'psgi.input'}->read ($buf, $length);
-      return [200, ['content-type', $env->{CONTENT_TYPE} // ''], [$buf]];
+      return [200, [], [perl2json_bytes {mime => $env->{CONTENT_TYPE}, body_text => $buf}]];
     } elsif ($env->{REQUEST_URI} =~ m{\A((?:/[A-Za-z0-9_-][.A-Za-z0-9_-]*)+)(?:\?|\z)}) {
       my $path = $root_path->child ($1);
       return [200, [], [$path->slurp]] if $path->is_file;
