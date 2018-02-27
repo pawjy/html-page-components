@@ -7,8 +7,8 @@ use JSON::PS;
 use Promise;
 use Web::URL;
 use Web::Driver::Client::Connection;
-use AnyEvent::Socket;
-use Web::Transport::PSGIServerConnection;
+
+require scalar path (__FILE__)->parent->parent->child ('t_deps')->child ('server.pl');
 
 my $root_path = path (__FILE__)->parent->parent;
 
@@ -43,18 +43,7 @@ my $root_path = path (__FILE__)->parent->parent;
 
 my $HTTPHost = '0';
 my $HTTPPort = find_listenable_port;
-my $PSGIApp = sub {
-  my $env = $_[0];
-  if ($env->{REQUEST_URI} =~ m{\A((?:/[A-Za-z0-9_-][.A-Za-z0-9_-]*)+)(?:\?|\z)}) {
-    my $path = $root_path->child ($1);
-    return [200, [], [$path->slurp]] if $path->is_file;
-  }
-  return [404, [], []];
-};
-my $HTTPServer = tcp_server $HTTPHost, $HTTPPort, sub {
-  Web::Transport::PSGIServerConnection->new_from_app_and_ae_tcp_server_args
-        ($PSGIApp, [@_]);
-};
+my $HTTPServer = server ($HTTPHost, $HTTPPort);
 my $BrowserHTTPHost = $ENV{TEST_HTTP_HOST} || $HTTPHost;
 
 sub run_tests {
@@ -184,7 +173,8 @@ exit $exit_code;
 
 =head1 LICENSE
 
-Copyright 2017 Wakaba <wakaba@suikawiki.org>.  All rights reserved.
+Copyright 2017-2018 Wakaba <wakaba@suikawiki.org>.
+
 Copyright 2017 Hatena <http://hatenacorp.jp/>.  All rights reserved.
 
 This program is free software; you can redistribute it and/or
