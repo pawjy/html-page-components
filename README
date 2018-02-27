@@ -570,12 +570,12 @@ changed, the map's dimension has been changed, and so on.  This event
 can be used as the oppotunity to relocate map overlay objects or to
 recalculate any associated data outside of the map.
 
-* Exportable function
+* Exportable functions
 
 By setting the |data-export| attribute of the |script| element loading
 the |page-components.js| to a space-separated list of the function
-names, the functions can be exported to the global scope.  The
-following function is available:
+names (or function namespace names), the functions can be exported to
+the global scope.  The following functions are available:
 
   $fill (root, object)
 
@@ -690,6 +690,30 @@ following function is available:
     The result of processing a value template /template/ is a copy of
     /template/ where any substring |{/field-name/}| is replaced by the
     field value for /field-name/.
+
+  $promised namespace
+
+    promise = $promised.forEach ((item) => { return promise }, list)
+
+      Iterate for each array item in /list/, in order, one after
+      another.  The first argument to the |forEach| method is a
+      |Function|, which is invoked with each item.  It can return a
+      |Promise|, in such case the iteration is not over until the
+      promise is fulfilled.  If the function throws, or if the
+      function returns a promise which is rejected, the entire
+      iteration fails and any remaining item is ignored.  The function
+      returns a promise, which is fulfilled when the entire iteration
+      is over, or rejected with the exception of the failed iteration.
+
+    promise = $promised.map ((item) => { return promise }, list)
+    
+      Iterate for each array item in /list/, in order, one after
+      another, in a similar way to the |forEach| method.  Unlike the
+      |forEach| method, the function is expected to return a value
+      (either a non-|Promise| value directly, or by returning a
+      |Promise| and resolving it with a value).  The function returns
+      a promise, which is fulfillwed with an |Array| of returned
+      values of the iterations, in order.
 
 * Definitions
 
