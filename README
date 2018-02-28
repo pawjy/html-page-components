@@ -851,6 +851,18 @@ There is a predefined filter: |default|.  It replaces the input's
 |data| is not a JavaScript |Array|.  It reverses the list if the
 |list-container| element has the |reverse| attribute specified.
 
+There are predefined formsaved handlers:
+
+  go:{url}
+
+    Navigate to the URL specified as the first argument.  Please note
+    that the URL cannot contain the |:| character (i.e. it cannot be
+    an absolute URL) as it is the argument separator.
+
+  reset
+
+    Reset the form.
+
 * Application-specific elements
 
 An element's implementation can be defined by inserting an |element|

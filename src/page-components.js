@@ -845,6 +845,16 @@
     }, // props
   }); // <form is=save-data>
 
+  defs.formsaved.reset = function (args) {
+    this.reset ();
+  }; // reset
+
+  defs.formsaved.go = function (args) {
+    // XXX $fill.template
+    location.href = args.args[1];
+    return new Promise (() => {});
+  }; // go
+  
   defineElement ({
     name: 'image-editor',
     props: {

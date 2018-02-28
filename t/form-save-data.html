@@ -195,6 +195,77 @@
     
     this.assert.equal (args8, e);
   </test-code>
+
+  <test-code name="reset">
+    /*
+      <form is=save-data action=/submit/200.json data-next="reset test9">
+        <input name=text1 value=avc>
+        <button type=submit>OK</button>
+      </form>
+    */
+    
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test9');
+      handler.pcHandler = function (args) {
+        ok ();
+      };
+      document.head.appendChild (handler);
+    });
+
+    var e = this.currentScript.querySelector ('form');
+    var f = e.querySelector ('form [name=text1]');
+    f.value = Math.random ();
+    e.querySelector ('form button[type=submit]').click ();
+    
+    await promise;
+    
+    this.assert.equal (f.value, 'avc');
+  </test-code>
+
+  <test-code name="go">
+    /*
+      <iframe></iframe>
+      <form action=/submit/200.json data-next="test9 go:data1.html">
+        <input name=text1 value=avc>
+        <button type=submit>OK</button>
+      </form>
+    */
+
+    var e = this.currentScript.querySelector ('form');
+    
+    var iframe = this.currentScript.querySelector ('iframe');
+    var doc = iframe.contentDocument;
+    var script = document.createElement ('script');
+    await new Promise ((ok, ng) => {
+      script.src = '../src/page-components.js';
+      script.onload = ok;
+      script.onerror = ng;
+      doc.body.appendChild (script);
+      e.setAttribute ('is', 'save-data');
+      doc.body.appendChild (e);
+    });
+      
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test9');
+      handler.pcHandler = function (args) {
+        ok ();
+      };
+      doc.head.appendChild (handler);
+    });
+
+    var wait = new Promise ((ok) => {
+      iframe.onload = ok;
+    });
+    
+    e.querySelector ('form button[type=submit]').click ();
+
+    await promise;
+    await wait;
+
+    this.assert.equal (iframe.contentDocument.querySelector ('p').textContent, 'data #1');
+  </test-code>
   
   <!-- XXX error response -->
   <!-- XXX thrown in next -->
