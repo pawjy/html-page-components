@@ -32,6 +32,7 @@ loaded:
   <popup-menu>
   <tab-set>
   <list-container>
+  <form is=save-data>
   <image-editor>
   <template-set>
 
@@ -273,6 +274,47 @@ A |list-container| element has following methods:
 
     Load and render the previous page.  This is equivalent to clicking
     a previous page button.
+
+** <form is=save-data>
+
+A |form| element whose |is| attribute is |save-data| represents a form
+used to submit data using HTTP |POST| method and |multipart/form-data|
+MIME type.
+
+As usual, the data is submitted to the |form| element's |action|
+attribute's URL.  It must be same origin as the current document,
+otherwise no credentials and referrer and origin headers are sent.
+Any of |method|, |enctype|, and |target| attribute is ignored.
+
+Once the response to the submission is received, instead of navigation
+to the response as in usual forms, any formsaved handler for the
+element is invoked.  A *formsaved handler* is a definition of type
+|formsaved|.  The formsaved actions for an element can be specified in
+the |data-next| attribute as a space-separated list of formsaved
+handler names (with optional arguments).  If multiple formsaved
+handlers are specified for an element, they are invoked in order.  A
+formsaved handler is invoked with a dictionary argument with following
+members:
+
+  args : Array
+
+    An |Array| of the formsaved handler name and optional arguments.
+    The handler name and arguments can be specified in the |data-next|
+    attribute as a |:|-separated string.  The first component (before
+    first |:| character) is considered as the handler name and any
+    other component is considered as arguments.  All of them are
+    provided in this array, in order.
+
+  response : Response
+
+    The |Response| for the form submission's response.
+
+  json : Function<Promise<Object>>
+
+    When invoked, return the result of the |response|'s |json| method.
+    Unlike the direct invocation of the |response.json| method, the
+    result is cached in this method such that multiple invocations
+    would not reject.
 
 ** <image-editor>
 
@@ -752,6 +794,15 @@ There are following definition types:
     The |this| value used when the handler is invoked is the
     |list-container| element.  The handler is invoked with the
     argument of the result of the previous step.
+
+  formsaved (handler)
+
+    A formsaved handler for |form| element whose |is| is |save-data|.
+    It can return a promise.
+
+    The |this| value used when the handler is invoked is the |form|
+    element.  The handler is invoked with the dictionary, as described
+    in the |form[is-save-data]|'s documentation.
 
   templateselector (handler)
 

@@ -28,6 +28,7 @@
     loader: {type: 'handler'},
     filter: {type: 'handler'},
     templateselector: {type: 'handler'},
+    formsaved: {type: 'handler'},
     filltype: {type: 'map'},
     templateSet: {type: 'element'},
     element: {type: 'customElement'},
@@ -795,6 +796,54 @@
     },
     templateSet: true,
   }); // list-container
+
+  defineElement ({
+    name: 'form',
+    is: 'save-data',
+    props: {
+      pcInit: function () {
+        this.onsubmit = function () {
+          // XXX prompt
+          // XXX action status integration
+          var fd = new FormData (this);
+          // XXX submit button
+          // XXX custom form controls
+          // XXX custom validators
+          // XXX disable form controls
+
+          var nextActions = (this.getAttribute ('data-next') || '')
+              .split (/\s+/)
+              .filter (function (_) { return _.length })
+              .map (function (_) {
+                return _.split (/:/);
+              });
+          
+          fetch (this.action, {
+            credentials: 'same-origin',
+            method: 'POST',
+            referrerPolicy: 'same-origin',
+            body: fd,
+          }).then ((res) => {
+            if (res.status !== 200) throw res;
+            var p;
+            var getJSON = function () {
+              return p = p || res.json ();
+            };
+            return $promised.forEach ((_) => {
+              return getDef ("formsaved", _[0]).then ((handler) => {
+                return handler.call (this, {
+                  args: _,
+                  response: res,
+                  json: getJSON,
+                });
+              });
+            }, nextActions);
+          }); // XXX catch
+          return false;
+        }; // onsubmit
+      }, // sdInit
+    }, // props
+  }); // <form is=save-data>
 
   defineElement ({
     name: 'image-editor',
