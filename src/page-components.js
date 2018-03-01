@@ -837,11 +837,12 @@
             }
             this.sdClickedButton = null;
           }
-          // XXX custom form controls
 
           var disabledControls = this.querySelectorAll
               ('input:enabled, select:enabled, textarea:enabled, button:enabled');
+          var customControls = this.querySelectorAll ('[formcontrol]:not([disabled])');
           disabledControls.forEach ((_) => _.setAttribute ('disabled', ''));
+          customControls.forEach ((_) => _.setAttribute ('disabled', ''));
 
           var validators = (this.getAttribute ('data-validator') || '')
               .split (/\s+/)
@@ -852,14 +853,23 @@
               .map (function (_) {
                 return _.split (/:/);
               });
-          
+
           $promised.forEach ((_) => {
-            return getDef ("formvalidator", _).then ((handler) => {
-              return handler.call (this, {
-                formData: fd,
+            if (_.pcModifyFormData) {
+              return _.pcModifyFormData (fd);
+            } else {
+              console.log (_, "No |pcModifyFormData| method");
+              throw "A form control is not initialized";
+            }
+          }, customControls).then (() => {
+            return $promised.forEach ((_) => {
+              return getDef ("formvalidator", _).then ((handler) => {
+                return handler.call (this, {
+                  formData: fd,
+                });
               });
-            });
-          }, validators).then (() => {
+            }, validators);
+          }).then (() => {
             return fetch (this.action, {
               credentials: 'same-origin',
               method: 'POST',
@@ -883,8 +893,10 @@
             }, nextActions);
           }).then (() => {
             disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
+            customControls.forEach ((_) => _.removeAttribute ('disabled'));
           }, (e) => {
             disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
+            customControls.forEach ((_) => _.removeAttribute ('disabled'));
             throw e; // XXX action status integration
           });
           return false;

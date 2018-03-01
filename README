@@ -343,6 +343,18 @@ During the form submission (since just before the start of the custom
 validations and fetch, until the completion of any formsaved
 handlers), any form control is disabled.
 
+In addition to HTML's standard form control elements, autonomous
+custom elements can be defined as form controls for the purpose of
+this element's form submission by setting the |formcontrol| content
+attribute.  Such custom form controls must have |pcModifyFormData|
+method at the time of form submission.  The method is invoked with a
+|FormData| object.  The method is expected to append name/value
+pair(s) to the object before the method is returned (or the promise
+returned by the method is fulfilled).  The method can throw (or return
+a promise which is rejected) when the custom form control is
+considered as invalid.  The custom form control element is expected to
+be disabled by setting the |disabled| content attribute.
+
 The |form| content attribute of form controls are not supported.
 
 ** <image-editor>
