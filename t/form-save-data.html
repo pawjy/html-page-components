@@ -448,6 +448,163 @@
     this.assert.equal (invoked, 1);
   </test-code>
   
+  <test-code name="custom validator ok">
+    /*
+      <form is=save-data action=/submit/200 data-next=test15 data-validator=validator1 method=post>
+        <input name=text1 value=a>
+        <button type=submit name=d value=foo>OK</button>
+      </form>
+    */
+
+    var invoked = 0;
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test15');
+      handler.pcHandler = function (args) {
+        invoked++;
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var validatorInvoked = 0;
+    var validatorPromise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formvalidator');
+      handler.setAttribute ('name', 'validator1');
+      handler.pcHandler = function (args) {
+        validatorInvoked++;
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+      
+    var e = this.currentScript.querySelector ('form');
+    e.querySelector ('form button[type=submit]').click ();
+
+    var validatorArgs = await validatorPromise;
+
+    this.assert.equal (validatorInvoked, 1);
+    this.assert.equal (validatorArgs.formData.get ('text1'), 'a');
+    this.assert.equal (validatorArgs.formData.get ('d'), 'foo');
+
+    await promise;
+    
+    this.assert.equal (invoked, 1);
+  </test-code>
+
+  <test-code name="custom validator ng">
+    /*
+      <form is=save-data action=/submit/200 data-next=test16 data-validator=validator16 method=post>
+        <input name=text1 value=a>
+        <button type=submit name=d value=foo>OK</button>
+      </form>
+    */
+
+    var invoked = 0;
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test16');
+      handler.pcHandler = function (args) {
+        invoked++;
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var e = this.currentScript.querySelector ('form');
+    var validatorInvoked = 0;
+    var validatorPromise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formvalidator');
+      handler.setAttribute ('name', 'validator16');
+      handler.pcHandler = (args) => {
+        validatorInvoked++;
+        this.assert.equal (e.querySelector ('input[name=text1]').disabled, true);
+        ok (args);
+        throw "abc";
+      };
+      document.head.appendChild (handler);
+    });
+      
+    e.querySelector ('form button[type=submit]').click ();
+
+    var validatorArgs = await validatorPromise;
+
+    this.assert.equal (validatorInvoked, 1);
+    this.assert.equal (validatorArgs.formData.get ('text1'), 'a');
+    this.assert.equal (validatorArgs.formData.get ('d'), 'foo');
+
+    await this.wait (100);
+    
+    this.assert.equal (invoked, 0);
+    this.assert.equal (e.querySelector ('input[name=text1]').disabled, false);
+    
+    // XXX action-status
+  </test-code>
+
+  <test-code name="custom validator multiple">
+    /*
+      <form is=save-data action=/submit/200 data-next=test17 data-validator="validator17 validator18 validator19" method=post>
+        <input name=text1 value=a>
+        <button type=submit name=d value=foo>OK</button>
+      </form>
+    */
+
+    var invoked = 0;
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test17');
+      handler.pcHandler = function (args) {
+        invoked++;
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var validatorInvoked = 0;
+    var validatorPromise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formvalidator');
+      handler.setAttribute ('name', 'validator17');
+      handler.pcHandler = function (args) {
+        validatorInvoked++;
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+    var validatorPromise2 = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formvalidator');
+      handler.setAttribute ('name', 'validator18');
+      handler.pcHandler = function (args) {
+        validatorInvoked++;
+        ok (args);
+        throw "abc";
+      };
+      document.head.appendChild (handler);
+    });
+    var validatorPromise3 = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formvalidator');
+      handler.setAttribute ('name', 'validator19');
+      handler.pcHandler = function (args) {
+        validatorInvoked++;
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+      
+    var e = this.currentScript.querySelector ('form');
+    e.querySelector ('form button[type=submit]').click ();
+
+    var validatorArgs = await validatorPromise2;
+
+    this.assert.equal (validatorInvoked, 2);
+    this.assert.equal (validatorArgs.formData.get ('text1'), 'a');
+    this.assert.equal (validatorArgs.formData.get ('d'), 'foo');
+
+    await this.wait (100);
+    
+    this.assert.equal (invoked, 0);
+    this.assert.equal (validatorInvoked, 2);
+  </test-code>
+  
   <!-- XXX error response -->
   <!-- XXX thrown in next -->
   <!-- XXX data-confirm -->

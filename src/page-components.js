@@ -29,6 +29,7 @@
     filter: {type: 'handler'},
     templateselector: {type: 'handler'},
     formsaved: {type: 'handler'},
+    formvalidator: {type: 'handler'},
     filltype: {type: 'map'},
     templateSet: {type: 'element'},
     element: {type: 'customElement'},
@@ -830,18 +831,21 @@
           // XXX action status integration
           var fd = new FormData (this);
           if (this.sdClickedButton) {
-            if (this.sdClickedButton.name) {
+            if (this.sdClickedButton.name &&
+                this.sdClickedButton.type === 'submit') {
               fd.append (this.sdClickedButton.name, this.sdClickedButton.value);
             }
             this.sdClickedButton = null;
           }
           // XXX custom form controls
-          // XXX custom validators
 
           var disabledControls = this.querySelectorAll
               ('input:enabled, select:enabled, textarea:enabled, button:enabled');
           disabledControls.forEach ((_) => _.setAttribute ('disabled', ''));
-          
+
+          var validators = (this.getAttribute ('data-validator') || '')
+              .split (/\s+/)
+              .filter (function (_) { return _.length });
           var nextActions = (this.getAttribute ('data-next') || '')
               .split (/\s+/)
               .filter (function (_) { return _.length })
@@ -849,11 +853,19 @@
                 return _.split (/:/);
               });
           
-          fetch (this.action, {
-            credentials: 'same-origin',
-            method: 'POST',
-            referrerPolicy: 'same-origin',
-            body: fd,
+          $promised.forEach ((_) => {
+            return getDef ("formvalidator", _).then ((handler) => {
+              return handler.call (this, {
+                formData: fd,
+              });
+            });
+          }, validators).then (() => {
+            return fetch (this.action, {
+              credentials: 'same-origin',
+              method: 'POST',
+              referrerPolicy: 'same-origin',
+              body: fd,
+            });
           }).then ((res) => {
             if (res.status !== 200) throw res;
             var p;
