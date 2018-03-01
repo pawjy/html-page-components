@@ -288,7 +288,8 @@ Any of |method|, |enctype|, and |target| attribute is ignored, but the
 |method| attribute should be set to |POST| and the |enctype|
 attribute, if specified, should be set to |multipart/form-data| to
 provide better fallback story for environments where scripting is
-disabled.
+disabled.  Note that these behaviors can be overriden by specifying a
+saver using the |data-saver| attribute.
 
 If the element has a |data-confirm| attribute specified, a confirm
 dialog box whose text is the attribute value is shown and the user can
@@ -356,6 +357,15 @@ considered as invalid.  The custom form control element is expected to
 be disabled by setting the |disabled| content attribute.
 
 The |form| content attribute of form controls are not supported.
+
+The saver for the element can be specified by setting the saver's name
+to the |data-saver| attribute of the element.  A *saver* is a
+definition of type |saver|.  The saver is invoked with the |FormData|
+object representing the form data that should be submitted.  It is
+expected to return a |Response| object (or an object whose API is
+compatible with |Response|), or a promise which is fulfilled with such
+an object.  If it cannot be saved the data, it is expected to throw
+(or return a promise which is rejected).
 
 ** <image-editor>
 
@@ -864,6 +874,15 @@ There are following definition types:
 
     Otherwise, if the result is invalid, the handler must throw (or
     return a promise that is rejected).
+
+  saver (handler)
+
+    A form submission handler for |form| element whose |is| is
+    |save-data|.  It is expected to return a |Response| object or
+    equivalent, as described in the |form[is-save-data]|'s
+    documentation.
+
+    The |this| value used when the handler is the |form| element.
 
   templateselector (handler)
 

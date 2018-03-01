@@ -28,6 +28,7 @@
     loader: {type: 'handler'},
     filter: {type: 'handler'},
     templateselector: {type: 'handler'},
+    saver: {type: 'handler'},
     formsaved: {type: 'handler'},
     formvalidator: {type: 'handler'},
     filltype: {type: 'map'},
@@ -870,14 +871,10 @@
               });
             }, validators);
           }).then (() => {
-            return fetch (this.action, {
-              credentials: 'same-origin',
-              method: 'POST',
-              referrerPolicy: 'same-origin',
-              body: fd,
+            return getDef ("saver", this.getAttribute ('data-saver') || 'form').then ((saver) => {
+              return saver.call (this, fd);
             });
           }).then ((res) => {
-            if (res.status !== 200) throw res;
             var p;
             var getJSON = function () {
               return p = p || res.json ();
@@ -922,6 +919,18 @@
       }, // sdCheck
     }, // props
   }); // <form is=save-data>
+
+  defs.saver.form = function (fd) {
+    return fetch (this.action, {
+      credentials: 'same-origin',
+      method: 'POST',
+      referrerPolicy: 'same-origin',
+      body: fd,
+    }).then ((res) => {
+      if (res.status !== 200) throw res;
+      return res;
+    });
+  }; // form
 
   defs.formsaved.reset = function (args) {
     this.reset ();

@@ -680,6 +680,90 @@
     this.assert.equal (e.querySelector ('my-control').hasAttribute ('disabled'), false);
   </test-code>
   
+  <test-code name="saver">
+    /*
+      <form is=save-data action=/submit/404 data-saver=saver22 data-next=test22 method=post>
+        <input name=text1 value=a>
+        <button type=submit name=d value=foo>OK</button>
+      </form>
+    */
+
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test22');
+      handler.pcHandler = function (args) {
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var res2;
+    var promise2 = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'saver');
+      handler.setAttribute ('name', 'saver22');
+      handler.pcHandler = function (fd) {
+        ok (fd);
+        return Promise.resolve (res2 = new Response);
+      };
+      document.head.appendChild (handler);
+    });
+    
+    var e = this.currentScript.querySelector ('form');
+
+    e.querySelector ('form button[type=submit]').click ();
+
+    var fd = await promise2;
+    
+    this.assert.equal (fd.get ('text1'), 'a');
+
+    var args = await promise;
+
+    this.assert.equal (args.response, res2);
+  </test-code>
+  
+  <test-code name="saver error response">
+    /*
+      <form is=save-data action=/submit/404 data-saver=saver23 data-next=test23 method=post>
+        <input name=text1 value=a>
+        <button type=submit name=d value=foo>OK</button>
+      </form>
+    */
+
+    var invoked = 0;
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test23');
+      handler.pcHandler = function (args) {
+        invoked++;
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var res2;
+    var promise2 = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'saver');
+      handler.setAttribute ('name', 'saver23');
+      handler.pcHandler = function (fd) {
+        ok (fd);
+        return Promise.reject (res2 = new Response (null, {status: 501}));
+      };
+      document.head.appendChild (handler);
+    });
+    
+    var e = this.currentScript.querySelector ('form');
+
+    e.querySelector ('form button[type=submit]').click ();
+
+    var fd = await promise2;
+    
+    this.assert.equal (fd.get ('text1'), 'a');
+
+    await this.wait (100);
+
+    this.assert.equal (invoked, 0);
+  </test-code>
+  
   <!-- XXX error response -->
   <!-- XXX thrown in next -->
   <!-- XXX data-confirm -->
