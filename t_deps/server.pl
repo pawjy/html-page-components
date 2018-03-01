@@ -25,6 +25,7 @@ sub server ($$) {
           referrer => $env->{HTTP_REFERER},
           method => $env->{REQUEST_METHOD},
           body_text => $buf,
+          testdata => {abc => 533},
         }]];
       } else {
         return [$status, ['content-type' => $env->{CONTENT_TYPE}], [$buf]];

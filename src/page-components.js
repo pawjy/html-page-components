@@ -854,9 +854,10 @@
   }; // reset
 
   defs.formsaved.go = function (args) {
-    // XXX $fill.template
-    location.href = args.args[1];
-    return new Promise (() => {});
+    return args.json ().then ((json) => {
+      location.href = $fill.string (args.args[1], json);
+      return new Promise (() => {});
+    });
   }; // go
   
   defineElement ({
