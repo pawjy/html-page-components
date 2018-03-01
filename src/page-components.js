@@ -29,6 +29,7 @@
     filter: {type: 'handler'},
     templateselector: {type: 'handler'},
     formsaved: {type: 'handler'},
+    formvalidator: {type: 'handler'},
     filltype: {type: 'map'},
     templateSet: {type: 'element'},
     element: {type: 'customElement'},
@@ -830,30 +831,51 @@
           // XXX action status integration
           var fd = new FormData (this);
           if (this.sdClickedButton) {
-            if (this.sdClickedButton.name) {
+            if (this.sdClickedButton.name &&
+                this.sdClickedButton.type === 'submit') {
               fd.append (this.sdClickedButton.name, this.sdClickedButton.value);
             }
             this.sdClickedButton = null;
           }
-          // XXX custom form controls
-          // XXX custom validators
 
           var disabledControls = this.querySelectorAll
               ('input:enabled, select:enabled, textarea:enabled, button:enabled');
+          var customControls = this.querySelectorAll ('[formcontrol]:not([disabled])');
           disabledControls.forEach ((_) => _.setAttribute ('disabled', ''));
-          
+          customControls.forEach ((_) => _.setAttribute ('disabled', ''));
+
+          var validators = (this.getAttribute ('data-validator') || '')
+              .split (/\s+/)
+              .filter (function (_) { return _.length });
           var nextActions = (this.getAttribute ('data-next') || '')
               .split (/\s+/)
               .filter (function (_) { return _.length })
               .map (function (_) {
                 return _.split (/:/);
               });
-          
-          fetch (this.action, {
-            credentials: 'same-origin',
-            method: 'POST',
-            referrerPolicy: 'same-origin',
-            body: fd,
+
+          $promised.forEach ((_) => {
+            if (_.pcModifyFormData) {
+              return _.pcModifyFormData (fd);
+            } else {
+              console.log (_, "No |pcModifyFormData| method");
+              throw "A form control is not initialized";
+            }
+          }, customControls).then (() => {
+            return $promised.forEach ((_) => {
+              return getDef ("formvalidator", _).then ((handler) => {
+                return handler.call (this, {
+                  formData: fd,
+                });
+              });
+            }, validators);
+          }).then (() => {
+            return fetch (this.action, {
+              credentials: 'same-origin',
+              method: 'POST',
+              referrerPolicy: 'same-origin',
+              body: fd,
+            });
           }).then ((res) => {
             if (res.status !== 200) throw res;
             var p;
@@ -871,8 +893,10 @@
             }, nextActions);
           }).then (() => {
             disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
+            customControls.forEach ((_) => _.removeAttribute ('disabled'));
           }, (e) => {
             disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
+            customControls.forEach ((_) => _.removeAttribute ('disabled'));
             throw e; // XXX action status integration
           });
           return false;
