@@ -225,18 +225,22 @@
       }); // [data-*-field]
 
       root.querySelectorAll ('[data-'+n+'-template]').forEach ((f) => {
-        f.setAttribute (n, f.getAttribute ('data-'+n+'-template').replace (/\{([\w.]+)\}/g, function (_, n) {
-          var name = n.split (/\./);
-          var value = object;
-          for (var i = 0; i < name.length; i++) {
-            value = value[name[i]];
-            if (value == null) break;
-          }
-          return value;
-        }));
+        f.setAttribute (n, $fill.string (f.getAttribute ('data-'+n+'-template'), object));
       }); // [data-*-template]
     });
   }; // $fill
+
+  $fill.string = function (s, object) {
+    return s.replace (/\{([\w.]+)\}/g, function (_, n) {
+      var name = n.split (/\./);
+      var value = object;
+      for (var i = 0; i < name.length; i++) {
+        value = value[name[i]];
+        if (value == null) break;
+      }
+      return value;
+    });
+  }; // $fill.string
 
   var templateSetLocalNames = {};
   var templateSetSelector = '';
