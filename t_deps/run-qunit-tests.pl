@@ -59,6 +59,7 @@ sub run_tests {
   for my $path ($root_path->child ('t')->children (qr/\.html\z/)) {
     my $url = "http://$BrowserHTTPHost:$HTTPPort/${path}${query_string}";
     my $result_path = $test_results_path->child ($path->basename);
+    next if $path =~ m{/data[^/]*\.html\z};
     next unless $path =~ /$pattern/o;
     print "# $path\n";
     my $pass = execute_test_html_file ($test_wd_url, $wd_desired_capabilities, $url, $result_path);
