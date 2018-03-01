@@ -28,6 +28,7 @@
     loader: {type: 'handler'},
     filter: {type: 'handler'},
     templateselector: {type: 'handler'},
+    formsaved: {type: 'handler'},
     filltype: {type: 'map'},
     templateSet: {type: 'element'},
     element: {type: 'customElement'},
@@ -224,18 +225,22 @@
       }); // [data-*-field]
 
       root.querySelectorAll ('[data-'+n+'-template]').forEach ((f) => {
-        f.setAttribute (n, f.getAttribute ('data-'+n+'-template').replace (/\{([\w.]+)\}/g, function (_, n) {
-          var name = n.split (/\./);
-          var value = object;
-          for (var i = 0; i < name.length; i++) {
-            value = value[name[i]];
-            if (value == null) break;
-          }
-          return value;
-        }));
+        f.setAttribute (n, $fill.string (f.getAttribute ('data-'+n+'-template'), object));
       }); // [data-*-template]
     });
   }; // $fill
+
+  $fill.string = function (s, object) {
+    return s.replace (/\{([\w.]+)\}/g, function (_, n) {
+      var name = n.split (/\./);
+      var value = object;
+      for (var i = 0; i < name.length; i++) {
+        value = value[name[i]];
+        if (value == null) break;
+      }
+      return value;
+    });
+  }; // $fill.string
 
   var templateSetLocalNames = {};
   var templateSetSelector = '';
@@ -796,6 +801,115 @@
     templateSet: true,
   }); // list-container
 
+  defineElement ({
+    name: 'form',
+    is: 'save-data',
+    props: {
+      pcInit: function () {
+        this.sdCheck ();
+        this.addEventListener ('click', (ev) => {
+          var e = ev.target;
+          while (e) {
+            if (e.localName === 'button') break;
+            // |input| buttons are intentionally not supported
+            if (e === this) {
+              e = null;
+              break;
+            }
+            e = e.parentNode;
+          }
+          this.sdClickedButton = e;
+        });
+        this.onsubmit = function () {
+          this.sdCheck ();
+
+          if (this.hasAttribute ('data-confirm')) {
+            if (!confirm (this.getAttribute ('data-confirm'))) return false;
+          }
+          
+          // XXX action status integration
+          var fd = new FormData (this);
+          if (this.sdClickedButton) {
+            if (this.sdClickedButton.name) {
+              fd.append (this.sdClickedButton.name, this.sdClickedButton.value);
+            }
+            this.sdClickedButton = null;
+          }
+          // XXX custom form controls
+          // XXX custom validators
+
+          var disabledControls = this.querySelectorAll
+              ('input:enabled, select:enabled, textarea:enabled, button:enabled');
+          disabledControls.forEach ((_) => _.setAttribute ('disabled', ''));
+          
+          var nextActions = (this.getAttribute ('data-next') || '')
+              .split (/\s+/)
+              .filter (function (_) { return _.length })
+              .map (function (_) {
+                return _.split (/:/);
+              });
+          
+          fetch (this.action, {
+            credentials: 'same-origin',
+            method: 'POST',
+            referrerPolicy: 'same-origin',
+            body: fd,
+          }).then ((res) => {
+            if (res.status !== 200) throw res;
+            var p;
+            var getJSON = function () {
+              return p = p || res.json ();
+            };
+            return $promised.forEach ((_) => {
+              return getDef ("formsaved", _[0]).then ((handler) => {
+                return handler.call (this, {
+                  args: _,
+                  response: res,
+                  json: getJSON,
+                });
+              });
+            }, nextActions);
+          }).then (() => {
+            disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
+          }, (e) => {
+            disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
+            throw e; // XXX action status integration
+          });
+          return false;
+        }; // onsubmit
+      }, // sdInit
+      sdCheck: function () {
+        if (!this.hasAttribute ('action')) {
+          console.log (this, 'Warning: form[is=save-data] does not have |action| attribute');
+        }
+        if (this.method !== 'post') {
+          console.log (this, 'Warning: form[is=save-data] does not have |method| attribute whose value is |POST|');
+        }
+        if (this.hasAttribute ('enctype') &&
+            this.enctype !== 'multipart/form-data') {
+          console.log (this, 'Warning: form[is=save-data] have |enctype| attribute which is ignored');
+        }
+        if (this.hasAttribute ('target')) {
+          console.log (this, 'Warning: form[is=save-data] have a |target| attribute');
+        }
+        if (this.hasAttribute ('onsubmit')) {
+          console.log (this, 'Warning: form[is=save-data] have an |onsubmit| attribute');
+        }
+      }, // sdCheck
+    }, // props
+  }); // <form is=save-data>
+
+  defs.formsaved.reset = function (args) {
+    this.reset ();
+  }; // reset
+
+  defs.formsaved.go = function (args) {
+    return args.json ().then ((json) => {
+      location.href = $fill.string (args.args[1], json);
+      return new Promise (() => {});
+    });
+  }; // go
+  
   defineElement ({
     name: 'image-editor',
     props: {

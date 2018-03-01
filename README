@@ -32,6 +32,7 @@ loaded:
   <popup-menu>
   <tab-set>
   <list-container>
+  <form is=save-data>
   <image-editor>
   <template-set>
 
@@ -273,6 +274,61 @@ A |list-container| element has following methods:
 
     Load and render the previous page.  This is equivalent to clicking
     a previous page button.
+
+** <form is=save-data>
+
+A |form| element whose |is| attribute is |save-data| represents a form
+used to submit data using HTTP |POST| method and |multipart/form-data|
+MIME type.
+
+As usual, the data is submitted to the |form| element's |action|
+attribute's URL.  It must be same origin as the current document,
+otherwise no credentials and referrer and origin headers are sent.
+Any of |method|, |enctype|, and |target| attribute is ignored, but the
+|method| attribute should be set to |POST| and the |enctype|
+attribute, if specified, should be set to |multipart/form-data| to
+provide better fallback story for environments where scripting is
+disabled.
+
+If the element has a |data-confirm| attribute specified, a confirm
+dialog box whose text is the attribute value is shown and the user can
+cancel the submission.
+
+Once the response to the submission is received, instead of navigation
+to the response as in usual forms, any formsaved handler for the
+element is invoked.  A *formsaved handler* is a definition of type
+|formsaved|.  The formsaved actions for an element can be specified in
+the |data-next| attribute as a space-separated list of formsaved
+handler names (with optional arguments).  If multiple formsaved
+handlers are specified for an element, they are invoked in order.  A
+formsaved handler is invoked with a dictionary argument with following
+members:
+
+  args : Array
+
+    An |Array| of the formsaved handler name and optional arguments.
+    The handler name and arguments can be specified in the |data-next|
+    attribute as a |:|-separated string.  The first component (before
+    first |:| character) is considered as the handler name and any
+    other component is considered as arguments.  All of them are
+    provided in this array, in order.
+
+  response : Response
+
+    The |Response| for the form submission's response.
+
+  json : Function<Promise<Object>>
+
+    When invoked, return the result of the |response|'s |json| method.
+    Unlike the direct invocation of the |response.json| method, the
+    result is cached in this method such that multiple invocations
+    would not reject.
+
+During the form submission (since just before the start of the fetch,
+until the completion of any formsaved handlers), any form control is
+disabled.
+
+The |form| content attribute of form controls are not supported.
 
 ** <image-editor>
 
@@ -574,124 +630,129 @@ recalculate any associated data outside of the map.
 
 By setting the |data-export| attribute of the |script| element loading
 the |page-components.js| to a space-separated list of the function
-names (or function namespace names), the functions can be exported to
-the global scope.  The following functions are available:
+namespace names, the function namespaces can be exported to the global
+scope.  The following functions are available:
 
-  $fill (root, object)
+  |$fill| namespace
 
-    Edit any descendant of /root/ with the following conditions:
+    $fill (root, object)
 
-      An element with |data-field| attribute
+      Edit any descendant of /root/ with the following conditions:
 
-        Replace the value of the element by the field value specified
-        by the |data-field| attribute.
+        An element with |data-field| attribute
 
-        For the purpose of this function the *value* of an element
-        /element/ is the definition of type |filltype| for /element/'s
-        local name:
+          Replace the value of the element by the field value
+          specified by the |data-field| attribute.
 
-          |contentattribute|
+          For the purpose of this function the *value* of an element
+          /element/ is the definition of type |filltype| for
+          /element/'s local name:
 
-            The value of /element/ is the |value| content attribute
-            value of /element/, if specified, or |null|.
+            |contentattribute|
 
-            |enum-value| elements are set to this mode.
+              The value of /element/ is the |value| content attribute
+              value of /element/, if specified, or |null|.
 
-          |idlattribute|
+              |enum-value| elements are set to this mode.
 
-            The value of /element/ is the |value| IDL attribute value
-            of /element/.
+            |idlattribute|
 
-            |input|, |select|, |textarea|, and |output| elements are
-             set to this mode.
+              The value of /element/ is the |value| IDL attribute
+              value of /element/.
 
-          |datetime|
+              |input|, |select|, |textarea|, and |output| elements are
+               set to this mode.
 
-            The value of /element/ is the |datetime| attribute value
-            and is set to the result of the |new Date (/field value/ *
-            1000).toISOString ()|.  If it throws, the |datetime|
-            attribute is removed and the |textContent| is set to the
-            exception.
+            |datetime|
 
-            In other words, the field value is expected to be a Unix
-            time number and the |datetime| attribute is set to its
-            global date and time string equivalent.
+              The value of /element/ is the |datetime| attribute value
+              and is set to the result of the |new Date (/field value/
+              * 1000).toISOString ()|.  If it throws, the |datetime|
+              attribute is removed and the |textContent| is set to the
+              exception.
 
-            Note that the |textContent| of /element/ is not updated
-            when the |datetime| attribute value is changed.  It should
-            be handled by another JavaScript codes, such as time.js
-            <https://github.com/wakaba/timejs>.
+              In other words, the field value is expected to be a Unix
+              time number and the |datetime| attribute is set to its
+              global date and time string equivalent.
 
-            |time| element is set to this mode.
+              Note that the |textContent| of /element/ is not updated
+              when the |datetime| attribute value is changed.  It
+              should be handled by another JavaScript codes, such as
+              time.js <https://github.com/wakaba/timejs>.
 
-          Any other value
+              |time| element is set to this mode.
 
-            The |textContent| IDL attribute value of /element/.
+            Any other value
 
-      An element with data-/*/-field attribute
+              The |textContent| IDL attribute value of /element/.
 
-        ... where /*/ is the *target attribute name* and is one of:
-        |href|, |src|, |id|, |title|
+        An element with data-/*/-field attribute
 
-        The attribute whose name is the target attribute name is set
-        to the field value for the |data-/*/-field| attribute value.
-        If the field value is |null| or |undefined|, the attribute
-        whose name is the target attribute name is removed instead.
+          ... where /*/ is the *target attribute name* and is one of:
+          |href|, |src|, |id|, |title|.
 
-        For example,
+          The attribute whose name is the target attribute name is set
+          to the field value for the |data-/*/-field| attribute value.
+          If the field value is |null| or |undefined|, the attribute
+          whose name is the target attribute name is removed instead.
 
-          <a data-href-field=link data-field=title></a>
+          For example,
 
-        ... with /object/:
+            <a data-href-field=link data-field=title></a>
 
-          {
-            link: "https://example.com/",
-            title: "Example Web Page",
-          }
+          ... with /object/:
 
-        ... is expanded as:
+            {
+              link: "https://example.com/",
+              title: "Example Web Page",
+            }
 
-          <a data-href-field=link data-field=title
-              href="https://example.com/">Example Web Page</a>
+          ... is expanded as:
 
-      An element with data-/*/-template attribute
+            <a data-href-field=link data-field=title
+                href="https://example.com/">Example Web Page</a>
 
-        ... where /*/ is the *target attribute name* and is one of:
-        |href|, |src|, |id|, |title|
+        An element with data-/*/-template attribute
 
-        The attribute whose name is the target attribute name is set
-        to the result of processing the |data-/*/-template| attribute
-        value as a value template.
+          ... where /*/ is the *target attribute name* and is one of:
+          |href|, |src|, |id|, |title|.
 
-        For example,
+          The attribute whose name is the target attribute name is set
+          to the result of processing the |data-/*/-template|
+          attribute value as a value template.
 
-          <a data-href-template=https://example.com/{user_id}/{object_id}>
+          For example,
 
-        ... with /object/:
+            <a data-href-template=https://example.com/{user_id}/{object_id}>
 
-          {
-            user_id: 535555,
-            object_id: 72534151,
-          }
+          ... with /object/:
 
-        ... is expanded as:
+            {
+              user_id: 535555,
+              object_id: 72534151,
+            }
 
-          <a data-href-template=https://example.com/{user_id}/{object_id}
-              href="https://example.com/535555/72534151">
+          ... is expanded as:
 
-    The *field value* for /field/ is the /field/ property value of
-    /object/.  If /field/ contains a |.| character, the substring
-    before the character is the property value and the remaining
-    substring is interpreted as the field value recursively applied to
-    that property value (If the property value is |null| or
+            <a data-href-template=https://example.com/{user_id}/{object_id}
+                href="https://example.com/535555/72534151">
+
+    resultString = $fill.string (templateString, object)
+
+      Return the result of processing the *value template*
+      /templateString/ with /object/, i.e. a copy of /templateString/
+      where any substring |{/field-name/}| is replaced by the field
+      value for /field-name/ of /object/.
+
+    The *field value* for /field/ of /object/ is the /field/ property
+    value of /object/.  If /field/ contains a |.| character, the
+    substring before the character is the property value and the
+    remaining substring is interpreted as the field value recursively
+    applied to that property value (If the property value is |null| or
     |undefined|, the result is |null|).  For example, field value for
     |abc.def.xyz| is the value of |object.abc.def.xyz|.
 
-    The result of processing a value template /template/ is a copy of
-    /template/ where any substring |{/field-name/}| is replaced by the
-    field value for /field-name/.
-
-  $promised namespace
+  |$promised| namespace
 
     promise = $promised.forEach ((item) => { return promise }, list)
 
@@ -753,6 +814,15 @@ There are following definition types:
     |list-container| element.  The handler is invoked with the
     argument of the result of the previous step.
 
+  formsaved (handler)
+
+    A formsaved handler for |form| element whose |is| is |save-data|.
+    It can return a promise.
+
+    The |this| value used when the handler is invoked is the |form|
+    element.  The handler is invoked with the dictionary, as described
+    in the |form[is-save-data]|'s documentation.
+
   templateselector (handler)
 
     A handler for template set's template selector.  It is expected to
@@ -799,6 +869,20 @@ There is a predefined filter: |default|.  It replaces the input's
 |data| to the result of |Object.values (/input/.data)| if the input's
 |data| is not a JavaScript |Array|.  It reverses the list if the
 |list-container| element has the |reverse| attribute specified.
+
+There are predefined formsaved handlers:
+
+  go:{templateOfURL}
+
+    Navigate to the URL specified as the first argument
+    /templateOfURL/, processed as value template with form response
+    interpreted as a JSON data.  Please note that /templateOfURL/
+    cannot contain the |:| character (i.e. it cannot be an absolute
+    URL) as it is the argument separator.
+
+  reset
+
+    Reset the form.
 
 * Application-specific elements
 

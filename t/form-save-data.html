@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+  <test-code name="post">
+    /*
+      <form is=save-data action=/submit/200 data-next=test1 method=post>
+        <input name=text1>
+        <button type=submit>OK</button>
+      </form>
+    */
+
+    var invoked = 0;
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test1');
+      handler.pcHandler = function (args) {
+        invoked++;
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+      
+    var e = this.currentScript.querySelector ('form');
+    var v1 = e.querySelector ('form [name=text1]').value = "" + Math.random ();
+    e.querySelector ('form button[type=submit]').click ();
+
+    var args = await promise;
+    var fd = await args.response.formData ();
+      
+    this.assert.equal (invoked, 1);
+    this.assert.equal (fd.get ('text1'), v1);
+  </test-code>
+  
+  <test-code name="post">
+    /*
+      <form is=save-data action=/submit/200.json data-next=test2 method=post>
+        <input name=text1>
+        <button type=submit>OK</button>
+      </form>
+    */
+
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test2');
+      handler.pcHandler = function (args) {
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+      
+    var e = this.currentScript.querySelector ('form');
+    e.querySelector ('form button[type=submit]').click ();
+
+    var args = await promise;
+    var json = await args.json ();
+    
+    this.assert.equal (json.origin, location.origin);
+    this.assert.equal (json.referrer, location.href.replace (/#.*/, ''));
+    this.assert.equal (json.method, 'POST');
+  </test-code>
+
+  <test-code name="next actions, json">
+    /*
+      <form is=save-data action=/submit/200.json data-next="test3 test4" method=POST>
+        <input name=text1>
+        <button type=submit>OK</button>
+      </form>
+    */
+
+    var invoked3 = 0;
+    var promise3 = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test3');
+      handler.pcHandler = function (args) {
+        invoked3++;
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+    var invoked4 = 0;
+    var promise4 = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test4');
+      handler.pcHandler = function (args) {
+        invoked4++;
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+    
+    var e = this.currentScript.querySelector ('form');
+    e.querySelector ('form button[type=submit]').click ();
+
+    var args3 = await promise3;
+    var fd3 = await args3.json ();
+    var args4 = await promise4;
+    var fd4 = await args4.json ();
+    
+    this.assert.equal (invoked3, 1);
+    this.assert.equal (invoked4, 1);
+    this.assert.equal (fd3, fd4);
+  </test-code>
+
+  <test-code name="next actions, arguments">
+    /*
+      <form is=save-data action=/submit/200.json data-next="test5:x:y:z test6" method=Post>
+        <input name=text1>
+        <button type=submit>OK</button>
+      </form>
+    */
+
+    var promise5 = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test5');
+      handler.pcHandler = function (args) {
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+    var promise6 = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test6');
+      handler.pcHandler = function (args) {
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+    
+    var e = this.currentScript.querySelector ('form');
+    e.querySelector ('form button[type=submit]').click ();
+
+    var args5 = await promise5;
+    var args6 = await promise6;
+    
+    this.assert.equal (args5.args.length, 4);
+    this.assert.equal (args5.args[0], 'test5');
+    this.assert.equal (args5.args[1], 'x');
+    this.assert.equal (args5.args[2], 'y');
+    this.assert.equal (args5.args[3], 'z');
+    this.assert.equal (args6.args.length, 1);
+    this.assert.equal (args6.args[0], 'test6');
+  </test-code>
+
+  <test-code name="next actions defined after submission">
+    /*
+      <form is=save-data action=/submit/200.json data-next="test7" method=post>
+        <input name=text1>
+        <button type=submit>OK</button>
+      </form>
+    */
+
+    var e = this.currentScript.querySelector ('form');
+    e.querySelector ('form button[type=submit]').click ();
+    
+    var promise7 = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test7');
+      handler.pcHandler = function (args) {
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+    
+    var args7 = await promise7;
+    
+    this.assert.equal (args7.args.length, 1);
+    this.assert.equal (args7.args[0], 'test7');
+  </test-code>
+
+  <test-code name="next actions this">
+    /*
+      <form is=save-data action=/submit/200.json data-next="test8" method=post>
+        <input name=text1>
+        <button type=submit>OK</button>
+      </form>
+    */
+    
+    var promise8 = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test8');
+      handler.pcHandler = function (args) {
+        ok (this);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var e = this.currentScript.querySelector ('form');
+    e.querySelector ('form button[type=submit]').click ();
+    
+    var args8 = await promise8;
+    
+    this.assert.equal (args8, e);
+  </test-code>
+
+  <test-code name="reset">
+    /*
+      <form is=save-data action=/submit/200.json data-next="reset test9" method=post>
+        <input name=text1 value=avc>
+        <button type=submit>OK</button>
+      </form>
+    */
+    
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test9');
+      handler.pcHandler = function (args) {
+        ok ();
+      };
+      document.head.appendChild (handler);
+    });
+
+    var e = this.currentScript.querySelector ('form');
+    var f = e.querySelector ('form [name=text1]');
+    f.value = Math.random ();
+    e.querySelector ('form button[type=submit]').click ();
+    
+    await promise;
+    
+    this.assert.equal (f.value, 'avc');
+  </test-code>
+
+  <test-code name="go">
+    /*
+      <iframe></iframe>
+      <form action=/submit/200.json data-next="test9 go:data1.html" method=post>
+        <input name=text1 value=avc>
+        <button type=submit>OK</button>
+      </form>
+    */
+
+    var e = this.currentScript.querySelector ('form');
+    
+    var iframe = this.currentScript.querySelector ('iframe');
+    var doc = iframe.contentDocument;
+    var script = document.createElement ('script');
+    await new Promise ((ok, ng) => {
+      script.src = '../src/page-components.js';
+      script.onload = ok;
+      script.onerror = ng;
+      doc.body.appendChild (script);
+      e.setAttribute ('is', 'save-data');
+      doc.body.appendChild (e);
+    });
+      
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test9');
+      handler.pcHandler = function (args) {
+        ok ();
+      };
+      doc.head.appendChild (handler);
+    });
+
+    var wait = new Promise ((ok) => {
+      iframe.onload = ok;
+    });
+    
+    e.querySelector ('form button[type=submit]').click ();
+
+    await promise;
+    await wait;
+
+    this.assert.equal (iframe.contentDocument.querySelector ('p').textContent, 'data #1');
+  </test-code>
+
+  <test-code name="go filled">
+    /*
+      <iframe></iframe>
+      <form action=/submit/200.json data-next="test10 go:data2.html?{testdata.abc}" method=post>
+        <input name=text1 value=avc>
+        <button type=submit>OK</button>
+      </form>
+    */
+
+    var e = this.currentScript.querySelector ('form');
+    
+    var iframe = this.currentScript.querySelector ('iframe');
+    var doc = iframe.contentDocument;
+    var script = document.createElement ('script');
+    await new Promise ((ok, ng) => {
+      script.src = '../src/page-components.js';
+      script.onload = ok;
+      script.onerror = ng;
+      doc.body.appendChild (script);
+      e.setAttribute ('is', 'save-data');
+      doc.body.appendChild (e);
+    });
+      
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test10');
+      handler.pcHandler = function (args) {
+        ok ();
+      };
+      doc.head.appendChild (handler);
+    });
+
+    var wait = new Promise ((ok) => {
+      iframe.onload = ok;
+    });
+    
+    e.querySelector ('form button[type=submit]').click ();
+
+    await promise;
+    await wait;
+
+    this.assert.equal (iframe.contentDocument.querySelector ('p').textContent, 'data #2: ?533');
+  </test-code>
+  
+  <test-code name="post submit button">
+    /*
+      <form is=save-data action=/submit/200 data-next=test11 method=post>
+        <input name=text1>
+        <button type=submit name=button1 value=foo>OK</button>
+      </form>
+    */
+
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test11');
+      handler.pcHandler = function (args) {
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+      
+    var e = this.currentScript.querySelector ('form');
+    e.querySelector ('form button[type=submit]').click ();
+
+    var args = await promise;
+    var fd = await args.response.formData ();
+      
+    this.assert.equal (fd.get ('button1'), 'foo');
+  </test-code>
+  
+  <test-code name="post submit button no name">
+    /*
+      <form is=save-data action=/submit/200 data-next=test12 method=post>
+        <input name=text1>
+        <button type=submit value=foo>OK</button>
+      </form>
+    */
+
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test12');
+      handler.pcHandler = function (args) {
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+      
+    var e = this.currentScript.querySelector ('form');
+    e.querySelector ('form button[type=submit]').click ();
+
+    var args = await promise;
+    var fd = await args.response.formData ();
+      
+    this.assert.equal (fd.get (''), null);
+    this.assert.equal (fd.get ('null'), null);
+    this.assert.equal (fd.get ('undefined'), null);
+  </test-code>
+  
+  <test-code name="disable form controls">
+    /*
+      <form is=save-data action=/submit/200 data-next=test13 method=post>
+        <input name=text1 value=a>
+        <button title=button1></button>
+        <select name=b><option value=x></select>
+        <textarea name=c>d</textarea>
+        <button type=submit name=d value=foo>OK</button>
+        <button title=button3 disabled></button>
+        <input name=e disabled value=zzz>
+      </form>
+    */
+
+    var e = this.currentScript.querySelector ('form');
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test13');
+      handler.pcHandler = (args) => {
+
+        this.assert.equal (e.querySelector ('input[name=text1]').disabled, true);
+        this.assert.equal (e.querySelector ('button[title=button1]').disabled, true);
+        this.assert.equal (e.querySelector ('select[name=b]').disabled, true);
+        this.assert.equal (e.querySelector ('textarea[name=c]').disabled, true);
+        this.assert.equal (e.querySelector ('button[name=d]').disabled, true);
+        this.assert.equal (e.querySelector ('button[title=button3]').disabled, true, 'button3');
+        this.assert.equal (e.querySelector ('input[name=e]').disabled, true, 'e');
+        
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+      
+    e.querySelector ('form button[type=submit]').click ();
+
+    var args = await promise;
+    var fd = await args.response.formData ();
+      
+    this.assert.equal (fd.get ('text1'), 'a');
+    this.assert.equal (fd.get ('b'), 'x');
+    this.assert.equal (fd.get ('c'), 'd');
+    this.assert.equal (fd.get ('d'), 'foo');
+    this.assert.equal (fd.get ('e'), null);
+
+    await this.wait ();
+    
+    this.assert.equal (e.querySelector ('input[name=text1]').disabled, false);
+    this.assert.equal (e.querySelector ('button[title=button1]').disabled, false);
+    this.assert.equal (e.querySelector ('select[name=b]').disabled, false);
+    this.assert.equal (e.querySelector ('textarea[name=c]').disabled, false);
+    this.assert.equal (e.querySelector ('button[name=d]').disabled, false);
+    this.assert.equal (e.querySelector ('button[title=button3]').disabled, true, 'button3');
+    this.assert.equal (e.querySelector ('input[name=e]').disabled, true, 'e');
+  </test-code>
+  
+  <test-code name="disable form controls (submit button)">
+    /*
+      <form is=save-data action=/submit/200 data-next=test14 method=post>
+        <input name=text1 value=a>
+        <button type=submit name=d value=foo>OK</button>
+      </form>
+    */
+
+    var invoked = 0;
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test14');
+      handler.pcHandler = function (args) {
+        invoked++;
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+      
+    var e = this.currentScript.querySelector ('form');
+    e.querySelector ('form button[type=submit]').click ();
+    e.querySelector ('form button[type=submit]').click ();
+
+    await promise;
+    await this.wait ();
+    
+    this.assert.equal (invoked, 1);
+  </test-code>
+  
+  <!-- XXX error response -->
+  <!-- XXX thrown in next -->
+  <!-- XXX data-confirm -->
+
+  <script src=runtests.js></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->

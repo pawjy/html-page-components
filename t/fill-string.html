@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+  <test-code name="$fill.string">
+    [
+      ["", {}, ""],
+      ["abc", {}, "abc"],
+      ["{foo}", {foo: ""}, ""],
+      ["{foo}", {foo: 0}, "0"],
+      ["{foo}", {foo: 134}, "134"],
+      ["xy{foo}aa", {}, "xyundefinedaa"],
+      ["xy{foo}aa", {foo: null}, "xynullaa"],
+      ["xy{foo}aa", {foo: 134}, "xy134aa"],
+      ["xy{foo}a{foo}a", {foo: 134}, "xy134a134a"],
+      ["xy{foo}aa{bar}", {foo: 134, bar: 10}, "xy134aa10"],
+      ["xy{foo.bar}aa", {foo: {bar: 134}}, "xy134aa"],
+      ["xy{foo.xyz}aa", {}, "xyundefinedaa"],
+      ["xy{foo.xyz}aa", {foo: 134}, "xyundefinedaa"],
+      ["xy{foo/bar}aa", {}, "xy{foo/bar}aa"],
+      ["xy{}aa", {foo: 134}, "xy{}aa"],
+      ["xy{fooaa", {foo: 134}, "xy{fooaa"],
+      ["xy{.foo.xyz}aa", {foo: 134}, "xyundefinedaa"],
+    ].forEach ((_) => {
+      this.assert.equal ($fill.string (_[0], _[1]), _[2]);
+    });
+  </test-code>
+
+  <script src=runtests.js data-export=$fill></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->
