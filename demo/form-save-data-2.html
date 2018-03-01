@@ -1,0 +1,18 @@
+<!DOCTYPE HTML>
+<title>form</title>
+
+<form action=/submit/200.json method=post is=save-data data-confirm=Save? data-next=alert>
+  <p><input name=text1>
+  <p><button type=submit>Submit</button>
+</form>
+
+<script>
+  var handler = document.createElementNS ('data:,pc', 'formsaved');
+  handler.setAttribute ('name', 'alert');
+  handler.pcHandler = function (args) {
+    alert ('Saved');
+  };
+  document.head.appendChild (handler);
+</script>
+
+<script src=../src/page-components.js></script>

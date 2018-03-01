@@ -809,8 +809,11 @@
         this.sdCheck ();
         this.onsubmit = function () {
           this.sdCheck ();
+
+          if (this.hasAttribute ('data-confirm')) {
+            if (!confirm (this.getAttribute ('data-confirm'))) return false;
+          }
           
-          // XXX prompt
           // XXX action status integration
           var fd = new FormData (this);
           // XXX submit button

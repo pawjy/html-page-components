@@ -290,6 +290,10 @@ attribute, if specified, should be set to |multipart/form-data| to
 provide better fallback story for environments where scripting is
 disabled.
 
+If the element has a |data-confirm| attribute specified, a confirm
+dialog box whose text is the attribute value is shown and the user can
+cancel the submission.
+
 Once the response to the submission is received, instead of navigation
 to the response as in usual forms, any formsaved handler for the
 element is invoked.  A *formsaved handler* is a definition of type
