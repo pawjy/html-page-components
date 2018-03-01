@@ -1,0 +1,21 @@
+<!DOCTYPE HTML>
+<title>form</title>
+
+<form action=/submit/200 method=post is=save-data data-next=alert>
+  <p><input name=text1>
+  <p><button type=submit name=button1 value=ABC>ABC</button>
+  <button type=submit name=button1 value=DEF>DEF</button>
+  <button type=submit name=button1 value>Empty</button>
+  <button type=submit>No value</button>
+</form>
+
+<script>
+  var handler = document.createElementNS ('data:,pc', 'formsaved');
+  handler.setAttribute ('name', 'alert');
+  handler.pcHandler = function (args) {
+    args.response.formData ().then ((fd) => alert (fd.get ('button1')));
+  };
+  document.head.appendChild (handler);
+</script>
+
+<script src=../src/page-components.js></script>

@@ -807,6 +807,18 @@
     props: {
       pcInit: function () {
         this.sdCheck ();
+        this.addEventListener ('click', (ev) => {
+          var e = ev.target;
+          while (e) {
+            if (e.localName === 'button') break;
+            if (e === this) {
+              e = null;
+              break;
+            }
+            e = e.parentNode;
+          }
+          this.sdClickedButton = e;
+        });
         this.onsubmit = function () {
           this.sdCheck ();
 
@@ -816,7 +828,12 @@
           
           // XXX action status integration
           var fd = new FormData (this);
-          // XXX submit button
+          if (this.sdClickedButton) {
+            if (this.sdClickedButton.name) {
+              fd.append (this.sdClickedButton.name, this.sdClickedButton.value);
+            }
+            this.sdClickedButton = null;
+          }
           // XXX custom form controls
           // XXX custom validators
           // XXX disable form controls
@@ -865,6 +882,9 @@
         }
         if (this.hasAttribute ('target')) {
           console.log (this, 'Warning: form[is=save-data] have a |target| attribute');
+        }
+        if (this.hasAttribute ('onsubmit')) {
+          console.log (this, 'Warning: form[is=save-data] have an |onsubmit| attribute');
         }
       }, // sdCheck
     }, // props
