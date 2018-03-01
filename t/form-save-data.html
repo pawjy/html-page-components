@@ -7,7 +7,7 @@
 <body>
   <test-code name="post">
     /*
-      <form is=save-data action=/submit/200 data-next=test1>
+      <form is=save-data action=/submit/200 data-next=test1 method=post>
         <input name=text1>
         <button type=submit>OK</button>
       </form>
@@ -37,7 +37,7 @@
   
   <test-code name="post">
     /*
-      <form is=save-data action=/submit/200.json data-next=test2>
+      <form is=save-data action=/submit/200.json data-next=test2 method=post>
         <input name=text1>
         <button type=submit>OK</button>
       </form>
@@ -65,7 +65,7 @@
 
   <test-code name="next actions, json">
     /*
-      <form is=save-data action=/submit/200.json data-next="test3 test4">
+      <form is=save-data action=/submit/200.json data-next="test3 test4" method=POST>
         <input name=text1>
         <button type=submit>OK</button>
       </form>
@@ -107,7 +107,7 @@
 
   <test-code name="next actions, arguments">
     /*
-      <form is=save-data action=/submit/200.json data-next="test5:x:y:z test6">
+      <form is=save-data action=/submit/200.json data-next="test5:x:y:z test6" method=Post>
         <input name=text1>
         <button type=submit>OK</button>
       </form>
@@ -147,7 +147,7 @@
 
   <test-code name="next actions defined after submission">
     /*
-      <form is=save-data action=/submit/200.json data-next="test7">
+      <form is=save-data action=/submit/200.json data-next="test7" method=post>
         <input name=text1>
         <button type=submit>OK</button>
       </form>
@@ -173,7 +173,7 @@
 
   <test-code name="next actions this">
     /*
-      <form is=save-data action=/submit/200.json data-next="test8">
+      <form is=save-data action=/submit/200.json data-next="test8" method=post>
         <input name=text1>
         <button type=submit>OK</button>
       </form>
@@ -198,7 +198,7 @@
 
   <test-code name="reset">
     /*
-      <form is=save-data action=/submit/200.json data-next="reset test9">
+      <form is=save-data action=/submit/200.json data-next="reset test9" method=post>
         <input name=text1 value=avc>
         <button type=submit>OK</button>
       </form>
@@ -226,7 +226,7 @@
   <test-code name="go">
     /*
       <iframe></iframe>
-      <form action=/submit/200.json data-next="test9 go:data1.html">
+      <form action=/submit/200.json data-next="test9 go:data1.html" method=post>
         <input name=text1 value=avc>
         <button type=submit>OK</button>
       </form>
@@ -270,7 +270,7 @@
   <test-code name="go filled">
     /*
       <iframe></iframe>
-      <form action=/submit/200.json data-next="test10 go:data2.html?{testdata.abc}">
+      <form action=/submit/200.json data-next="test10 go:data2.html?{testdata.abc}" method=post>
         <input name=text1 value=avc>
         <button type=submit>OK</button>
       </form>

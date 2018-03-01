@@ -806,7 +806,10 @@
     is: 'save-data',
     props: {
       pcInit: function () {
+        this.sdCheck ();
         this.onsubmit = function () {
+          this.sdCheck ();
+          
           // XXX prompt
           // XXX action status integration
           var fd = new FormData (this);
@@ -846,6 +849,21 @@
           return false;
         }; // onsubmit
       }, // sdInit
+      sdCheck: function () {
+        if (!this.hasAttribute ('action')) {
+          console.log (this, 'Warning: form[is=save-data] does not have |action| attribute');
+        }
+        if (this.method !== 'post') {
+          console.log (this, 'Warning: form[is=save-data] does not have |method| attribute whose value is |POST|');
+        }
+        if (this.hasAttribute ('enctype') &&
+            this.enctype !== 'multipart/form-data') {
+          console.log (this, 'Warning: form[is=save-data] have |enctype| attribute which is ignored');
+        }
+        if (this.hasAttribute ('target')) {
+          console.log (this, 'Warning: form[is=save-data] have a |target| attribute');
+        }
+      }, // sdCheck
     }, // props
   }); // <form is=save-data>
 

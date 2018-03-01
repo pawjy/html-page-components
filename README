@@ -284,7 +284,11 @@ MIME type.
 As usual, the data is submitted to the |form| element's |action|
 attribute's URL.  It must be same origin as the current document,
 otherwise no credentials and referrer and origin headers are sent.
-Any of |method|, |enctype|, and |target| attribute is ignored.
+Any of |method|, |enctype|, and |target| attribute is ignored, but the
+|method| attribute should be set to |POST| and the |enctype|
+attribute, if specified, should be set to |multipart/form-data| to
+provide better fallback story for environments where scripting is
+disabled.
 
 Once the response to the submission is received, instead of navigation
 to the response as in usual forms, any formsaved handler for the
