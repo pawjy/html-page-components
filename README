@@ -324,6 +324,12 @@ members:
     result is cached in this method such that multiple invocations
     would not reject.
 
+During the form submission (since just before the start of the fetch,
+until the completion of any formsaved handlers), any form control is
+disabled.
+
+The |form| content attribute of form controls are not supported.
+
 ** <image-editor>
 
 An |image-editor| element represents an editable image.  Its content

@@ -811,6 +811,7 @@
           var e = ev.target;
           while (e) {
             if (e.localName === 'button') break;
+            // |input| buttons are intentionally not supported
             if (e === this) {
               e = null;
               break;
@@ -836,8 +837,11 @@
           }
           // XXX custom form controls
           // XXX custom validators
-          // XXX disable form controls
 
+          var disabledControls = this.querySelectorAll
+              ('input:enabled, select:enabled, textarea:enabled, button:enabled');
+          disabledControls.forEach ((_) => _.setAttribute ('disabled', ''));
+          
           var nextActions = (this.getAttribute ('data-next') || '')
               .split (/\s+/)
               .filter (function (_) { return _.length })
@@ -865,7 +869,12 @@
                 });
               });
             }, nextActions);
-          }); // XXX catch
+          }).then (() => {
+            disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
+          }, (e) => {
+            disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
+            throw e; // XXX action status integration
+          });
           return false;
         }; // onsubmit
       }, // sdInit

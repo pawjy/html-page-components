@@ -365,6 +365,89 @@
     this.assert.equal (fd.get ('undefined'), null);
   </test-code>
   
+  <test-code name="disable form controls">
+    /*
+      <form is=save-data action=/submit/200 data-next=test13 method=post>
+        <input name=text1 value=a>
+        <button title=button1></button>
+        <select name=b><option value=x></select>
+        <textarea name=c>d</textarea>
+        <button type=submit name=d value=foo>OK</button>
+        <button title=button3 disabled></button>
+        <input name=e disabled value=zzz>
+      </form>
+    */
+
+    var e = this.currentScript.querySelector ('form');
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test13');
+      handler.pcHandler = (args) => {
+
+        this.assert.equal (e.querySelector ('input[name=text1]').disabled, true);
+        this.assert.equal (e.querySelector ('button[title=button1]').disabled, true);
+        this.assert.equal (e.querySelector ('select[name=b]').disabled, true);
+        this.assert.equal (e.querySelector ('textarea[name=c]').disabled, true);
+        this.assert.equal (e.querySelector ('button[name=d]').disabled, true);
+        this.assert.equal (e.querySelector ('button[title=button3]').disabled, true, 'button3');
+        this.assert.equal (e.querySelector ('input[name=e]').disabled, true, 'e');
+        
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+      
+    e.querySelector ('form button[type=submit]').click ();
+
+    var args = await promise;
+    var fd = await args.response.formData ();
+      
+    this.assert.equal (fd.get ('text1'), 'a');
+    this.assert.equal (fd.get ('b'), 'x');
+    this.assert.equal (fd.get ('c'), 'd');
+    this.assert.equal (fd.get ('d'), 'foo');
+    this.assert.equal (fd.get ('e'), null);
+
+    await this.wait ();
+    
+    this.assert.equal (e.querySelector ('input[name=text1]').disabled, false);
+    this.assert.equal (e.querySelector ('button[title=button1]').disabled, false);
+    this.assert.equal (e.querySelector ('select[name=b]').disabled, false);
+    this.assert.equal (e.querySelector ('textarea[name=c]').disabled, false);
+    this.assert.equal (e.querySelector ('button[name=d]').disabled, false);
+    this.assert.equal (e.querySelector ('button[title=button3]').disabled, true, 'button3');
+    this.assert.equal (e.querySelector ('input[name=e]').disabled, true, 'e');
+  </test-code>
+  
+  <test-code name="disable form controls (submit button)">
+    /*
+      <form is=save-data action=/submit/200 data-next=test14 method=post>
+        <input name=text1 value=a>
+        <button type=submit name=d value=foo>OK</button>
+      </form>
+    */
+
+    var invoked = 0;
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test14');
+      handler.pcHandler = function (args) {
+        invoked++;
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+      
+    var e = this.currentScript.querySelector ('form');
+    e.querySelector ('form button[type=submit]').click ();
+    e.querySelector ('form button[type=submit]').click ();
+
+    await promise;
+    await this.wait ();
+    
+    this.assert.equal (invoked, 1);
+  </test-code>
+  
   <!-- XXX error response -->
   <!-- XXX thrown in next -->
   <!-- XXX data-confirm -->
