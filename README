@@ -188,13 +188,15 @@ objects.  The list is constructed by the following steps:
      (e.g. by fetching from the server).  Note that a loader might
      depend on the content attributes of the |list-container| element
      (e.g. the |src| loader depends on the |src| and |key|
-     attributes).
+     attributes).  While a loader is running, the action status stage
+     is set to |loader|.
 
   2. Filter.  The filter whose name is equal to the |filter| attribute
      value, whose default is |default|, is invoked for the element
      with the argument of the result of the loader.  A *filter* is a
      definition of type |filter|.  A filter is expected to mutate the
-     loaded data to the structure interpretable as list data.
+     loaded data to the structure interpretable as list data.  While a
+     filter is running, the action status stage is set to |filter|.
 
   3. The result of the filter is expected to be a *list description
      object*, which is a JavaScript object with following name/value
@@ -275,6 +277,8 @@ A |list-container| element has following methods:
     Load and render the previous page.  This is equivalent to clicking
     a previous page button.
 
+The |list-container| element supports action statuses.
+
 ** <form is=save-data>
 
 A |form| element whose |is| attribute is |save-data| represents a form
@@ -288,7 +292,8 @@ Any of |method|, |enctype|, and |target| attribute is ignored, but the
 |method| attribute should be set to |POST| and the |enctype|
 attribute, if specified, should be set to |multipart/form-data| to
 provide better fallback story for environments where scripting is
-disabled.
+disabled.  Note that these behaviors can be overriden by specifying a
+saver using the |data-saver| attribute.
 
 If the element has a |data-confirm| attribute specified, a confirm
 dialog box whose text is the attribute value is shown and the user can
@@ -356,6 +361,19 @@ considered as invalid.  The custom form control element is expected to
 be disabled by setting the |disabled| content attribute.
 
 The |form| content attribute of form controls are not supported.
+
+The saver for the element can be specified by setting the saver's name
+to the |data-saver| attribute of the element.  A *saver* is a
+definition of type |saver|.  The saver is invoked with the |FormData|
+object representing the form data that should be submitted.  It is
+expected to return a |Response| object (or an object whose API is
+compatible with |Response|), or a promise which is fulfilled with such
+an object.  If it cannot be saved the data, it is expected to throw
+(or return a promise which is rejected).  While a saver is running,
+the action status stage is set to |saver|.
+
+The |form| element whose |is| attribute is |save-data| supports action
+statuses.
 
 ** <image-editor>
 
@@ -713,7 +731,7 @@ scope.  The following functions are available:
 
               The |textContent| IDL attribute value of /element/.
 
-        An element with data-/*/-field attribute
+        An element with |data-/*/-field| attribute
 
           ... where /*/ is the *target attribute name* and is one of:
           |href|, |src|, |id|, |title|.
@@ -739,7 +757,7 @@ scope.  The following functions are available:
             <a data-href-field=link data-field=title
                 href="https://example.com/">Example Web Page</a>
 
-        An element with data-/*/-template attribute
+        An element with |data-/*/-template| attribute
 
           ... where /*/ is the *target attribute name* and is one of:
           |href|, |src|, |id|, |title|.
@@ -763,6 +781,12 @@ scope.  The following functions are available:
 
             <a data-href-template=https://example.com/{user_id}/{object_id}
                 href="https://example.com/535555/72534151">
+
+        An element with |data-enable-by-fill| attribute
+
+          The |disabled| attribute, if specified, is removed.  This
+          feature can be used to enable the submit button and other
+          controls only after other fields are filled in.
 
     resultString = $fill.string (templateString, object)
 
@@ -865,6 +889,15 @@ There are following definition types:
     Otherwise, if the result is invalid, the handler must throw (or
     return a promise that is rejected).
 
+  saver (handler)
+
+    A form submission handler for |form| element whose |is| is
+    |save-data|.  It is expected to return a |Response| object or
+    equivalent, as described in the |form[is-save-data]|'s
+    documentation.
+
+    The |this| value used when the handler is the |form| element.
+
   templateselector (handler)
 
     A handler for template set's template selector.  It is expected to
@@ -925,6 +958,39 @@ There are predefined formsaved handlers:
   reset
 
     Reset the form.
+
+* Action statuses
+
+Several elements support action statuses, i.e. they can contain zero
+or more |action-status| elements as its descendants.  Such elements
+are used to show the progress of actions.
+
+The |hidden| content attribute is set to an action status element,
+depending on whether a status should be shown to the user.
+
+The |status| content attribute is set to |ok| if an action has
+successfully completed, set to |ng| if an action has errorneously
+completed, or left unset otherwise.
+
+If an |action-status| element is empty when an action is started, its
+content is filled by |action-status-message| and |progress| elements.
+
+Any |progress| element descendants are used to show progress bars.  If
+there is no ongoing action, the |hidden| content attribute is set.
+
+Any |action-status-message| element descendants are used to show the
+current status message.  If there is no useful message, the |hidden|
+content attribute is set.
+
+If an action has successfully completed, the |ok| content attribute
+value of the element is set to the current status message, if any.
+
+If an action has failed with an exception, the stringification of the
+exception is set to the current status message.
+
+If an action has entered in a stage, the |status-/stage/| content
+attribute value, where /stage/ is the stage's name, is set to the
+current status message, if any.
 
 * Application-specific elements
 

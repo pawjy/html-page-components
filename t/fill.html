@@ -147,6 +147,23 @@
     this.assert.equal (e.lastElementChild.getAttribute ('src'), '134 f<&>"oo134 f<&>"oo');
   </test-code>
 
+  <test-code name="data-enable-by-fill">
+    /*
+      <div>
+        <button disabled data-enable-by-fill>X</button>
+        <input data-enable-by-fill disabled>
+        <custom-control data-enable-by-fill disabled></custom-control>
+        <input disabled>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {foo: {abc: "134 f<&>\u0022oo"}, "abc": 533});
+    this.assert.equal (e.children[0].hasAttribute ('disabled'), false);
+    this.assert.equal (e.children[1].hasAttribute ('disabled'), false);
+    this.assert.equal (e.children[2].hasAttribute ('disabled'), false);
+    this.assert.equal (e.children[3].hasAttribute ('disabled'), true);
+  </test-code>
+
   <script src=runtests.js data-export=$fill></script>
 </body>
 </html>

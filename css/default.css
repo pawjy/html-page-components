@@ -11,6 +11,38 @@ tab-set > section:not(.active) {
   display: none;
 }
 
+action-status:not([hidden]) {
+  display: block;
+  font-size: 90%;
+  color: gray;
+  background: transparent;
+}
+
+action-status > * {
+  margin-right: .5em;
+}
+
+action-status-message {
+  unicode-bidi: embed;
+}
+
+action-status[status=ok] action-status-message {
+  background-color: transparent;
+  color: green;
+}
+
+action-status[status=ng] action-status-message {
+  background-color: red;
+  color: white;
+}
+
+action-status progress:not([hidden]) {
+  display: block;
+  width: 100%;
+  margin-top: .5em;
+  margin-bottom: .5em;
+}
+
 image-editor:not([hidden]) {
   display: inline-block;
   position: relative;

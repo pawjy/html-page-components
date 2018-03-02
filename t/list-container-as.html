@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+
+  <script>
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'emptyLoader');
+    handler.pcHandler = () => {
+      return {data: []};
+    };
+    document.head.appendChild (handler);
+  </script>
+
+  <script>
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'errorLoader');
+    handler.pcHandler = () => {
+      throw "abc Error xyyy";
+    };
+    document.head.appendChild (handler);
+  </script>
+  
+  <test-code name="action status empty">
+    /*
+      <list-container loader=emptyLoader>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+        <action-status></action-status>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+
+    await this.wait;
+    await e.loaded;
+
+    var as = e.querySelector ('action-status');
+    
+    this.assert.equal (as.hidden, true);
+    this.assert.equal (as.getAttribute ('status'), 'ok');
+  </test-code>
+  
+  <test-code name="action status ok">
+    /*
+      <list-container loader=emptyLoader>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+        <action-status ok=abcde></action-status>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+
+    await this.wait;
+    await e.loaded;
+
+    var as = e.querySelector ('action-status');
+    
+    this.assert.equal (as.hidden, false);
+    this.assert.equal (as.getAttribute ('status'), 'ok');
+    var msg = as.querySelector ('action-status-message');
+    this.assert.equal (msg.hidden, false);
+    this.assert.equal (msg.textContent, 'abcde');
+    var progress = as.querySelector ('progress');
+    this.assert.equal (progress.hidden, true);
+  </test-code>
+  
+  <test-code name="action status error">
+    /*
+      <list-container loader=errorLoader>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+        <action-status ok=abcde></action-status>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    
+    await this.wait;
+    var error = await e.loaded.catch ((e) => e);
+      
+    var as = e.querySelector ('action-status');
+    
+    this.assert.equal (error, "abc Error xyyy");
+    this.assert.equal (as.hidden, false);
+    this.assert.equal (as.getAttribute ('status'), 'ng');
+    var msg = as.querySelector ('action-status-message');
+    this.assert.equal (msg.hidden, false);
+    this.assert.equal (msg.textContent, 'abc Error xyyy');
+    var progress = as.querySelector ('progress');
+    this.assert.equal (progress.hidden, true);
+  </test-code>
+  
+  <test-code name="action status loading">
+    /*
+      <list-container loader=loaderNotFound>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+        <action-status ok=abcde stage-loader=xa444t535we></action-status>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+
+    await this.wait;
+
+    var as = e.querySelector ('action-status');
+    
+    this.assert.equal (as.hidden, false);
+    this.assert.equal (as.getAttribute ('status'), null);
+    var msg = as.querySelector ('action-status-message');
+    this.assert.equal (msg.hidden, false);
+    this.assert.equal (msg.textContent, 'xa444t535we');
+    var progress = as.querySelector ('progress');
+    this.assert.equal (progress.hidden, false);
+  </test-code>
+  
+  <script src=runtests.js></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->
