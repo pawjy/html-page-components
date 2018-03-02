@@ -159,9 +159,14 @@
     });
   }).observe (document, {childList: true, subtree: true});
 
+  var commonMethods = {};
   var defineElement = function (def) {
     upgradedElementProps[def.name] = upgradedElementProps[def.name] || {};
-    upgradedElementProps[def.name][def.is || null] = def.props || {};
+    upgradedElementProps[def.name][def.is || null] = def.props = def.props || {};
+    if (def.pcActionStatus) {
+      def.props.pcActionStatus = commonMethods.pcActionStatus;
+    }
+    
     upgrader[def.name] = upgrader[def.name] || {};
     upgrader[def.name][def.is || null] = def.templateSet ? function () {
       initTemplateSet (this);
@@ -179,7 +184,7 @@
         currentUpgradables = upgradableSelectors.join (',');
         Array.prototype.forEach.call (document.querySelectorAll (news), upgrade);
       });
-    }
+    } // notTopLevel
   }; // defineElement
 
   var filledAttributes = ['href', 'src', 'id', 'title'];
@@ -313,6 +318,126 @@
       }).observe (e, {childList: true});
     }
   }; // initTemplateSet
+
+  var ActionStatus = function (elements) {
+    this.stages = {};
+    this.elements = elements;
+  }; // ActionStatus
+
+  ActionStatus.prototype.start = function (opts) {
+    if (opts.stages) {
+      opts.stages.forEach ((s) => {
+        this.stages[s] = 0;
+      });
+    }
+    this.elements.forEach ((e) => {
+      e.querySelectorAll ('action-status-messages').forEach ((f) => f.hidden = true);
+      e.querySelectorAll ('progress').forEach ((f) => {
+        f.hidden = false;
+        var l = Object.keys (this.stages).length;
+        if (l) {
+          f.max = l;
+          f.value = 0;
+        } else {
+          f.removeAttribute ('max');
+          f.removeAttribute ('value');
+        }
+      });
+      e.hidden = false;
+      e.removeAttribute ('status');
+    }); // e
+  }; // start
+
+  ActionStatus.prototype.stageStart = function (stage) {
+    this.elements.forEach ((e) => {
+      var label = e.getAttribute ('stage-' + stage);
+      e.querySelectorAll ('action-status-message').forEach ((f) => {
+        if (label) {
+          f.textContent = label;
+          f.hidden = false;
+        } else {
+          f.hidden = true;
+        }
+      });
+    });
+  }; // stageStart
+
+  ActionStatus.prototype.stageProgress = function (stage, value, max) {
+    if (Number.isFinite (value) && Number.isFinite (max)) {
+      this.stages[stage] = value / (max || 1);
+    } else {
+      this.stages[stage] = 0;
+    }
+    this.elements.forEach ((e) => {
+      e.querySelectorAll ('progress').forEach ((f) => {
+        var stages = Object.keys (this.stages);
+        f.max = stages.length;
+        var v = 0;
+        stages.forEach ((s) => v += this.stages[s]);
+        f.value = v;
+      });
+    });
+  }; // stageProgress
+
+  ActionStatus.prototype.stageEnd = function (stage) {
+    this.stages[stage] = 1;
+    this.elements.forEach ((e) => {
+      e.querySelectorAll ('progress').forEach ((f) => {
+        var stages = Object.keys (this.stages);
+        f.max = stages.length;
+        var v = 0;
+        stages.forEach ((s) => v += this.stages[s]);
+        f.value = v;
+      });
+    });
+  }; // stageEnd
+
+  ActionStatus.prototype.end = function (opts) {
+    this.elements.forEach ((e) => {
+      var shown = false;
+      e.querySelectorAll ('action-status-message').forEach ((f) => {
+        var msg;
+        var status;
+        if (opts.ok) {
+          msg = e.getAttribute ('ok');
+        } else { // not ok
+          if (opts.error) {
+            if (opts.error instanceof Response) {
+              msg = opts.error.status + ' ' + opts.error.statusText;
+              console.log (opts.error); // for debugging
+            } else {
+              msg = opts.error;
+              console.log (opts.error.stack); // for debugging
+            }
+          } else {
+            msg = e.getAttribute ('ng') || 'Failed';
+          }
+        }
+        if (msg) {
+          f.textContent = msg;
+          f.hidden = false;
+          shown = true;
+        } else {
+          f.hidden = true;
+        }
+        // XXX set timer to clear ok message
+      });
+      e.querySelectorAll ('progress').forEach ((f) => f.hidden = true);
+      e.hidden = !shown;
+      e.setAttribute ('status', opts.ok ? 'ok' : 'ng');
+    });
+    if (!opts.ok) setTimeout (() => { throw opts.error }, 0); // invoke onerror
+  }; // end
+
+  commonMethods.pcActionStatus = function () {
+    var elements = this.querySelectorAll ('action-status');
+    elements.forEach (function (e) {
+      if (e.hasChildNodes ()) return;
+      e.hidden = true;
+      e.innerHTML = '<action-status-message></action-status-message> <progress></progress>';
+    });
+    return new ActionStatus (elements);
+  }; // pcActionStatus
 
   defineElement ({
     name: 'template-set',
@@ -630,9 +755,10 @@
 
   defineElement ({
     name: 'list-container',
+    pcActionStatus: true,
     props: {
-    pcInit: function () {
-      var selector = 'a.list-prev, a.list-next, button.list-prev, button.list-next, ' + this.lcGetListContainerSelector ();
+      pcInit: function () {
+        var selector = 'a.list-prev, a.list-next, button.list-prev, button.list-next, ' + this.lcGetListContainerSelector ();
       new MutationObserver ((mutations) => {
         mutations.forEach ((m) => {
           Array.prototype.forEach.call (m.addedNodes, (e) => {
@@ -659,18 +785,18 @@
       this.load ({});
     }, // pcInit
 
-    load: function (opts) {
-      if (!opts.prepend && !opts.append) this.lcClearList ();
-      return this.lcLoad (opts).then (() => {
-        return this.lcRequestRender ();
-      });
-    }, // load
-    loadPrev: function () {
-      return this.load (this.lcPrev);
-    }, // loadPrev
-    loadNext: function () {
-      return this.load (this.lcNext);
-    }, // loadNext
+      load: function (opts) {
+        if (!opts.prepend && !opts.append) this.lcClearList ();
+        return this.lcLoad (opts).then ((done) => {
+          if (done) return this.lcRequestRender ();
+        });
+      }, // load
+      loadPrev: function () {
+        return this.load (this.lcPrev);
+      }, // loadPrev
+      loadNext: function () {
+        return this.load (this.lcNext);
+      }, // loadNext
     lcClearList: function () {
       this.lcData = [];
       this.lcDataChanges = {append: [], prepend: [], changed: false};
@@ -692,16 +818,22 @@
       return this.querySelector (this.lcGetListContainerSelector ());
     }, // lcGetListContainer
     
-    lcLoad: function (opts) {
-      var resolve;
-      var reject;
-      this.loaded = new Promise ((a, b) => {
-        resolve = a;
-        reject = b;
-      });
-      return getDef ("loader", this.getAttribute ('loader') || 'src').then ((loader) => {
+      lcLoad: function (opts) {
+        var resolve;
+        var reject;
+        this.loaded = new Promise ((a, b) => {
+          resolve = a;
+          reject = b;
+        });
+        this.loaded.catch ((e) => {}); // set [[handled]] true (the error is also reported by ActionStatus)
+        var as = this.pcActionStatus ();
+        as.start ({stages: ['loader', 'filter', 'render']});
+        as.stageStart ('loader');
+        return getDef ("loader", this.getAttribute ('loader') || 'src').then ((loader) => {
         return loader.call (this, opts);
-      }).then ((result) => {
+        }).then ((result) => {
+          as.stageEnd ('loader');
+          as.stageStart ('filter');
         return getDef ("filter", this.getAttribute ('filter') || 'default').then ((filter) => {
           return filter.call (this, result);
         });
@@ -722,13 +854,16 @@
           this.lcDataChanges = {prepend: [], append: [], changed: true};
           this.lcPrev = result.prev || {};
           this.lcNext = result.next || {};
-        }
-        resolve ();
-      }).catch ((e) => {
-        reject (e);
-        throw e;
-      });
-    }, // lcLoad
+          }
+          as.end ({ok: true});
+          resolve ();
+          return true;
+        }).catch ((e) => {
+          reject (e);
+          as.end ({error: e});
+          return false;
+        });
+      }, // lcLoad
 
     lcRequestRender: function () {
       clearTimeout (this.lcRenderRequestedTimer);

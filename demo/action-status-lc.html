@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<title>list-container + action-status</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js async></script>
+
+  <script>
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'localLoader');
+    handler.pcHandler = function (opts) {
+      return JSON.parse (this.querySelector ('loader-data').textContent);
+    };
+    document.head.appendChild (handler);
+
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'manualLoader');
+    handler.pcHandler = function (opts) {
+      return new Promise ((ok) => {
+        window.manualLoaderLoaded = ok;
+      }).then (() => {
+        return JSON.parse (this.querySelector ('loader-data').textContent);
+      });
+    };
+    document.head.appendChild (handler);
+
+    var handler = document.createElementNS ('data:,pc', 'filter');
+    handler.setAttribute ('name', 'manualFilter');
+    handler.pcHandler = function (opts) {
+      return new Promise ((ok) => {
+        window.manualFilterDone = ok;
+      }).then ((d) => {
+        return {data: d};
+      });
+    };
+    document.head.appendChild (handler);
+
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'localErrorLoader');
+    handler.pcHandler = function (opts) {
+      throw new Error ("Failed to load the data (localErrorLoader)");
+    };
+    document.head.appendChild (handler);
+  </script>
+
+  <style>
+    list-container {
+      display: block;
+      margin: 1em;
+      border: blue 1px solid;
+      padding: 1em;
+    }
+  </style>
+
+  <list-container loader=localLoader>
+    <p>Source data:
+        <loader-data>
+          {"data": {"A": {"name": "a"}}}
+        </loader-data>
+    </p>
+
+    <template>Name = <span data-field=name></span></template>
+
+    <p>List:</p>
+    <list-main></list-main>
+
+    <action-status ok=Loaded!></action-status>
+  </list-container>
+
+  <list-container loader=manualLoader filter=manualFilter>
+    <p>Source data:
+        <loader-data>
+          {"data": {"A": {"name": "a"}}}
+        </loader-data>
+    </p>
+
+    <template>Name = <span data-field=name></span></template>
+
+    <p>List:</p>
+    <list-main></list-main>
+
+    <p><action-status stage-loader=Loading... stage-filter=Filtering... ok=Ready></action-status>
+
+    <p><button type=button onclick=manualLoaderLoaded();hidden=true>Loaded</button></p>
+    <p><button type=button onclick=manualFilterDone();hidden=true>Filtered</button></p>
+  </list-container>
+
+  <list-container loader=localErrorLoader>
+    <template>Name = <span data-field=name></span></template>
+
+    <p>List:</p>
+    <list-main></list-main>
+
+    <action-status></action-status>
+  </list-container>

@@ -56,6 +56,7 @@
   }
 
   qunitLoaded.then (function () {
+    QUnit.config.current = {ignoreGlobalErrors: true};
     document.querySelectorAll ('test-code').forEach (function (e) {
       QUnit.test (e.getAttribute ('name'), function (assert) {
         var AsyncFunction = Object.getPrototypeOf (async function (){}).constructor;
@@ -78,6 +79,7 @@
             this.assertEqualError (error, expected, name);
           }, // assertWindowError
         };
+        var originalOnError;
         return scriptLoaded.then (function () {
           context.assert = assert;
           return code.apply (context);

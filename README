@@ -188,13 +188,15 @@ objects.  The list is constructed by the following steps:
      (e.g. by fetching from the server).  Note that a loader might
      depend on the content attributes of the |list-container| element
      (e.g. the |src| loader depends on the |src| and |key|
-     attributes).
+     attributes).  While a loader is running, the action status stage
+     is set to |loader|.
 
   2. Filter.  The filter whose name is equal to the |filter| attribute
      value, whose default is |default|, is invoked for the element
      with the argument of the result of the loader.  A *filter* is a
      definition of type |filter|.  A filter is expected to mutate the
-     loaded data to the structure interpretable as list data.
+     loaded data to the structure interpretable as list data.  While a
+     filter is running, the action status stage is set to |filter|.
 
   3. The result of the filter is expected to be a *list description
      object*, which is a JavaScript object with following name/value
@@ -274,6 +276,8 @@ A |list-container| element has following methods:
 
     Load and render the previous page.  This is equivalent to clicking
     a previous page button.
+
+The |list-container| element supports action statuses.
 
 ** <form is=save-data>
 
@@ -944,6 +948,39 @@ There are predefined formsaved handlers:
   reset
 
     Reset the form.
+
+* Action statuses
+
+Several elements support action statuses, i.e. they can contain zero
+or more |action-status| elements as its descendants.  Such elements
+are used to show the progress of actions.
+
+The |hidden| content attribute is set to an action status element,
+depending on whether a status should be shown to the user.
+
+The |status| content attribute is set to |ok| if an action has
+successfully completed, set to |ng| if an action has errorneously
+completed, or left unset otherwise.
+
+If an |action-status| element is empty when an action is started, its
+content is filled by |action-status-message| and |progress| elements.
+
+Any |progress| element descendants are used to show progress bars.  If
+there is no ongoing action, the |hidden| content attribute is set.
+
+Any |action-status-message| element descendants are used to show the
+current status message.  If there is no useful message, the |hidden|
+content attribute is set.
+
+If an action has successfully completed, the |ok| content attribute
+value of the element is set to the current status message, if any.
+
+If an action has failed with an exception, the stringification of the
+exception is set to the current status message.
+
+If an action has entered in a stage, the |status-/stage/| content
+attribute value, where /stage/ is the stage's name, is set to the
+current status message, if any.
 
 * Application-specific elements
 
