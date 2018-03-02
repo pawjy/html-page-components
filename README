@@ -369,7 +369,11 @@ object representing the form data that should be submitted.  It is
 expected to return a |Response| object (or an object whose API is
 compatible with |Response|), or a promise which is fulfilled with such
 an object.  If it cannot be saved the data, it is expected to throw
-(or return a promise which is rejected).
+(or return a promise which is rejected).  While a saver is running,
+the action status stage is set to |saver|.
+
+The |form| element whose |is| attribute is |save-data| supports action
+statuses.
 
 ** <image-editor>
 

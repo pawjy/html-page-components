@@ -941,6 +941,7 @@
   defineElement ({
     name: 'form',
     is: 'save-data',
+    pcActionStatus: true,
     props: {
       pcInit: function () {
         this.sdCheck ();
@@ -964,7 +965,6 @@
             if (!confirm (this.getAttribute ('data-confirm'))) return false;
           }
           
-          // XXX action status integration
           var fd = new FormData (this);
           if (this.sdClickedButton) {
             if (this.sdClickedButton.name &&
@@ -990,6 +990,8 @@
                 return _.split (/:/);
               });
 
+          var as = this.pcActionStatus ();
+          
           $promised.forEach ((_) => {
             if (_.pcModifyFormData) {
               return _.pcModifyFormData (fd);
@@ -1006,6 +1008,8 @@
               });
             }, validators);
           }).then (() => {
+            as.start ({stages: ['saver']});
+            as.stageStart ('saver');
             return getDef ("saver", this.getAttribute ('data-saver') || 'form').then ((saver) => {
               return saver.call (this, fd);
             });
@@ -1026,10 +1030,11 @@
           }).then (() => {
             disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
             customControls.forEach ((_) => _.removeAttribute ('disabled'));
-          }, (e) => {
+            as.end ({ok: true});
+          }).catch ((e) => {
             disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
             customControls.forEach ((_) => _.removeAttribute ('disabled'));
-            throw e; // XXX action status integration
+            as.end ({error: e});
           });
           return false;
         }; // onsubmit

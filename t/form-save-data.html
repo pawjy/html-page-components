@@ -492,7 +492,7 @@
     this.assert.equal (invoked, 1);
   </test-code>
 
-  <test-code name="custom validator ng">
+  <test-code name="custom validator ng" ignoreerrors>
     /*
       <form is=save-data action=/submit/200 data-next=test16 data-validator=validator16 method=post>
         <input name=text1 value=a>
@@ -537,11 +537,9 @@
     
     this.assert.equal (invoked, 0);
     this.assert.equal (e.querySelector ('input[name=text1]').disabled, false);
-    
-    // XXX action-status
   </test-code>
 
-  <test-code name="custom validator multiple">
+  <test-code name="custom validator multiple" ignoreerrors>
     /*
       <form is=save-data action=/submit/200 data-next=test17 data-validator="validator17 validator18 validator19" method=post>
         <input name=text1 value=a>
@@ -643,7 +641,7 @@
     this.assert.equal (e.querySelector ('my-control').hasAttribute ('disabled'), false);
   </test-code>
   
-  <test-code name="custom form control thrown">
+  <test-code name="custom form control thrown" ignoreerrors>
     /*
       <form is=save-data action=/submit/200 data-next=test21 method=post>
         <input name=text1 value=a>
@@ -721,7 +719,7 @@
     this.assert.equal (args.response, res2);
   </test-code>
   
-  <test-code name="saver error response">
+  <test-code name="saver error response" ignoreerrors>
     /*
       <form is=save-data action=/submit/404 data-saver=saver23 data-next=test23 method=post>
         <input name=text1 value=a>
@@ -764,8 +762,6 @@
     this.assert.equal (invoked, 0);
   </test-code>
   
-  <!-- XXX error response -->
-  <!-- XXX thrown in next -->
   <!-- XXX data-confirm -->
 
   <script src=runtests.js></script>

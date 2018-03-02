@@ -82,11 +82,13 @@
         var originalOnError;
         return scriptLoaded.then (function () {
           context.assert = assert;
+          originalOnError = window.onerror;
+          if (e.hasAttribute ('ignoreerrors')) window.onerror = undefined;
           return code.apply (context);
         }).then (assert.async (), function (e) {
           assert.equal (true, false, "Should not be rejected");
           assert.equal (e, null, "Exception");
-        });
+        }).then (() => window.onerror = originalOnError);
       });
     });
   });
