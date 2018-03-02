@@ -731,7 +731,7 @@ scope.  The following functions are available:
 
               The |textContent| IDL attribute value of /element/.
 
-        An element with data-/*/-field attribute
+        An element with |data-/*/-field| attribute
 
           ... where /*/ is the *target attribute name* and is one of:
           |href|, |src|, |id|, |title|.
@@ -757,7 +757,7 @@ scope.  The following functions are available:
             <a data-href-field=link data-field=title
                 href="https://example.com/">Example Web Page</a>
 
-        An element with data-/*/-template attribute
+        An element with |data-/*/-template| attribute
 
           ... where /*/ is the *target attribute name* and is one of:
           |href|, |src|, |id|, |title|.
@@ -781,6 +781,12 @@ scope.  The following functions are available:
 
             <a data-href-template=https://example.com/{user_id}/{object_id}
                 href="https://example.com/535555/72534151">
+
+        An element with |data-enable-by-fill| attribute
+
+          The |disabled| attribute, if specified, is removed.  This
+          feature can be used to enable the submit button and other
+          controls only after other fields are filled in.
 
     resultString = $fill.string (templateString, object)
 

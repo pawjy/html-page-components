@@ -234,6 +234,10 @@
       root.querySelectorAll ('[data-'+n+'-template]').forEach ((f) => {
         f.setAttribute (n, $fill.string (f.getAttribute ('data-'+n+'-template'), object));
       }); // [data-*-template]
+
+      root.querySelectorAll ('[data-enable-by-fill]').forEach ((f) => {
+        f.removeAttribute ('disabled');
+      });
     });
   }; // $fill
 
