@@ -173,6 +173,9 @@ the menu corresponding to the selected section also has the class
 
 By default the first section is selected.
 
+Whenever a section is selected, a bubbling |show| event is fired at
+the selected section.
+
 ** <list-container>
 
 A |list-container| element represents a dynamic list of items.  Its
