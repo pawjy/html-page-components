@@ -831,6 +831,10 @@
           resolve = a;
           reject = b;
         });
+        this.loaded.then (() => {
+          var ev = new Event ('load', {bubbles: false});
+          this.dispatchEvent (ev);
+        });
         this.loaded.catch ((e) => {}); // set [[handled]] true (the error is also reported by ActionStatus)
         var as = this.pcActionStatus ();
         as.start ({stages: ['loader', 'filter', 'render']});
