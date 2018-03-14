@@ -713,6 +713,8 @@
         tabSections.forEach ((g) => {
           g.classList.toggle ('active', f === g);
         });
+        var ev = new Event ('show', {bubbles: true});
+        Promise.resolve ().then (() => f.dispatchEvent (ev));
       }, // tsShowTab
     },
   }); // tab-set
