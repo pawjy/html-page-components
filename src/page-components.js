@@ -187,7 +187,7 @@
     } // notTopLevel
   }; // defineElement
 
-  var filledAttributes = ['href', 'src', 'id', 'title'];
+  var filledAttributes = ['href', 'src', 'id', 'title', 'value'];
   var $fill = exportable.$fill = function (root, object) {
     root.querySelectorAll ('[data-field]').forEach ((f) => {
       var name = f.getAttribute ('data-field').split (/\./);
@@ -216,6 +216,10 @@
       }
     }); // [data-field]
 
+    root.querySelectorAll ('[data-enable-by-fill]').forEach ((f) => {
+      f.removeAttribute ('disabled');
+    });
+
     filledAttributes.forEach ((n) => {
       root.querySelectorAll ('[data-'+n+'-field]').forEach ((f) => {
         var name = f.getAttribute ('data-'+n+'-field').split (/\./);
@@ -234,11 +238,7 @@
       root.querySelectorAll ('[data-'+n+'-template]').forEach ((f) => {
         f.setAttribute (n, $fill.string (f.getAttribute ('data-'+n+'-template'), object));
       }); // [data-*-template]
-
-      root.querySelectorAll ('[data-enable-by-fill]').forEach ((f) => {
-        f.removeAttribute ('disabled');
-      });
-    });
+    }); // filledAttributes
   }; // $fill
 
   $fill.string = function (s, object) {

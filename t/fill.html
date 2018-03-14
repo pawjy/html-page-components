@@ -86,6 +86,21 @@
     this.assert.equal (e.lastChild.value, "undefined");
   </test-code>
   
+  <test-code name="button">
+    /*
+      <div><button type=button data-field=abc>a</button><button type=submit data-field=xyz>b</button></div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {abc: "axx"});
+    this.assert.equal (e.childNodes.length, 2);
+    this.assert.equal (e.firstChild.getAttribute ('value'), null);
+    this.assert.equal (e.firstChild.textContent, "axx");
+    this.assert.equal (e.firstChild.value, "");
+    this.assert.equal (e.lastChild.getAttribute ('value'), null);
+    this.assert.equal (e.lastChild.textContent, "");
+    this.assert.equal (e.lastChild.value, "");
+  </test-code>
+  
   <test-code name="time">
     /*
       <div><time data-field=abc>a</time><time data-field=xyz>b</time></div>
@@ -145,6 +160,19 @@
     this.assert.equal (e.lastElementChild.getAttribute ('title'), 'ab533');
     this.assert.equal (e.lastElementChild.getAttribute ('id'), '{}');
     this.assert.equal (e.lastElementChild.getAttribute ('src'), '134 f<&>"oo134 f<&>"oo');
+  </test-code>
+
+  <test-code name="data-value-template">
+    /*
+      <div>
+        <button data-value-template="abc{foo.abc}"></button>
+        <button data-value-field=abc></button>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {foo: {abc: "134 f<&>\u0022oo"}, "abc": 533});
+    this.assert.equal (e.firstElementChild.value, 'abc134 f<&>"oo');
+    this.assert.equal (e.lastElementChild.value, '533');
   </test-code>
 
   <test-code name="data-enable-by-fill">
