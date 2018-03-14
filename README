@@ -268,17 +268,32 @@ transparent.  Whenever the |list-container| element is rendered, the
 such that they are hidden if the |list-container| element's list has
 one or more list items.
 
-A |list-container| element has following methods:
+A |list-container| element has following members:
 
-  loadNext
+  load ({})
+
+    Load and render the list data.  The argument must be an empty
+    object.  This method is implicitly invoked when the element is
+    initialized.  It can also be invoked when the list should be
+    reloaded.
+
+  loadNext ()
 
     Load and render the next page.  This is equivalent to clicking a
     next page button.
 
-  loadPrev
+  loadPrev ()
 
     Load and render the previous page.  This is equivalent to clicking
     a previous page button.
+
+  loaded : Promise
+
+    When the |load| method is invoked, this property value is set to a
+    new promise.  The promise is fulfilled when the load is completed.
+
+    In addition, a |load| event which does not bubble is fired at the
+    element when the promsie is fulfilled.
 
 The |list-container| element supports action statuses.
 

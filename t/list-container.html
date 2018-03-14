@@ -694,6 +694,47 @@
     this.assert.equal (target, e);
     this.assert.equal (target.querySelector ('list-main').textContent, 'item1item2');
   </test-code>
+
+  <test-code name="load event">
+    /*
+      <list-container loader=pcTestLoader3>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+
+    var invoked = 0;
+    var target;
+    this.currentScript.querySelector ('list-container').addEventListener ('load', (ev) => {
+      invoked++;
+      target = ev.target;
+    });
+
+    var data = [{name: "item1"}, {name: "item2"}];
+    
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'pcTestLoader3');
+      handler.pcHandler = function (opts) {
+      return {data: data};
+    };
+    document.head.appendChild (handler);
+
+    await this.wait (100);
+
+    this.assert.equal (invoked, 1);
+    this.assert.equal (target, e);
+    this.assert.equal (target.querySelector ('list-main').textContent, 'item1item2');
+
+    var data = [{name: "item2"}, {name: "item1"}];
+    e.load ({});
+    
+    await this.wait (100);
+
+    this.assert.equal (invoked, 2);
+    this.assert.equal (target, e);
+    this.assert.equal (target.querySelector ('list-main').textContent, 'item2item1');
+  </test-code>
   
   <script src=runtests.js></script>
 </body>
