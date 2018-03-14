@@ -734,7 +734,7 @@ scope.  The following functions are available:
         An element with |data-/*/-field| attribute
 
           ... where /*/ is the *target attribute name* and is one of:
-          |href|, |src|, |id|, |title|.
+          |href|, |src|, |id|, |title|, |value|.
 
           The attribute whose name is the target attribute name is set
           to the field value for the |data-/*/-field| attribute value.
@@ -760,7 +760,7 @@ scope.  The following functions are available:
         An element with |data-/*/-template| attribute
 
           ... where /*/ is the *target attribute name* and is one of:
-          |href|, |src|, |id|, |title|.
+          |href|, |src|, |id|, |title|, |value|.
 
           The attribute whose name is the target attribute name is set
           to the result of processing the |data-/*/-template|
