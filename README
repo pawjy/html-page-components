@@ -292,9 +292,6 @@ A |list-container| element has following members:
     When the |load| method is invoked, this property value is set to a
     new promise.  The promise is fulfilled when the load is completed.
 
-    In addition, a |load| event which does not bubble is fired at the
-    element when the promsie is fulfilled.
-
 The |list-container| element supports action statuses.
 
 ** <form is=save-data>
