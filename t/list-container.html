@@ -695,7 +695,7 @@
     this.assert.equal (target.querySelector ('list-main').textContent, 'item1item2');
   </test-code>
 
-  <test-code name="load event">
+  <test-code name="pcRendered event 3">
     /*
       <list-container loader=pcTestLoader3>
         <template><p data-field=name></template>
@@ -706,7 +706,7 @@
 
     var invoked = 0;
     var target;
-    this.currentScript.querySelector ('list-container').addEventListener ('load', (ev) => {
+    this.currentScript.querySelector ('list-container').addEventListener ('pcRendered', (ev) => {
       invoked++;
       target = ev.target;
     });
