@@ -257,11 +257,26 @@
   var templateSetSelector = '';
   var templateSetMembers = {
     pcCreateTemplateList: function () {
-      this.pcTemplateList = {};
+      var oldList = this.pcTemplateList || {};
+      var newList = this.pcTemplateList = {};
       Array.prototype.slice.call (this.querySelectorAll ('template')).forEach ((g) => {
         this.pcTemplateList[g.getAttribute ('data-name') || ""] = g;
       });
-
+      var oldKeys = Object.keys (oldList);
+      var newKeys = Object.keys (newList);
+      var changed = false;
+      if (oldKeys.length !== newKeys.length) {
+        changed = true;
+      } else {
+        for (var v in newKeys) {
+          if (oldKeys[v] !== newKeys[v]) {
+            changed = true;
+            break;
+          }
+        }
+      }
+      if (!changed) return;
+      
       this.pcSelectorUpdatedDispatched = false;
       this.pcSelectorName = this.getAttribute ('templateselector') || 'default';
       return getDef ('templateselector', this.pcSelectorName).then ((_) => {
