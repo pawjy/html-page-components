@@ -30,6 +30,9 @@ sub server ($$) {
       } else {
         return [$status, ['content-type' => $env->{CONTENT_TYPE}], [$buf]];
       }
+    } elsif ($env->{REQUEST_URI} =~ m{\A((?:/[A-Za-z0-9_-][.A-Za-z0-9_-]*)+\.html)(?:\?|\z)}) {
+      my $path = $root_path->child ($1);
+      return [200, ['content-type' => 'text/html;charset=utf-8'], [$path->slurp]] if $path->is_file;
     } elsif ($env->{REQUEST_URI} =~ m{\A((?:/[A-Za-z0-9_-][.A-Za-z0-9_-]*)+)(?:\?|\z)}) {
       my $path = $root_path->child ($1);
       return [200, [], [$path->slurp]] if $path->is_file;

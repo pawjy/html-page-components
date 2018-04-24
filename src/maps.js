@@ -56,6 +56,21 @@
                      lng: this.maAttrFloat ('lon', 0)},
             zoom: 8,
           });
+
+          if (this.hasAttribute ('gsi')) {
+            this.maGoogleMap.setOptions ({
+              mapTypeId: google.maps.MapTypeId.TERRAIN,
+              mapTypeControlOptions: {mapTypeIds: [
+                google.maps.MapTypeId.ROADMAP,
+                google.maps.MapTypeId.TERRAIN,
+                google.maps.MapTypeId.SATELLITE,
+                google.maps.MapTypeId.HYBRID,
+                this.maGoogleMapTypeGSI,
+              ]},
+            });
+            this.maEnableGoogleMapGSI ();
+          }
+          
           this.maGoogleMap.addListener ('bounds_changed', () => {
             var v = this.maGoogleMap.getCenter ();
             this.maCenter = {
@@ -142,6 +157,43 @@
           west: bounds.getSouthWest ().lng (),
         };
       }, // getMapBounds
+
+      maGoogleMapTypeGSI: 'GSI',
+      maEnableGoogleMapGSI: function  () {
+        var map = this.googleMap;
+
+        // <https://maps.gsi.go.jp/development/ichiran.html>
+        // <https://maps.gsi.go.jp/help/use.html>
+        map.mapTypes.set (this.maGoogleMapTypeGSI, {
+          name: this.getAttribute ('gsi') || '国土地理院',
+          alt: this.getAttribute ('gsititle') || '国土地理院の地理院タイル (標準地図) を見る',
+          tileSize: new google.maps.Size (256, 256),
+          minZoom: 2,
+          maxZoom: 18,
+          getTile: (coord, zoom, doc) => {
+            var tile = document.createElement ('img');
+            tile.style.width = '256px';
+            tile.style.height = '256px';
+            var x = coord.x % Math.pow (2, zoom);
+            var y = coord.y;
+            tile.src = 'https://cyberjapandata.gsi.go.jp/xyz/std/' + zoom + '/' + x + '/' + y + '.png';
+            tile.onerror = () => {
+              tile.src = this.getAttribute ('noimgsrc') || 'https://rawgit.com/wakaba/html-page-components/master/css/noimage.svg';
+            };
+            return tile;
+          }, // getTile
+        });
+
+        // Credit required by GSI.
+        var credit = document.createElement ('map-credit');
+        credit.hidden = true;
+        credit.innerHTML = '<a href=https://maps.gsi.go.jp/development/ichiran.html target=_blank>国土地理院</a>';
+        map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push (credit);
+        google.maps.event.addListener (map, 'maptypeid_changed', () => {
+          credit.hidden = ! (map.getMapTypeId () === this.maGoogleMapTypeGSI);
+        });
+      }, // maEnableGoogleMapGSI
+ 
     },
   });
 

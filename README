@@ -642,6 +642,38 @@ The following content attributes are available:
     The initial longitude of the center point of the map.  The default
     is zero.
 
+  gsi
+
+    Whether map type GSI is enabled or not.  The map type GSI shows
+    the 地理院タイル (GSI Tile)
+    <https://maps.gsi.go.jp/development/ichiran.html> map data
+    provided by 国土地理院 (Geospatial Information Authority of Japan)
+    <http://www.gsi.go.jp/> of the Japanese Government.
+
+    If the content attribute is NOT specified, the GSI map is not
+    enabled.  Otherwise, if non-empty attribute value is string, it is
+    used as the label of the button to switch to the GSI map type.
+    Otherwise, if the empty value is specified, the default label is
+    used.
+
+    When the map type GSI is selected, a |map-credit| element whose
+    content is a link to the GSI Web site is displayed as the credit
+    of the GSI Tile, as required by GSI.  This element and its content
+    can be styled using CSS.
+
+  gsititle (string)
+
+    The short description of the GSI map type, used as the tooltip of
+    the button to switch to the GSI map type.  If not specified, the
+    default text is used.  This content attribute is ignored if the
+    |gsi| content attribute is NOT specified.
+
+  noimgsrc (URL)
+
+    The (absolute or relative) URL of the image that is used when no
+    image data is available.  If not specified, the default image is
+    used.
+
 The following properties are available:
 
   ready (promise)
@@ -678,6 +710,11 @@ The following properties are available:
 
     This property getter must be invoked after the initialization;
     otherwise the property getter returns |null|.
+
+  maGoogleMapTypeGSI : String
+
+    The identifier of the GSI map type, that can be used in Google
+    Maps API when the |gsi| content attribute is specified.
 
 A |pcRedraw| event, which bubbles, is fired at the element when the
 map's visible area has been changed; e.g., when the map is
