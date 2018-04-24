@@ -105,6 +105,20 @@ map-area:not([hidden]) {
   height: 300px;
 }
 
+map-area map-credit {
+  padding: 0 6px;
+  background: rgba(245, 245, 245, 0.7);
+  color: rgb(68, 68, 68);
+  line-height: 14px;
+  font-size: 10px;
+}
+
+map-area map-credit a {
+  color: inherit;
+  background: transparent;
+  text-decoration: none;
+}
+
 /*
 
 Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
