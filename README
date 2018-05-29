@@ -812,7 +812,7 @@ scope.  The following functions are available:
         An element with |data-/*/-template| attribute
 
           ... where /*/ is the *target attribute name* and is one of:
-          |href|, |src|, |id|, |title|, |value|.
+          |href|, |src|, |id|, |title|, |value|, |action|.
 
           The attribute whose name is the target attribute name is set
           to the result of processing the |data-/*/-template|

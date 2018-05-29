@@ -175,6 +175,19 @@
     this.assert.equal (e.lastElementChild.value, '533');
   </test-code>
 
+  <test-code name="data-action-template">
+    /*
+      <div>
+        <form data-action-template="abc{foo.abc}"></form>
+        <form data-action-field=abc></form>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {foo: {abc: "134 f<&>\u0022oo"}, "abc": 533});
+    this.assert.equal (e.firstElementChild.getAttribute ('action'), 'abc134 f<&>"oo');
+    this.assert.equal (e.lastElementChild.getAttribute ('action'), '533');
+  </test-code>
+
   <test-code name="data-enable-by-fill">
     /*
       <div>

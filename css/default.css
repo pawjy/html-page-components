@@ -119,6 +119,10 @@ map-area map-credit a {
   text-decoration: none;
 }
 
+template-set {
+  display: none ! important;
+}
+
 /*
 
 Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
