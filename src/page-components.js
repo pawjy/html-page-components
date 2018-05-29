@@ -51,6 +51,9 @@
     var name;
     if (definables[type].type === 'customElement') {
       name = e.pcDef ? e.pcDef.name : null;
+      if (e.pcDef && e.pcDef.is) {
+        name += ' is=' + e.pcDef.is;
+      }
     } else {
       name = e.getAttribute ('name');
     }
