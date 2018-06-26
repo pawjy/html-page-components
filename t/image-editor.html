@@ -789,6 +789,26 @@
     });
   </test-code>
 
+  <test-code name="pcImageSelect">
+    /*
+      <image-editor width=523 height=120><image-layer></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+
+    var events = [];
+    e.addEventListener ('pcImageSelect', function (ev) {
+      events.push (ev);
+    });
+
+    await f.selectImageByURL ("image.png");
+    await f.selectImageByURL ("image.png");
+
+    this.assert.equal (events.length, 2);
+    this.assert.equal (events[0].element.localName, 'img');
+    this.assert.equal (events[0].element.naturalWidth, 183);
+  </test-code>
+
   <script src=runtests.js></script>
 </body>
 </html>

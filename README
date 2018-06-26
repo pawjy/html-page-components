@@ -537,6 +537,14 @@ The |resize| event is fired at an |image-editor| or |image-layer|
 element when it is initialized and whenever the its width or height
 has been changed.
 
+The |pcImageSelect| event is fired at an |image-layer| element when an
+image is set for the element.  The event object has the |element|
+property, whose value is an element which contains the image, if any.
+It can be an |HTMLImageElement| or |HTMLVideoElement|.  Future version
+of this script might also use another kinds of elements.  This is a
+hook that can be used for e.g. extracting Exif metadata from the image
+data.
+
 The |change| event is fired at an |image-layer| element when the
 element is initialized and whenever the layer is set to a new image or
 placeholder.
