@@ -1483,6 +1483,10 @@
     }, // ieTogglePlaceholder      
 
     ieSelectImageByElement: function (element, width, height) {
+      var ev = new Event ('pcImageSelect', {bubbles: true});
+      ev.element = element;
+      this.dispatchEvent (ev);
+
       this.ieCanvas.width = width;
       this.ieCanvas.height = height;
       var context = this.ieCanvas.getContext ('2d');
