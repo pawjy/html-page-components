@@ -780,10 +780,16 @@ scope.  The following functions are available:
               time number and the |datetime| attribute is set to its
               global date and time string equivalent.
 
-              Note that the |textContent| of /element/ is not updated
-              when the |datetime| attribute value is changed.  It
-              should be handled by another JavaScript codes, such as
-              time.js <https://github.com/wakaba/timejs>.
+              In addition, if /element/ has the |data-tzoffset-field|
+              attribute, the |data-tzoffset| attribute is set the
+              field value for the |data-tzoffset-field| attribute
+              value.  If the field value is |null| or |undefined|, any
+              |data-tzoffset| attribute is removed instead.
+
+              Note that the |textContent| of /element/ is *not*
+              updated when the |datetime| attribute value is changed.
+              It should be handled by another JavaScript codes, such
+              as time.js <https://github.com/wakaba/timejs>.
 
               |time| element is set to this mode.
 
