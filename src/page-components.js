@@ -214,6 +214,19 @@
           f.removeAttribute ('datetime');
           f.textContent = e;
         }
+        if (f.hasAttribute ('data-tzoffset-field')) {
+          var name = f.getAttribute ('data-tzoffset-field').split (/\./);
+          var v = object;
+          for (var i = 0; i < name.length; i++) {
+            v = v[name[i]];
+            if (v == null) break;
+          }
+          if (v != null) {
+            f.setAttribute ('data-tzoffset', v);
+          } else {
+            f.removeAttribute ('data-tzoffset');
+          }
+        }
       } else {
         f.textContent = value;
       }
