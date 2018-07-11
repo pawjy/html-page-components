@@ -412,7 +412,10 @@ element to open a user interface to set a image (i.e. manually
 invoking the |selectImageFromFile| method).  In addition, the user can
 drop an image file to the element to set the image.  When the user is
 dragging an image file over the element, the |drop-target| class is
-set to the element.
+set to the element.  When the user-selected file cannot be loaded as a
+valid image, a bubbling |error| event is dispatched at the layer whose
+|exception| property is set to the exception representing the
+image-loading error.
 
 When a layer is *set* to an image, its natural width and natural
 height are set to the image's width and height, respectively, and its

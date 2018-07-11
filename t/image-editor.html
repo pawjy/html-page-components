@@ -134,13 +134,17 @@
     var f = e.querySelector ('image-layer');
     return f.selectImageByURL (Math.random ()).then (() => {
       throw "selectImageByURL does not reject";
-    }, () => {
+    }, (err) => {
       this.assert.equal (f.classList.contains ('placeholder'), true);
 
       // Depending on default style sheet
       this.assert.equal (e.clientWidth, 300);
       this.assert.equal (e.clientHeight, 150);
       this.assert.equal (getComputedStyle (f).cursor, 'pointer');
+
+      this.assert.equal (err instanceof Error, true);
+      this.assert.equal (err.name, 'ImageLoadError');
+      this.assert.equal (!!err.message.match (/Failed to load/), true);
     });
   </test-code>
 
