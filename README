@@ -412,7 +412,10 @@ element to open a user interface to set a image (i.e. manually
 invoking the |selectImageFromFile| method).  In addition, the user can
 drop an image file to the element to set the image.  When the user is
 dragging an image file over the element, the |drop-target| class is
-set to the element.
+set to the element.  When the user-selected file cannot be loaded as a
+valid image, a bubbling |error| event is dispatched at the layer whose
+|exception| property is set to the exception representing the
+image-loading error.
 
 When a layer is *set* to an image, its natural width and natural
 height are set to the image's width and height, respectively, and its
@@ -632,13 +635,31 @@ addition to the main script:
 
   <script src=js/maps.js async data-google-maps-key=...></script>
 
-It displays the map using Google Maps API.  Its API key must be
-specified to the |script| element as the |data-google-maps-key|
-attribute value of the root element (the |html| element).  If there is
-the |data-google-maps-libraries| attribute for the root element, its
-value is used as the |libraries| parameter to the Google Maps API.
-
 The following content attributes are available:
+
+  engine = googlemaps | googlemapsembed
+
+    The engine used to render the map.  If this content attribute is
+    not explicitly specified, one of available engines is chosen.
+    Applications should not rely on the default.  Following engines
+    are available:
+
+      googlemaps
+
+        Google Maps, using the Google Maps JavaScript API.  If this
+        engine is used, the API key for the API must be specified to
+        the |data-google-maps-key| attribute value of the root element
+        (the |html| element).  If there is the
+        |data-google-maps-libraries| attribute for the root element,
+        its value is used as the |libraries| parameter to the Google
+        Maps API.
+
+      googlemapsembed
+
+        Google Maps, using the Google Maps Embed API.  If this engine
+        is used, the API key for the API must be specified to the
+        |data-google-maps-key| attribute value of the root element
+        (the |html| element).
 
   lat (float)
 
@@ -669,6 +690,8 @@ The following content attributes are available:
     of the GSI Tile, as required by GSI.  This element and its content
     can be styled using CSS.
 
+    This attribute is ignored unless the |engine| is |googlemaps|.
+
   gsititle (string)
 
     The short description of the GSI map type, used as the tooltip of
@@ -680,7 +703,7 @@ The following content attributes are available:
 
     The (absolute or relative) URL of the image that is used when no
     image data is available.  If not specified, the default image is
-    used.
+    used.  This is applied to GSI maps.
 
 The following properties are available:
 
@@ -710,6 +733,8 @@ The following properties are available:
     This method must be invoked after the initialization; otherwise
     the method returns |null|.
 
+    This method returns |null| unless the |engine| is |googlemaps|.
+
   googleMap
 
     The Google Maps API's |google.maps.Map| object of the map of the
@@ -718,6 +743,8 @@ The following properties are available:
 
     This property getter must be invoked after the initialization;
     otherwise the property getter returns |null|.
+    
+    This property returns |null| unless the |engine| is |googlemaps|.
 
   maGoogleMapTypeGSI : String
 
@@ -726,10 +753,12 @@ The following properties are available:
 
 A |pcRedraw| event, which bubbles, is fired at the element when the
 map's visible area has been changed; e.g., when the map is
-initialized, the map's center has been moved, the zoom level has been
-changed, the map's dimension has been changed, and so on.  This event
-can be used as the oppotunity to relocate map overlay objects or to
-recalculate any associated data outside of the map.
+initialized, the map's center has been moved (when |engine| is
+|googlemaps|), the zoom level has been changed (when |engine| is
+|googlemaps|), the map's dimension has been changed (when |engine| is
+|googlemaps|), and so on.  This event can be used as the oppotunity to
+relocate map overlay objects or to recalculate any associated data
+outside of the map.
 
 * Exportable functions
 

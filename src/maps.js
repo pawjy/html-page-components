@@ -42,14 +42,24 @@
     name: 'map-area',
     props: {
       pcInit: function () {
+        this.maRedrawNeedUpdated = {};
+        this.ready = new Promise ((r) => this.maRedrawNeedUpdated.onready = r);
+        
+        this.maEngine = this.getAttribute ('engine');
+        if (this.maEngine === 'googlemaps') {
+          return this.maInitGoogleMaps ();
+        } else {
+          this.maEngine = 'googlemapsembed';
+          return this.maInitGoogleMapsEmbed ();
+        }
+      }, // pcInit
+      maInitGoogleMaps: function () {
         Object.defineProperty (this, 'googleMap', {
           get: function () {
             return this.maGoogleMap || null;
           },
         });
 
-        this.maRedrawNeedUpdated = {};
-        this.ready = new Promise ((r) => this.maRedrawNeedUpdated.onready = r);
         loadGoogleMaps ().then (() => {
           this.maGoogleMap = new google.maps.Map (this, {
             center: {lat: this.maAttrFloat ('lat', 0),
@@ -94,7 +104,23 @@
           });
           this.maISObserver.observe (this);
         });
-      }, // pcInit
+      }, // maInitGoogleMaps
+      maInitGoogleMapsEmbed: function () {
+        var mo = new MutationObserver ((mutations) => {
+          this.maCenter = {
+            lat: this.maAttrFloat ('lat', 0),
+            lon: this.maAttrFloat ('lon', 0),
+          };
+          this.maRedraw ({all: true});
+        });
+        mo.observe (this, {attributeFilter: ['lat', 'lon']});
+        this.maCenter = {
+          lat: this.maAttrFloat ('lat', 0),
+          lon: this.maAttrFloat ('lon', 0),
+        };
+        return Promise.resolve ().then (() => this.maRedraw ({all: true}));
+      }, // maInitGoogleMapsEmbed
+      
       maRedrawEvent: function () {
         clearTimeout (this.maRedrawEventTimer);
         this.maRedrawEventTimer = setTimeout (() => this.ma_RedrawEvent (), 100);
@@ -121,11 +147,24 @@
           this.maRedrawNeedUpdated = {};
 
           if (updates.size || updates.all) {
-            google.maps.event.trigger (this.maGoogleMap, 'resize');
-            if (this.maCenter) this.maGoogleMap.setCenter ({
-              lat: this.maCenter.lat,
-              lng: this.maCenter.lon,
-            });
+            if (this.maEngine === 'googlemaps') {
+              google.maps.event.trigger (this.maGoogleMap, 'resize');
+              if (this.maCenter) this.maGoogleMap.setCenter ({
+                lat: this.maCenter.lat,
+                lng: this.maCenter.lon,
+              });
+            } else if (this.maEngine === 'googlemapsembed') {
+              if (!this.maIframe) {
+                this.maIframe = document.createElement ('iframe');
+                this.maIframe.className = 'googlemapsembed';
+                this.maIframe.setAttribute ('sandbox', 'allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-scripts allow-top-navigation-by-user-activation');
+                this.maIframe.setAttribute ('allowfullscreen', '');
+                this.maIframe.onload = () => this.maRedrawEvent ();
+                this.appendChild (this.maIframe);
+              }
+              this.maIframe.src = "https://www.google.com/maps/embed/v1/view?key=" + encodeURIComponent (document.documentElement.getAttribute ('data-google-maps-key')) + "&center=" + encodeURIComponent (this.maCenter.lat) + "," + encodeURIComponent (this.maCenter.lon) + "&zoom=8";
+              // &maptype=satellite
+            }
           }
         } // isShown
         

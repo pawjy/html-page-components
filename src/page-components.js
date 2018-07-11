@@ -1269,7 +1269,12 @@
       if (mode === 'selectImage') {
         this.ieClickMode = mode;
         // XXX We don't have tests of this behavior...
-        this.ieClickListener = (ev) => this.selectImageFromFile ();
+        this.ieClickListener = (ev) => this.selectImageFromFile ().catch ((e) => {
+          var ev = new Event ('error', {bubbles: true});
+          ev.exception = e;
+          var notHandled = this.dispatchEvent (ev);
+          if (notHandled) throw e;
+        });
         this.addEventListener ('click', this.ieClickListener);
       } else if (mode === 'none') { 
         this.ieClickMode = mode;
@@ -1324,7 +1329,16 @@
           targetted = 0;
         
           var file = ev.dataTransfer.files[0];
-          if (file) this.ieSetImageFile (file);
+          if (file) {
+            this.ieSetImageFile (file).catch ((e) => {
+              var ev = new Event ('error', {bubbles: true});
+              ev.exception = e;
+              return Promise.resolve.then (() => {
+                var notHandled = this.dispatchEvent (ev);
+                if (notHandled) throw e;
+              });
+            });
+          }
           ev.preventDefault ();
         };
         // XXX We don't have tests of DnD...
@@ -1515,7 +1529,11 @@
         img.onload = function () {
           ok (img);
         };
-        img.onerror = ng;
+        img.onerror = (ev) => {
+          var e = new Error ('Failed to load the image <'+img.src+'>');
+          e.name = 'ImageLoadError';
+          ng (e);
+        };
       }).then ((img) => {
         return this.ieSelectImageByElement (img, img.naturalWidth, img.naturalHeight);
       });
@@ -1542,13 +1560,15 @@
         };
         input.onchange = () => {
           if (input.files[0]) {
-            ok (this.ieSetImageFile (input.files[0]));
+            ok (input.files[0]);
           } else {
             // This is unlikely called.  There is no way to hook on "cancel".
             this.ieFileCancel ();
           }
         };
         input.click ();
+      }).then ((file) => {
+        return this.ieSetImageFile (file);
       });
     }, // selectImageFromFile
     // XXX not tested

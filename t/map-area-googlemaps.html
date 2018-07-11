@@ -13,7 +13,7 @@
 
   <test-code name="map-area default">
     /*
-      <map-area></map-area>
+      <map-area engine=googlemaps></map-area>
     */
     var e = this.currentScript.querySelector ('map-area');
     await this.wait ();
@@ -28,15 +28,18 @@
     this.assert.equal (pos.lon, 0);
     
     var bounds = e.getMapBounds ();
-    this.assert.equal (bounds, null);
+    this.assert.equal (bounds.north, 0.8239462091017685);
+    this.assert.equal (bounds.east, 2.68341064453125);
+    this.assert.equal (bounds.south, -0.8239462091017559);
+    this.assert.equal (bounds.west, -2.68341064453125);
 
     var gm = e.googleMap;
-    this.assert.equal (!!gm, false);
+    this.assert.equal (!!gm, true);
   </test-code>
 
   <test-code name="map-area lat lon">
     /*
-      <map-area lat=20.33 lon=-120.7013></map-area>
+      <map-area engine=googlemaps lat=20.33 lon=-120.7013></map-area>
     */
     var e = this.currentScript.querySelector ('map-area');
     await this.wait ();
@@ -51,13 +54,16 @@
     this.assert.equal (pos.lon, -120.7013);
     
     var bounds = e.getMapBounds ();
-    this.assert.equal (bounds, null);
+    this.assert.equal (bounds.north, 21.100696609215188);
+    this.assert.equal (bounds.east, -118.01788935546875);
+    this.assert.equal (bounds.south, 19.555443247555317);
+    this.assert.equal (bounds.west, -123.38471064453125);
   </test-code>
 
   <test-code name="initially hidden">
     /*
       <div style="display:none">
-        <map-area lat=20.33 lon=-120.7013 initially-hidden></map-area>
+        <map-area engine=googlemaps lat=20.33 lon=-120.7013 initially-hidden></map-area>
       </div>
     */
     var e = this.currentScript.querySelector ('map-area');
@@ -77,12 +83,15 @@
     this.assert.equal (pos.lon, -120.7013);
     
     var bounds = e.getMapBounds ();
-    this.assert.equal (bounds, null);
+    this.assert.equal (bounds.north, 21.100696609215188);
+    this.assert.equal (bounds.east, -118.01788935546875);
+    this.assert.equal (bounds.south, 19.555443247555317);
+    this.assert.equal (bounds.west, -123.38471064453125);
   </test-code>
 
   <test-code name="initial redraw event">
     /*
-      <template><map-area lat=20.33 lon=-120.7013 init-redraw></map-area></template>
+      <template><map-area engine=googlemaps lat=20.33 lon=-120.7013 init-redraw></map-area></template>
     */
     var t = this.currentScript.querySelector ('template');
     this.currentScript.appendChild (t.content.cloneNode (true));
@@ -101,12 +110,15 @@
     this.assert.equal (pos.lon, -120.7013);
 
     var bounds = v[1];
-    this.assert.equal (bounds, null);
+    this.assert.equal (bounds.north, 21.100696609215188);
+    this.assert.equal (bounds.east, -118.01788935546875);
+    this.assert.equal (bounds.south, 19.555443247555317);
+    this.assert.equal (bounds.west, -123.38471064453125);
   </test-code>
 
   <test-code name="redraw event by set center">
     /*
-      <template><map-area lat=20.33 lon=-120.7013></map-area></template>
+      <template><map-area engine=googlemaps lat=20.33 lon=-120.7013></map-area></template>
     */
     var t = this.currentScript.querySelector ('template');
     this.currentScript.appendChild (t.content.cloneNode (true));
@@ -131,12 +143,15 @@
     this.assert.equal (pos.lon, 35.00018);
 
     var bounds = v[1];
-    this.assert.equal (bounds, null);
+    this.assert.equal (bounds.north, 35.01263237794283);
+    this.assert.equal (bounds.east, 37.68359064453125);
+    this.assert.equal (bounds.south, 33.65184894255799);
+    this.assert.equal (bounds.west, 32.31676935546875);
   </test-code>
 
   <test-code name="center moved then redraw">
     /*
-      <map-area></map-area>
+      <map-area engine=googlemaps></map-area>
     */
     var e = this.currentScript.querySelector ('map-area');
     await this.wait ();
@@ -146,8 +161,7 @@
     this.assert.equal (pos.lat, 0);
     this.assert.equal (pos.lon, 0);
 
-    e.setAttribute ('lat', 53);
-    e.setAttribute ('lon', 65);
+    e.googleMap.setCenter ({lat: 53, lng: 65});
     await this.wait ();
 
     e.style.setProperty ('width', '488px', 'important');
@@ -160,7 +174,7 @@
 
   <test-code name="no redraw event before init">
     /*
-      <template><map-area lat=20.33 lon=-120.7013 a></map-area></template>
+      <template><map-area engine=googlemaps lat=20.33 lon=-120.7013 a></map-area></template>
     */
     var t = this.currentScript.querySelector ('template');
     this.currentScript.appendChild (t.content.cloneNode (true));
@@ -178,10 +192,9 @@
     e.hidden = false;
     await this.wait (500);
 
-    e.setAttribute ('lat', 53);
-    e.setAttribute ('lon', -31);
+    e.googleMap.setCenter ({lat: 53, lng: -31});
     
-    await this.wait (500);
+    await this.wait ();
     this.assert.equal (invoked > 0, true, 'invoked = ' + invoked);
 
     var center = e.getMapCenter ();
@@ -191,7 +204,7 @@
 
   <test-code name="no redraw event before init 2">
     /*
-      <template><map-area lat=-20.33 lon=-120.7013 b></map-area></template>
+      <template><map-area engine=googlemaps lat=-20.33 lon=-120.7013 b></map-area></template>
     */
     var t = this.currentScript.querySelector ('template');
     this.currentScript.appendChild (t.content.cloneNode (true));
@@ -205,12 +218,11 @@
       
     await this.wait (500);
     this.assert.equal (invoked, 0);
-
-    e.setAttribute ('lat', 53);
-    e.setAttribute ('lon', 31);
+    
+    e.googleMap.setCenter ({lat: 53, lng: 31});
     
     e.hidden = false;
-    await this.wait (1000);
+    await this.wait (500);
     
     this.assert.equal (invoked > 0, true, 'invoked = ' + invoked);
 
@@ -221,6 +233,7 @@
 
   <test-code name="lat/lon race">
     var e = document.createElement ('map-area');
+    e.setAttribute ('engine', 'googlemaps');
     e.setAttribute ('lat', 42);
     e.setAttribute ('lon', 21);
     this.currentScript.appendChild (e);
@@ -228,8 +241,7 @@
     await Promise.resolve ();
     await e.ready;
 
-    e.setAttribute ('lat', -5);
-    e.setAttribute ('lon', -10);
+    e.googleMap.setCenter ({lat: -5, lng: -10});
 
     await this.wait (500);
     
@@ -240,6 +252,7 @@
 
   <test-code name="lat/lon race">
     var e = document.createElement ('map-area');
+    e.setAttribute ('engine', 'googlemaps');
     e.setAttribute ('lat', 42);
     e.setAttribute ('lon', 21);
     e.hidden = true;
@@ -248,8 +261,7 @@
     await Promise.resolve ();
     await e.ready;
 
-    e.setAttribute ('lat', -5);
-    e.setAttribute ('lon', -10);
+    e.googleMap.setCenter ({lat: -5, lng: -10});
 
     await this.wait (500);
     
