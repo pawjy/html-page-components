@@ -96,11 +96,17 @@
             });
           });
           mo.observe (this, {attributeFilter: ['lat', 'lon']});
-          this.maRedraw ({all: true, _ByInit: true});
+          this.maCenter = {
+            lat: this.maAttrFloat ('lat', 0),
+            lon: this.maAttrFloat ('lon', 0),
+          };
+          this.maRedraw ({all: true});
           return isOb;
         }).then (() => {
           this.maISObserver = new IntersectionObserver (() => {
-            this.maRedraw ({size: true, _ByIntersection: true});
+            setTimeout (() => {
+              this.maRedraw ({size: true, relocate: true});
+            }, 0);
           });
           this.maISObserver.observe (this);
         });
@@ -135,6 +141,15 @@
         for (var n in opts) {
           if (opts[n]) this.maRedrawNeedUpdated[n] = true;
         }
+        if (this.maRedrawNeedUpdated.relocate) {
+          if (this.maEngine === 'googlemaps') {
+            if (this.maCenter) this.maGoogleMap.setCenter ({
+              lat: this.maCenter.lat,
+              lng: this.maCenter.lon,
+            });
+          }
+          delete this.maRedrawNeedUpdated.relocate;
+        }
         clearTimeout (this.maRedrawTimer);
         this.maRedrawTimer = setTimeout (() => this.ma_Redraw (), 300);
       }, // maRedraw
@@ -149,10 +164,6 @@
           if (updates.size || updates.all) {
             if (this.maEngine === 'googlemaps') {
               google.maps.event.trigger (this.maGoogleMap, 'resize');
-              if (this.maCenter) this.maGoogleMap.setCenter ({
-                lat: this.maCenter.lat,
-                lng: this.maCenter.lon,
-              });
             } else if (this.maEngine === 'googlemapsembed') {
               if (!this.maIframe) {
                 this.maIframe = document.createElement ('iframe');
