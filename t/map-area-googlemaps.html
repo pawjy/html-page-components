@@ -204,7 +204,7 @@
 
   <test-code name="no redraw event before init 2">
     /*
-      <template><map-area engine=googlemaps lat=-20.33 lon=-120.7013 b></map-area></template>
+      <template><map-area id=4224222 engine=googlemaps lat=-20.33 lon=-120.7013 b></map-area></template>
     */
     var t = this.currentScript.querySelector ('template');
     this.currentScript.appendChild (t.content.cloneNode (true));
@@ -218,7 +218,7 @@
       
     await this.wait (500);
     this.assert.equal (invoked, 0);
-    
+
     e.googleMap.setCenter ({lat: 53, lng: 31});
     
     e.hidden = false;
@@ -236,6 +236,7 @@
     e.setAttribute ('engine', 'googlemaps');
     e.setAttribute ('lat', 42);
     e.setAttribute ('lon', 21);
+    e.setAttribute ('id', '52623623444');
     this.currentScript.appendChild (e);
 
     await Promise.resolve ();
