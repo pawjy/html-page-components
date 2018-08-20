@@ -778,8 +778,8 @@ scope.  The following functions are available:
           Replace the value of the element by the field value
           specified by the |data-field| attribute.
 
-          For the purpose of this function the *value* of an element
-          /element/ is the definition of type |filltype| for
+          For the purpose of this function, the *value* of an element
+          /element/ depsnds on the definition of type |filltype| for
           /element/'s local name:
 
             |contentattribute|
@@ -825,6 +825,12 @@ scope.  The following functions are available:
             Any other value
 
               The |textContent| IDL attribute value of /element/.
+
+              When the |textContent| IDL attribute value of /element/
+              is updated, if the new value is the empty string,
+              |null|, or |undefined| and there is the |data-empty|
+              attribute for /element/, the |textContent| IDL attribute
+              value is set to the |data-empty| attribute value.
 
         An element with |data-/*/-field| attribute
 
