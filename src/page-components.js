@@ -228,7 +228,11 @@
           }
         }
       } else {
-        f.textContent = value;
+        if ((value == null || (value + "") === "") && f.hasAttribute ('data-empty')) {
+          f.textContent = f.getAttribute ('data-empty');
+        } else {
+          f.textContent = value;
+        }
       }
     }); // [data-field]
 

@@ -236,6 +236,68 @@
     this.assert.equal (e.children[3].hasAttribute ('disabled'), true);
   </test-code>
 
+  <test-code name="empty">
+    /*
+      <div>
+        <span data-field=title></span>
+        <span data-field=title>X</span>
+        <span data-field=title data-empty=></span>
+        <span data-field=title data-empty=>X</span>
+        <span data-field=title data-empty=*></span>
+        <span data-field=title data-empty=*>X</span>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('div');
+
+    $fill (e, {title: null});
+    this.assert.equal (e.children[0].textContent, '');
+    this.assert.equal (e.children[1].textContent, '');
+    this.assert.equal (e.children[2].textContent, '');
+    this.assert.equal (e.children[3].textContent, '');
+    this.assert.equal (e.children[4].textContent, '*');
+    this.assert.equal (e.children[5].textContent, '*');
+
+    $fill (e, {title: ""});
+    this.assert.equal (e.children[0].textContent, '');
+    this.assert.equal (e.children[1].textContent, '');
+    this.assert.equal (e.children[2].textContent, '');
+    this.assert.equal (e.children[3].textContent, '');
+    this.assert.equal (e.children[4].textContent, '*');
+    this.assert.equal (e.children[5].textContent, '*');
+
+    $fill (e, {title: undefined});
+    this.assert.equal (e.children[0].textContent, '');
+    this.assert.equal (e.children[1].textContent, '');
+    this.assert.equal (e.children[2].textContent, '');
+    this.assert.equal (e.children[3].textContent, '');
+    this.assert.equal (e.children[4].textContent, '*');
+    this.assert.equal (e.children[5].textContent, '*');
+
+    $fill (e, {title: 0});
+    this.assert.equal (e.children[0].textContent, '0');
+    this.assert.equal (e.children[1].textContent, '0');
+    this.assert.equal (e.children[2].textContent, '0');
+    this.assert.equal (e.children[3].textContent, '0');
+    this.assert.equal (e.children[4].textContent, '0');
+    this.assert.equal (e.children[5].textContent, '0');
+
+    $fill (e, {title: "null"});
+    this.assert.equal (e.children[0].textContent, 'null');
+    this.assert.equal (e.children[1].textContent, 'null');
+    this.assert.equal (e.children[2].textContent, 'null');
+    this.assert.equal (e.children[3].textContent, 'null');
+    this.assert.equal (e.children[4].textContent, 'null');
+    this.assert.equal (e.children[5].textContent, 'null');
+
+    $fill (e, {title: 'undefined'});
+    this.assert.equal (e.children[0].textContent, 'undefined');
+    this.assert.equal (e.children[1].textContent, 'undefined');
+    this.assert.equal (e.children[2].textContent, 'undefined');
+    this.assert.equal (e.children[3].textContent, 'undefined');
+    this.assert.equal (e.children[4].textContent, 'undefined');
+    this.assert.equal (e.children[5].textContent, 'undefined');
+  </test-code>
+
   <script src=runtests.js data-export=$fill></script>
 </body>
 </html>
