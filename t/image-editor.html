@@ -28,6 +28,30 @@
 
     this.assert.deepEqual (window.nolayerEvents, ['resize']);
   </test-code>
+  
+  <test-code name=nolayer-data-onresize>
+    /*
+      <image-editor data-onresize="
+        window.nolayerWidth2 = this.width;
+        window.nolayerHeight2 = this.height;
+        window.nolayerEvents2 = ['resize'];
+      " onchange="
+        window.nolayerEvents2.push ('change');
+      "></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    this.assert.equal (e.width, 300);
+    this.assert.equal (e.height, 150);
+    this.assert.equal (window.nolayerWidth2, e.width);
+    this.assert.equal (window.nolayerHeight2, e.height);
+
+    // Depending on default style sheet
+    this.assert.equal (e.clientWidth, e.width);
+    this.assert.equal (e.clientHeight, e.height);
+    this.assert.equal (getComputedStyle (e).cursor, 'auto');
+
+    this.assert.deepEqual (window.nolayerEvents2, ['resize']);
+  </test-code>
 
   <test-code name=parsed1>
     /*
