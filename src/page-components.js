@@ -1154,6 +1154,10 @@
           Promise.resolve (e).then (upgrade);
         }
       });
+
+      if (this.hasAttribute ('data-onresize')) {
+        this.setAttribute ('onresize', this.getAttribute ('data-onresize'));
+      }
     }, // pcInit
 
     ieResize: function (opts) {
