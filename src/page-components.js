@@ -870,6 +870,9 @@
         var as = this.pcActionStatus ();
         as.start ({stages: ['loader', 'filter', 'render']});
         as.stageStart ('loader');
+        this.querySelectorAll ('list-is-empty').forEach ((e) => {
+          e.hidden = true;
+        });
         return getDef ("loader", this.getAttribute ('loader') || 'src').then ((loader) => {
         return loader.call (this, opts);
         }).then ((result) => {
