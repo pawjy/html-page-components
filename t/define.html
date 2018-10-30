@@ -68,6 +68,48 @@
     this.assert.equal (f.foo, undefined);
   </test-code>
   
+  <test-code name="custom element pcInit vs parsed children">
+    /*
+      <script>
+        define ({
+          name: 'my-element5',
+          props: {
+            pcInit: function () {
+              this.initLastChild = this.lastChild;
+            },
+          },
+        });
+      </script>
+      <my-element5>
+        <p>abc</p>
+        <script>
+          document.write ('<'+'s>');
+        </script>
+        <script>
+          for (var i = 0; i < 10000; i++) {
+            document.write ('0123456789');
+          }
+        </script>
+        <script>
+          document.write ('</'+'s>');
+        </script>
+        <q>xya</q></my-element5>
+    */
+    var e = this.currentScript.querySelector ('my-element5');
+      
+    await new Promise (ok => {
+      var timer;
+      timer = setInterval (() => {
+        if (e.initLastChild) {
+          clearInterval (timer);
+          ok ();
+        }
+      }, 100);
+    });
+
+    this.assert.equal (e.initLastChild.textContent, 'xya');
+  </test-code>
+  
   <script src=runtests.js></script>
 </body>
 </html>
