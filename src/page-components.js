@@ -171,10 +171,29 @@
     }
     
     upgrader[def.name] = upgrader[def.name] || {};
-    upgrader[def.name][def.is || null] = def.templateSet ? function () {
+    var init = def.templateSet ? function () {
       initTemplateSet (this);
       this.pcInit ();
     } : upgradedElementProps[def.name][def.is || null].pcInit || function () { };
+    upgrader[def.name][def.is || null] = function () {
+      var e = this;
+      if (e.nextSibling ||
+          document.readyState === 'interactive' ||
+          document.readyState === 'complete') {
+        return init.call (e);
+      }
+      return new Promise (function (ok) {
+        setInterval (function () {
+          if (e.nextSibling ||
+              document.readyState === 'interactive' ||
+              document.readyState === 'complete') {
+            ok ();
+          }
+        }, 100);
+      }).then (function () {
+        return init.call (e);
+      });
+    };
     if (!def.notTopLevel) {
       var selector = def.name;
       if (def.is) selector += '[is="' + def.is + '"]';
