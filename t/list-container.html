@@ -735,6 +735,40 @@
     this.assert.equal (target, e);
     this.assert.equal (target.querySelector ('list-main').textContent, 'item2item1');
   </test-code>
+
+  <test-code name="autoreload">
+    /*
+      <list-container loader=localLoader autoreload>
+        <loader-data>
+          {"data": [{"name": "x"}, {"name": "y"}]}
+        </loader-data>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    var list = e.querySelector ('list-main');
+    this.assert.equal (list.children.length, 2);
+    this.assert.equal (list.children[0].textContent, 'x');
+    this.assert.equal (list.children[1].textContent, 'y');
+
+    var data = this.currentScript.querySelector ('loader-data');
+    data.textContent = '{"data": [{"name": "a"}, {"name": "b"}, {"name": "c"}]}';
+
+    await new Promise (ok => {
+      var timer = setInterval (() => {
+        if (list.textContent.match (/a/)) {
+          ok ();
+          clearTimeout (timer);
+        }
+      }, 1000);
+    });
+      
+    this.assert.equal (list.children.length, 3);
+    this.assert.equal (list.children[0].textContent, 'a');
+    this.assert.equal (list.children[1].textContent, 'b');
+    this.assert.equal (list.children[2].textContent, 'c');
+  </test-code>
   
   <script src=runtests.js></script>
 </body>
