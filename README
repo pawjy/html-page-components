@@ -294,6 +294,9 @@ A |list-container| element has following members:
 
 The |list-container| element supports action statuses.
 
+If a |list-container| element has the |autoreload| attribute
+specified, the loader is repeatedly invoked with some intervals.
+
 ** <form is=save-data>
 
 A |form| element whose |is| attribute is |save-data| represents a form

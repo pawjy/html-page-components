@@ -845,10 +845,23 @@
       this.load ({});
     }, // pcInit
 
+      lcGetNextInterval: function (currentInterval) {
+        if (!currentInterval) return 10 * 1000;
+        var interval = currentInterval * 2;
+        if (interval > 10*60*1000) interval * 10*60*1000;
+        return interval;
+      }, // lcGetNextInterval
       load: function (opts) {
         if (!opts.prepend && !opts.append) this.lcClearList ();
         return this.lcLoad (opts).then ((done) => {
           if (done) return this.lcRequestRender ();
+        }).finally (() => {
+          if (!this.hasAttribute ('autoreload')) return;
+          var interval = this.lcGetNextInterval (opts.arInterval);
+          clearTimeout (this.lcAutoReloadTimer);
+          this.lcAutoReloadTimer = setTimeout (() => {
+            this.load ({arInterval: interval});
+          }, interval);
         });
       }, // load
       loadPrev: function () {
@@ -988,11 +1001,10 @@
             }, changes.append),
           ]);
         }
-      }).then (() => {
-        this.dispatchEvent (new Event ('pcRendered', {bubbles: true}));
-      });
-    }, // lcRender
-
+        }).then (() => {
+          this.dispatchEvent (new Event ('pcRendered', {bubbles: true}));
+        });
+      }, // lcRender
     },
     templateSet: true,
   }); // list-container
