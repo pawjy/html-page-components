@@ -1029,6 +1029,9 @@
           }
           this.sdClickedButton = e;
         });
+        this.addEventListener ('change', (ev) => {
+          this.setAttribute ('data-pc-modified', '');
+        });
         this.onsubmit = function () {
           this.sdCheck ();
 
@@ -1102,6 +1105,7 @@
             disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
             customControls.forEach ((_) => _.removeAttribute ('disabled'));
             as.end ({ok: true});
+            this.removeAttribute ('data-pc-modified');
           }).catch ((e) => {
             disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
             customControls.forEach ((_) => _.removeAttribute ('disabled'));
@@ -1153,6 +1157,20 @@
       return new Promise (() => {});
     });
   }; // go
+
+  defineElement ({
+    name: 'before-unload-check',
+    props: {
+      pcInit: function () {
+        window.addEventListener ('beforeunload', (ev) => {
+          if (document.querySelector ('form[data-pc-modified]')) {
+            ev.returnValue = '!';
+          }
+        });
+        // XXX on disconnect
+      }, // pcInit
+    },
+  }); // <before-unload-check>
   
   defineElement ({
     name: 'image-editor',
@@ -1697,7 +1715,7 @@
 
 /*
 
-Copyright 2017 Wakaba <wakaba@suikawiki.org>.
+Copyright 2017-2018 Wakaba <wakaba@suikawiki.org>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as

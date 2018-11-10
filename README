@@ -33,6 +33,7 @@ loaded:
   <tab-set>
   <list-container>
   <form is=save-data>
+  <before-unload-check>
   <image-editor>
   <template-set>
 
@@ -392,6 +393,20 @@ the action status stage is set to |saver|.
 
 The |form| element whose |is| attribute is |save-data| supports action
 statuses.
+
+The |form| element whose |is| attribute is |save-data| can be combined
+with the |before-unload-check| element.  When the |form| element (or
+its descendant) is dispatched a |change| event, the |data-pc-modified|
+attribute is set to the element.  The |data-pc-modified| attribute, if
+any, is removed when the element's saver has concluded successfully.
+
+** <before-unload-check>
+
+A |before-unload-check| element, once inserted into a document,
+defines a |beforeunload| event listener.  The event listener sets the
+|returnValue| attribute of the event object to a non-empty value
+(i.e. asks the browser to show a dialog box to the user) if the
+document has a |form| element with a |data-pc-modified| attribute.
 
 ** <image-editor>
 

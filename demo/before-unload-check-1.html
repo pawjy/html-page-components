@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<title>before-unload-check</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js async></script>
+<before-unload-check></before-unload-check>
+
+<p><a href>Link</a>
+
+<form is=save-data saver=voidSaver method=post action>
+  <textarea name=data></textarea>
+  <button type=submit>Save</button>
+  <action-status ok=Saved!></action-status>
+</form>
+<script>
+  var e = document.createElementNS ('data:,pc', 'saver');
+  e.setAttribute ('name', 'voidSaver');
+  e.pcHandler = () => {};
+  document.head.appendChild (e);
+</script>
