@@ -1088,6 +1088,7 @@
               return saver.call (this, fd);
             });
           }).then ((res) => {
+            this.removeAttribute ('data-pc-modified');
             var p;
             var getJSON = function () {
               return p = p || res.json ();
@@ -1105,7 +1106,6 @@
             disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
             customControls.forEach ((_) => _.removeAttribute ('disabled'));
             as.end ({ok: true});
-            this.removeAttribute ('data-pc-modified');
           }).catch ((e) => {
             disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
             customControls.forEach ((_) => _.removeAttribute ('disabled'));
