@@ -762,6 +762,39 @@
     this.assert.equal (invoked, 0);
   </test-code>
   
+  <test-code name="data-pc-modified">
+    /*
+      <form is=save-data action data-saver=saver24 method=post>
+        <input name=text1 value=a>
+        <p><button type=submit name=d value=foo>OK</button>
+      </form>
+    */
+
+    var e = document.createElementNS ('data:,pc', 'saver');
+    e.setAttribute ('name', 'saver24');
+    e.pcHandler = () => {};
+    document.head.appendChild (e);
+
+    await this.wait ();
+    
+    var form = this.currentScript.querySelector ('form');
+    this.assert.equal (form.hasAttribute ('data-pc-modified'), false);
+
+    form.elements.text1.value = Math.random ();
+    form.elements.text1.dispatchEvent (new Event ('change', {bubbles: true}));
+
+    this.assert.equal (form.hasAttribute ('data-pc-modified'), true);
+
+    form.querySelector ('form button[type=submit]').click ();
+
+    await this.wait (100);
+
+    this.assert.equal (form.hasAttribute ('data-pc-modified'), false);
+
+    form.querySelector ('p').dispatchEvent (new Event ('change', {bubbles: true}));
+    this.assert.equal (form.hasAttribute ('data-pc-modified'), true);
+  </test-code>
+  
   <!-- XXX data-confirm -->
 
   <script src=runtests.js></script>
