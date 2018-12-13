@@ -522,7 +522,7 @@
     props: {
       pcInit: function () {
         var mo = new MutationObserver ((mutations) => this.evRender ());
-        mo.observe (this, {attributeFilter: ['value']});
+        mo.observe (this, {attributes: true, attributeFilter: ['value']});
         this.evRender ();
       }, // pcInit
       evRender: function () {
@@ -619,7 +619,7 @@
         var mo = new MutationObserver ((mutations) => {
           this.pmToggle (this.hasAttribute ('open'));
         });
-        mo.observe (this, {attributeFilter: ['open']});
+        mo.observe (this, {attributes: true, attributeFilter: ['open']});
         setTimeout (() => this.pmLayout (), 100);
       }, // pcInit
       pmClick: function (ev) {
@@ -1189,7 +1189,7 @@
           }
         });
       });
-      mo.observe (this, {attributeFilter: ['width', 'height']});
+      mo.observe (this, {attributes: true, attributeFilter: ['width', 'height']});
 
       new MutationObserver (function (mutations) {
         mutations.forEach (function (m) {
@@ -1301,7 +1301,7 @@
           }
         });
       });
-      mo.observe (this, {attributeFilter: ['movable', 'useplaceholder']});
+      mo.observe (this, {attributes: true, attributeFilter: ['movable', 'useplaceholder']});
 
       this.top = 0;
       this.left = 0;
