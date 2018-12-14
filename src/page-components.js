@@ -855,13 +855,21 @@
         if (!opts.prepend && !opts.append) this.lcClearList ();
         return this.lcLoad (opts).then ((done) => {
           if (done) return this.lcRequestRender ();
-        }).finally (() => {
+        }).then (() => {
           if (!this.hasAttribute ('autoreload')) return;
           var interval = this.lcGetNextInterval (opts.arInterval);
           clearTimeout (this.lcAutoReloadTimer);
           this.lcAutoReloadTimer = setTimeout (() => {
             this.load ({arInterval: interval});
           }, interval);
+        }, (e) => {
+          if (!this.hasAttribute ('autoreload')) return;
+          var interval = this.lcGetNextInterval (opts.arInterval);
+          clearTimeout (this.lcAutoReloadTimer);
+          this.lcAutoReloadTimer = setTimeout (() => {
+            this.load ({arInterval: interval});
+          }, interval);
+          throw e;
         });
       }, // load
       loadPrev: function () {
