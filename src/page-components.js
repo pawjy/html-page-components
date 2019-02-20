@@ -805,7 +805,6 @@
       list = Object.values (list);
     }
     // XXX sort=""
-    if (this.hasAttribute ('reverse')) list = list.reverse ();
     return {
       data: list,
       prev: data.prev,
@@ -921,23 +920,25 @@
         return getDef ("filter", this.getAttribute ('filter') || 'default').then ((filter) => {
           return filter.call (this, result);
         });
-      }).then ((result) => {
-        if (opts.prepend) {
-          var newObjects = result.data.reverse ();
-          this.lcData = newObjects.concat (this.lcData);
-          this.lcDataChanges.prepend
-              = newObjects.concat (this.lcDataChanges.prepend);
-          this.lcPrev = result.prev || {};
-        } else if (opts.append) {
-          this.lcData = this.lcData.concat (result.data);
-          this.lcDataChanges.append
-              = this.lcDataChanges.append.concat (result.data);
-          this.lcNext = result.next || {};
-        } else {
-          this.lcData = result.data || [];
-          this.lcDataChanges = {prepend: [], append: [], changed: true};
-          this.lcPrev = result.prev || {};
-          this.lcNext = result.next || {};
+        }).then ((result) => {
+          var newList = result.data || [];
+          if (this.hasAttribute ('reverse')) newList = newList.reverse ();
+          if (opts.prepend) {
+            newList = newList.reverse ();
+            this.lcData = newList.concat (this.lcData);
+            this.lcDataChanges.prepend
+                = newList.concat (this.lcDataChanges.prepend);
+            this.lcPrev = result.prev || {};
+          } else if (opts.append) {
+            this.lcData = this.lcData.concat (newList);
+            this.lcDataChanges.append
+                = this.lcDataChanges.append.concat (newList);
+            this.lcNext = result.next || {};
+          } else {
+            this.lcData = newList;
+            this.lcDataChanges = {prepend: [], append: [], changed: true};
+            this.lcPrev = result.prev || {};
+            this.lcNext = result.next || {};
           }
           as.end ({ok: true});
           resolve ();
@@ -1723,7 +1724,7 @@
 
 /*
 
-Copyright 2017-2018 Wakaba <wakaba@suikawiki.org>.
+Copyright 2017-2019 Wakaba <wakaba@suikawiki.org>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
