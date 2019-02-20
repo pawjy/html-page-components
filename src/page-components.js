@@ -922,23 +922,43 @@
         });
         }).then ((result) => {
           var newList = result.data || [];
-          if (this.hasAttribute ('reverse')) newList = newList.reverse ();
-          if (opts.prepend) {
+          if (this.hasAttribute ('reverse')) {
             newList = newList.reverse ();
-            this.lcData = newList.concat (this.lcData);
-            this.lcDataChanges.prepend
-                = newList.concat (this.lcDataChanges.prepend);
-            this.lcPrev = result.prev || {};
-          } else if (opts.append) {
-            this.lcData = this.lcData.concat (newList);
-            this.lcDataChanges.append
-                = this.lcDataChanges.append.concat (newList);
-            this.lcNext = result.next || {};
-          } else {
-            this.lcData = newList;
-            this.lcDataChanges = {prepend: [], append: [], changed: true};
-            this.lcPrev = result.prev || {};
-            this.lcNext = result.next || {};
+            if (opts.prepend) {
+              newList = newList.reverse ();
+              this.lcData = newList.concat (this.lcData);
+              this.lcDataChanges.append
+                  = this.lcDataChanges.append.concat (newList);
+              this.lcPrev = result.prev || {};
+            } else if (opts.append) {
+              this.lcData = this.lcData.concat (newList);
+              this.lcDataChanges.prepend
+                  = newList.concat (this.lcDataChanges.prepend);
+              this.lcNext = result.next || {};
+            } else {
+              this.lcData = newList;
+              this.lcDataChanges = {prepend: [], append: [], changed: true};
+              this.lcPrev = result.prev || {};
+              this.lcNext = result.next || {};
+            }
+          } else { // not reverse
+            if (opts.prepend) {
+              newList = newList.reverse ();
+              this.lcData = newList.concat (this.lcData);
+              this.lcDataChanges.prepend
+                  = newList.concat (this.lcDataChanges.prepend);
+              this.lcPrev = result.prev || {};
+            } else if (opts.append) {
+              this.lcData = this.lcData.concat (newList);
+              this.lcDataChanges.append
+                  = this.lcDataChanges.append.concat (newList);
+              this.lcNext = result.next || {};
+            } else {
+              this.lcData = newList;
+              this.lcDataChanges = {prepend: [], append: [], changed: true};
+              this.lcPrev = result.prev || {};
+              this.lcNext = result.next || {};
+            }
           }
           as.end ({ok: true});
           resolve ();

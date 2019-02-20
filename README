@@ -231,6 +231,12 @@ objects.  The list is constructed by the following steps:
              true.  If none is set to true, the current list is
              cleared and then the new list items are inserted.
 
+  4. If the |list-container| element has the |reverse| attribute
+     specified, the list description object's |data| are to be
+     rendered in reverse order.  Otherwise, they are to be rendered in
+     their original order.
+
+
 A |list-container| element has at most one *list item insertion
 point*.  If the |list-container| element's |type| attribute value, if
 specified, is |table|, the first |tbody| element descendant of the
@@ -1061,8 +1067,7 @@ specified by the |key| attribute.  For example,
 
 There is a predefined filter: |default|.  It replaces the input's
 |data| to the result of |Object.values (/input/.data)| if the input's
-|data| is not a JavaScript |Array|.  It reverses the list if the
-|list-container| element has the |reverse| attribute specified.
+|data| is not a JavaScript |Array|.
 
 There are predefined formsaved handlers:
 
@@ -1203,7 +1208,7 @@ Wakaba <wakaba@suikawiki.org>.
 
 * License
 
-Copyright 2017-2018 Wakaba <wakaba@suikawiki.org>.
+Copyright 2017-2019 Wakaba <wakaba@suikawiki.org>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
