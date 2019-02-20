@@ -791,10 +791,8 @@
       json = json || {};
       return {
         data: json[this.getAttribute ('key')],
-        prev: {ref: json.prev_ref, has: json.has_prev, limit: opts.limit,
-               prepend: true},
-        next: {ref: json.next_ref, has: json.has_next, limit: opts.limit,
-               append: true},
+        prev: {ref: json.prev_ref, has: json.has_prev, limit: opts.limit},
+        next: {ref: json.next_ref, has: json.has_next, limit: opts.limit},
       };
     });
   }; // loader=src
@@ -851,7 +849,7 @@
         return interval;
       }, // lcGetNextInterval
       load: function (opts) {
-        if (!opts.prepend && !opts.append) this.lcClearList ();
+        if (!opts.page || opts.replace) this.lcClearList ();
         return this.lcLoad (opts).then ((done) => {
           if (done) {
             this.lcDataChanges.scroll = opts.scroll;
@@ -922,51 +920,65 @@
           e.hidden = true;
         });
         return getDef ("loader", this.getAttribute ('loader') || 'src').then ((loader) => {
-        return loader.call (this, opts);
+          return loader.call (this, opts);
         }).then ((result) => {
           as.stageEnd ('loader');
           as.stageStart ('filter');
-        return getDef ("filter", this.getAttribute ('filter') || 'default').then ((filter) => {
-          return filter.call (this, result);
-        });
+          return getDef ("filter", this.getAttribute ('filter') || 'default').then ((filter) => {
+            return filter.call (this, result);
+          });
         }).then ((result) => {
           var newList = result.data || [];
+          var prev = (opts.page === 'prev' ? result.next : result.prev) || {};
+          var next = (opts.page === 'prev' ? result.prev : result.next) || {};
+          prev = {
+            has: prev.has,
+            ref: prev.ref,
+            limit: prev.limit,
+            page: 'prev',
+          };
+          next = {
+            has: next.has,
+            ref: next.ref,
+            limit: next.limit,
+            page: 'next',
+          };
           if (this.hasAttribute ('reverse')) {
             newList = newList.reverse ();
-            if (opts.prepend) {
+            if (opts.page === 'prev' && !opts.replace) {
               newList = newList.reverse ();
               this.lcData = newList.concat (this.lcData);
               this.lcDataChanges.append
                   = this.lcDataChanges.append.concat (newList);
-              this.lcPrev = result.prev || {};
-            } else if (opts.append) {
+              this.lcPrev = prev;
+            } else if (opts.page === 'next' && !opts.replace) {
               this.lcData = this.lcData.concat (newList);
               this.lcDataChanges.prepend
                   = newList.concat (this.lcDataChanges.prepend);
-              this.lcNext = result.next || {};
+              this.lcNext = next;
             } else {
               this.lcData = newList;
               this.lcDataChanges = {prepend: [], append: [], changed: true};
-              this.lcPrev = result.prev || {};
-              this.lcNext = result.next || {};
+              this.lcPrev = prev;
+              this.lcNext = next;
             }
           } else { // not reverse
-            if (opts.prepend) {
+            if (opts.page === 'prev' && !opts.replace) {
               newList = newList.reverse ();
               this.lcData = newList.concat (this.lcData);
               this.lcDataChanges.prepend
                   = newList.concat (this.lcDataChanges.prepend);
-              this.lcPrev = result.prev || {};
-            } else if (opts.append) {
+              this.lcPrev = prev;
+            } else if (opts.page === 'next' && !opts.replace) {
               this.lcData = this.lcData.concat (newList);
               this.lcDataChanges.append
                   = this.lcDataChanges.append.concat (newList);
-              this.lcNext = result.next || {};
+              this.lcNext = next;
             } else {
               this.lcData = newList;
               this.lcDataChanges = {prepend: [], append: [], changed: true};
-              this.lcPrev = result.prev || {};
-              this.lcNext = result.next || {};
+              this.lcPrev = prev;
+              this.lcNext = next;
             }
           }
           as.end ({ok: true});
@@ -1001,6 +1013,7 @@
           }
           e.onclick = () => { this.loadPrev ({
             scroll: e.getAttribute ('data-list-scroll'),
+            replace: e.hasAttribute ('data-list-replace'),
           }); return false };
         });
         this.querySelectorAll ('a.list-next, button.list-next').forEach ((e) => {
@@ -1010,6 +1023,7 @@
           }
           e.onclick = () => { this.loadNext ({
             scroll: e.getAttribute ('data-list-scroll'),
+            replace: e.hasAttribute ('data-list-replace'),
           }); return false };
         });
         this.querySelectorAll ('list-is-empty').forEach ((e) => {
