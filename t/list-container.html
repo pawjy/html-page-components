@@ -3,6 +3,11 @@
 <head>
   <meta charset="utf-8">
   <title>Test</title>
+  <style>
+    .display-block {
+      display: block;
+    }
+  </style>
 </head>
 <body>
   <test-code name="empty">
@@ -499,6 +504,50 @@
       this.assert.equal (items[5].textContent, '0');
     });
   </test-code>
+  
+  <test-code name="paging append/prepend and scroll position">
+    /*
+      <list-container loader=pagingAppendLoader key=data>
+        <template class=display-block><span data-field=value></span></template>
+        <list-main></list-main>
+        <button class=list-next data-list-scroll=preserve>Next</button>
+        <button class=list-prev data-list-scroll=preserve>Prev</button>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    var n = this.currentScript.querySelector ('.list-next');
+    var p = this.currentScript.querySelector ('.list-prev');
+    var top0;
+    return this.wait (100).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 2);
+      this.assert.equal (items[0].textContent, '1');
+      this.assert.equal (items[1].textContent, '2');
+      top0 = items[0].getBoundingClientRect ().top;
+      n.click ();
+      return this.wait (100);
+    }).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 4);
+      this.assert.equal (items[0].textContent, '1');
+      this.assert.equal (items[1].textContent, '2');
+      this.assert.equal (items[2].textContent, '3');
+      this.assert.equal (items[3].textContent, '4');
+      this.assert.equal (items[0].getBoundingClientRect ().top, top0);
+      p.click ();
+      return this.wait (100);
+    }).then (() => {
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 6);
+      this.assert.equal (items[0].textContent, '0');
+      this.assert.equal (items[1].textContent, '-1');
+      this.assert.equal (items[2].textContent, '1');
+      this.assert.equal (items[3].textContent, '2');
+      this.assert.equal (items[4].textContent, '3');
+      this.assert.equal (items[5].textContent, '4');
+      this.assert.equal (items[2].getBoundingClientRect ().top, top0);
+    });
+  </test-code>
 
   <script>
     var handler = document.createElementNS ('data:,pc', 'loader');
@@ -809,7 +858,7 @@
     this.assert.equal (list.children[1].textContent, 'b');
     this.assert.equal (list.children[2].textContent, 'c');
   </test-code>
-  
+
   <script src=runtests.js></script>
 </body>
 </html>

@@ -853,7 +853,10 @@
       load: function (opts) {
         if (!opts.prepend && !opts.append) this.lcClearList ();
         return this.lcLoad (opts).then ((done) => {
-          if (done) return this.lcRequestRender ();
+          if (done) {
+            this.lcDataChanges.scroll = opts.scroll;
+            return this.lcRequestRender ();
+          }
         }).then (() => {
           if (!this.hasAttribute ('autoreload')) return;
           var interval = this.lcGetNextInterval (opts.arInterval);
@@ -871,11 +874,17 @@
           throw e;
         });
       }, // load
-      loadPrev: function () {
-        return this.load (this.lcPrev);
+      loadPrev: function (opts2) {
+        var opts = {};
+        Object.keys (this.lcPrev).forEach (_ => opts[_] = this.lcPrev[_]);
+        Object.keys (opts2 || {}).forEach (_ => opts[_] = opts2[_]);
+        return this.load (opts);
       }, // loadPrev
-      loadNext: function () {
-        return this.load (this.lcNext);
+      loadNext: function (opts2) {
+        var opts = {};
+        Object.keys (this.lcNext).forEach (_ => opts[_] = this.lcNext[_]);
+        Object.keys (opts2 || {}).forEach (_ => opts[_] = opts2[_]);
+        return this.load (opts);
       }, // loadNext
     lcClearList: function () {
       this.lcData = [];
@@ -970,38 +979,42 @@
         });
       }, // lcLoad
 
-    lcRequestRender: function () {
-      clearTimeout (this.lcRenderRequestedTimer);
-      this.lcRenderRequested = true;
-      this.lcRenderRequestedTimer = setTimeout (() => {
-        if (!this.lcRenderRequested) return;
-        this.lcRender ();
-        this.lcRenderRequested = false;
-      }, 0);
-    }, // lcRequestRender
-    lcRender: function () {
-      if (!this.lcTemplateSet) return;
+      lcRequestRender: function () {
+        clearTimeout (this.lcRenderRequestedTimer);
+        this.lcRenderRequested = true;
+        this.lcRenderRequestedTimer = setTimeout (() => {
+          if (!this.lcRenderRequested) return;
+          this.lcRender ();
+          this.lcRenderRequested = false;
+        }, 0);
+      }, // lcRequestRender
+      lcRender: function () {
+        if (!this.lcTemplateSet) return;
 
-      var listContainer = this.lcGetListContainer ();
-      if (!listContainer) return;
+        var listContainer = this.lcGetListContainer ();
+        if (!listContainer) return;
 
-      this.querySelectorAll ('a.list-prev, button.list-prev').forEach ((e) => {
-        e.hidden = ! this.lcPrev.has;
-        if (e.localName === 'a') {
-          e.href = this.lcPrev.linkURL || 'javascript:';
-        }
-        e.onclick = () => { this.loadPrev (); return false };
-      });
-      this.querySelectorAll ('a.list-next, button.list-next').forEach ((e) => {
-        e.hidden = ! this.lcNext.has;
-        if (e.localName === 'a') {
-          e.href = this.lcNext.linkURL || 'javascript:';
-        }
-        e.onclick = () => { this.loadNext (); return false };
-      });
-      this.querySelectorAll ('list-is-empty').forEach ((e) => {
-        e.hidden = this.lcData.length > 0;
-      });
+        this.querySelectorAll ('a.list-prev, button.list-prev').forEach ((e) => {
+          e.hidden = ! this.lcPrev.has;
+          if (e.localName === 'a') {
+            e.href = this.lcPrev.linkURL || 'javascript:';
+          }
+          e.onclick = () => { this.loadPrev ({
+            scroll: e.getAttribute ('data-list-scroll'),
+          }); return false };
+        });
+        this.querySelectorAll ('a.list-next, button.list-next').forEach ((e) => {
+          e.hidden = ! this.lcNext.has;
+          if (e.localName === 'a') {
+            e.href = this.lcNext.linkURL || 'javascript:';
+          }
+          e.onclick = () => { this.loadNext ({
+            scroll: e.getAttribute ('data-list-scroll'),
+          }); return false };
+        });
+        this.querySelectorAll ('list-is-empty').forEach ((e) => {
+          e.hidden = this.lcData.length > 0;
+        });
 
       var tm = this.lcTemplateSet;
       var changes = this.lcDataChanges;
@@ -1016,6 +1029,12 @@
             listContainer.appendChild (e);
           }, this.lcData);
         } else {
+          var scrollRef;
+          var scrollRefTop;
+          if (changes.scroll === 'preserve') {
+            scrollRef = listContainer.firstElementChild;
+          }
+          if (scrollRef) scrollRefTop = scrollRef.offsetTop;
           var f = document.createDocumentFragment ();
           return Promise.all ([
             $promised.forEach ((object) => {
@@ -1028,7 +1047,13 @@
               var e = tm.createFromTemplate (itemLN, object);
               listContainer.appendChild (e);
             }, changes.append),
-          ]);
+          ]).then (() => {
+            if (scrollRef) {
+              var delta = scrollRef.offsetTop - scrollRefTop;
+              // XXX nearest scrollable area
+              if (delta) document.documentElement.scrollTop += delta;
+            }
+          });
         }
         }).then (() => {
           this.dispatchEvent (new Event ('pcRendered', {bubbles: true}));
