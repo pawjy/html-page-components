@@ -233,7 +233,7 @@
       return {
         data: [{"value":++ref}, {"value": ++ref}],
         next: {ref: ref, has: true},
-        prev: {ref: ref-4, has: false},
+        prev: {ref: ref-8, has: false},
       };
     };
     document.head.appendChild (handler);
@@ -271,8 +271,8 @@
       <list-container loader=pagingLoader key=data>
         <template><span data-field=value></span></template>
         <list-main></list-main>
-        <a class=list-next>Next</a>
-        <a class=list-prev>Prev</a>
+        <a class=list-next data-list-replace>Next</a>
+        <a class=list-prev data-list-replace>Prev</a>
       </list-container>
     */
     var e = this.currentScript.querySelector ('list-container');
@@ -299,8 +299,8 @@
     }).then (() => {
       var items = e.querySelectorAll ('list-main list-item');
       this.assert.equal (items.length, 2);
-      this.assert.equal (items[0].textContent, '1');
-      this.assert.equal (items[1].textContent, '2');
+      this.assert.equal (items[0].textContent, '-3');
+      this.assert.equal (items[1].textContent, '-2');
       p.click ();
       return this.wait (100);
     }).then (() => {
@@ -316,8 +316,8 @@
       <list-container loader=pagingNoPageLoader key=data>
         <template><span data-field=value></span></template>
         <list-main></list-main>
-        <a class=list-next>Next</a>
-        <a class=list-prev>Prev</a>
+        <a class=list-next data-list-replace>Next</a>
+        <a class=list-prev data-list-replace>Prev</a>
       </list-container>
     */
     var e = this.currentScript.querySelector ('list-container');
@@ -354,8 +354,8 @@
       <list-container loader=pagingLoader key=data>
         <template><span data-field=value></span></template>
         <list-main></list-main>
-        <button class=list-next>Next</button>
-        <button class=list-prev>Prev</button>
+        <button class=list-next data-list-replace>Next</button>
+        <button class=list-prev data-list-replace>Prev</button>
       </list-container>
     */
     var e = this.currentScript.querySelector ('list-container');
@@ -382,8 +382,8 @@
     }).then (() => {
       var items = e.querySelectorAll ('list-main list-item');
       this.assert.equal (items.length, 2);
-      this.assert.equal (items[0].textContent, '1');
-      this.assert.equal (items[1].textContent, '2');
+      this.assert.equal (items[0].textContent, '-3');
+      this.assert.equal (items[1].textContent, '-2');
     });
   </test-code>
   
@@ -408,20 +408,20 @@
       this.assert.equal (n.hidden, false);
       this.assert.equal (p.href, undefined);
       this.assert.equal (p.hidden, true);
-      e.loadNext ();
+      e.loadNext ({replace: true});
       return this.wait (100);
     }).then (() => {
       var items = e.querySelectorAll ('list-main list-item');
       this.assert.equal (items.length, 2);
       this.assert.equal (items[0].textContent, '3');
       this.assert.equal (items[1].textContent, '4');
-      e.loadPrev ();
+      e.loadPrev ({replace: true});
       return this.wait (100);
     }).then (() => {
       var items = e.querySelectorAll ('list-main list-item');
       this.assert.equal (items.length, 2);
-      this.assert.equal (items[0].textContent, '1');
-      this.assert.equal (items[1].textContent, '2');
+      this.assert.equal (items[0].textContent, '-3');
+      this.assert.equal (items[1].textContent, '-2');
     });
   </test-code>
   
@@ -857,6 +857,105 @@
     this.assert.equal (list.children[0].textContent, 'a');
     this.assert.equal (list.children[1].textContent, 'b');
     this.assert.equal (list.children[2].textContent, 'c');
+  </test-code>
+
+  <script>
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'localPagedLoader');
+    handler.pcHandler = function (opts) {
+      var data = JSON.parse (document.querySelector ('local-paged-loader-data').textContent);
+      return data[opts.ref || ''] || {data: []};
+    };
+    document.head.appendChild (handler);
+  </script>
+  
+  <local-paged-loader-data style="display:none">
+        {
+          "-z": {"data": [{"name": "y2"}, {"name": "y1"}],
+                 "reversed": true,
+                 "next": {"ref": "-y", "has": true},
+                 "prev": {"ref": "+y", "has": false}},
+          "-a": {"data": [{"name": "z2"}, {"name": "z1"}],
+                 "reversed": true,
+                 "next": {"ref": "-z", "has": true},
+                 "prev": {"ref": "+z", "has": true}},
+          "+y": {"data": [{"name": "z1"}, {"name": "z2"}],
+                 "next": {"ref": "+z", "has": true},
+                 "prev": {"ref": "-z", "has": true}},
+          "": {"data": [{"name": "a1"}, {"name": "a2"}],
+               "next": {"ref": "+a", "has": true},
+               "prev": {"ref": "-a", "has": true}},
+          "+z": {"data": [{"name": "a1"}, {"name": "a2"}],
+                 "next": {"ref": "+a", "has": true},
+                 "prev": {"ref": "-a", "has": true}},
+          "-b": {"data": [{"name": "a2"}, {"name": "a1"}],
+                 "reversed": true,
+                 "next": {"ref": "-a", "has": true},
+                 "prev": {"ref": "+a", "has": true}},
+          "+a": {"data": [{"name": "b1"}, {"name": "b2"}],
+                 "next": {"ref": "+b", "has": true},
+                 "prev": {"ref": "-b", "has": true}},
+          "-c": {"data": [{"name": "b2"}, {"name": "b1"}],
+                 "reversed": true,
+                 "next": {"ref": "-b", "has": true},
+                 "prev": {"ref": "+b", "has": true}},
+          "+b": {"data": [{"name": "c1"}, {"name": "c2"}],
+                 "next": {"ref": "+c", "has": false},
+                 "prev": {"ref": "-c", "has": true}}
+        }
+  </local-paged-loader-data>
+
+  <test-code name="pager prev/next pages">
+    /*
+      <list-container loader=localPagedLoader>
+        <template>[<span data-field=name></span>]</template>
+        <button type=button class=list-prev>Previous page</button>
+        <list-main></list-main>
+        <button type=button class=list-next>Next page</button>
+      </list-container>
+    */
+
+    var list = this.currentScript.querySelector ('list-container');
+    var lm = list.querySelector ('list-main');
+
+    this.assert.equal (lm.textContent, '[a1][a2]');
+    this.assert.equal (list.querySelector ('.list-prev').offsetWidth > 0, true);
+    this.assert.equal (list.querySelector ('.list-next').offsetWidth > 0, true);
+
+    list.querySelector ('.list-prev').click ();
+    await this.wait (100);
+
+    this.assert.equal (lm.textContent, '[z1][z2][a1][a2]');
+    this.assert.equal (list.querySelector ('.list-prev').offsetWidth > 0, true);
+    this.assert.equal (list.querySelector ('.list-next').offsetWidth > 0, true);
+
+    list.querySelector ('.list-prev').click ();
+    await this.wait (100);
+
+    this.assert.equal (lm.textContent, '[y1][y2][z1][z2][a1][a2]');
+    this.assert.equal (list.querySelector ('.list-prev').offsetWidth > 0, true);
+    this.assert.equal (list.querySelector ('.list-next').offsetWidth > 0, true);
+
+    list.querySelector ('.list-prev').click ();
+    await this.wait (100);
+
+    this.assert.equal (lm.textContent, '[y1][y2][z1][z2][a1][a2]');
+    this.assert.equal (list.querySelector ('.list-prev').offsetWidth, 0);
+    this.assert.equal (list.querySelector ('.list-next').offsetWidth > 0, true);
+
+    list.querySelector ('.list-next').click ();
+    await this.wait (100);
+
+    this.assert.equal (lm.textContent, '[y1][y2][z1][z2][a1][a2][b1][b2]');
+    this.assert.equal (list.querySelector ('.list-prev').offsetWidth, 0);
+    this.assert.equal (list.querySelector ('.list-next').offsetWidth > 0, true);
+
+    list.querySelector ('.list-next').click ();
+    await this.wait (100);
+
+    this.assert.equal (lm.textContent, '[y1][y2][z1][z2][a1][a2][b1][b2][c1][c2]');
+    this.assert.equal (list.querySelector ('.list-prev').offsetWidth, 0);
+    this.assert.equal (list.querySelector ('.list-next').offsetWidth, 0);
   </test-code>
 
   <script src=runtests.js></script>

@@ -211,6 +211,13 @@ objects.  The list is constructed by the following steps:
          The list, as a JavaScript array.  This value is required.  If
          there is no object, an empty array should be specified.
 
+       reverse
+
+         Whether the |data| is in the reverse order or not.  The
+         canonical order is the order the list should show items when
+         no option is specified.  The reverse order is the other
+         order.
+
        next, prev
 
          An object on the next or previous "page", with following

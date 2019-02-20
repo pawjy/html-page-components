@@ -37,7 +37,7 @@
     handler.setAttribute ('name', 'localPagedLoader');
     handler.pcHandler = function (opts) {
       var data = JSON.parse (document.querySelector ('list-container[loader=localPagedLoader] loader-data').textContent);
-      return data[opts.ref || ''];
+      return data[opts.ref || ''] || {data: []};
     };
     document.head.appendChild (handler);
   </script>
@@ -46,21 +46,37 @@
     <p>Source data:
       <loader-data>
         {
-          "-2": {"data": [{"name": "y1"}, {"name": "y2"}],
-                 "next": {"ref": "-1", "has": true, "append": true},
-                 "prev": {"ref": "-3", "has": false, "prepend": true}},
-          "-1": {"data": [{"name": "z1"}, {"name": "z2"}],
-                 "next": {"ref": "", "has": true, "append": true},
-                 "prev": {"ref": "-2", "has": true, "prepend": true}},
+          "-z": {"data": [{"name": "y2"}, {"name": "y1"}],
+                 "reversed": true,
+                 "next": {"ref": "-y", "has": true},
+                 "prev": {"ref": "+y", "has": false}},
+          "-a": {"data": [{"name": "z2"}, {"name": "z1"}],
+                 "reversed": true,
+                 "next": {"ref": "-z", "has": true},
+                 "prev": {"ref": "+z", "has": true}},
+          "+y": {"data": [{"name": "z1"}, {"name": "z2"}],
+                 "next": {"ref": "+z", "has": true},
+                 "prev": {"ref": "-z", "has": true}},
           "": {"data": [{"name": "a1"}, {"name": "a2"}],
-               "next": {"ref": "+1", "has": true, "append": true},
-               "prev": {"ref": "-1", "has": true, "prepend": true}},
-          "+1": {"data": [{"name": "b1"}, {"name": "b2"}],
-                 "next": {"ref": "+2", "has": true, "append": true},
-                 "prev": {"ref": "", "has": true, "prepend": true}},
-          "+2": {"data": [{"name": "c1"}, {"name": "c2"}],
-                 "next": {"ref": "+3", "has": false, "append": true},
-                 "prev": {"ref": "+1", "has": true, "prepend": true}}
+               "next": {"ref": "+a", "has": true},
+               "prev": {"ref": "-a", "has": true}},
+          "+z": {"data": [{"name": "a1"}, {"name": "a2"}],
+                 "next": {"ref": "+a", "has": true},
+                 "prev": {"ref": "-a", "has": true}},
+          "-b": {"data": [{"name": "a2"}, {"name": "a1"}],
+                 "reversed": true,
+                 "next": {"ref": "-a", "has": true},
+                 "prev": {"ref": "+a", "has": true}},
+          "+a": {"data": [{"name": "b1"}, {"name": "b2"}],
+                 "next": {"ref": "+b", "has": true},
+                 "prev": {"ref": "-b", "has": true}},
+          "-c": {"data": [{"name": "b2"}, {"name": "b1"}],
+                 "reversed": true,
+                 "next": {"ref": "-b", "has": true},
+                 "prev": {"ref": "+b", "has": true}},
+          "+b": {"data": [{"name": "c1"}, {"name": "c2"}],
+                 "next": {"ref": "+c", "has": false},
+                 "prev": {"ref": "-c", "has": true}}
         }
       </loader-data>
     </p>
