@@ -3,6 +3,9 @@
 <link rel=stylesheet href=../css/default.css>
 <script src=../src/page-components.js async></script>
 
+<section>
+  <h1>Simple list</h1>
+
   <script>
     var handler = document.createElementNS ('data:,pc', 'loader');
     handler.setAttribute ('name', 'localLoader');
@@ -24,3 +27,67 @@
     <p>List:</p>
     <list-main></list-main>
   </list-container>
+</section>
+
+<section>
+  <h1>Paged list</h1>
+
+  <script>
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'localPagedLoader');
+    handler.pcHandler = function (opts) {
+      var data = JSON.parse (document.querySelector ('list-container[loader=localPagedLoader] loader-data').textContent);
+      return data[opts.ref || ''];
+    };
+    document.head.appendChild (handler);
+  </script>
+
+  <list-container loader=localPagedLoader>
+    <p>Source data:
+      <loader-data>
+        {
+          "-2": {"data": [{"name": "y1"}, {"name": "y2"}],
+                 "next": {"ref": "-1", "has": true, "append": true},
+                 "prev": {"ref": "-3", "has": false, "prepend": true}},
+          "-1": {"data": [{"name": "z1"}, {"name": "z2"}],
+                 "next": {"ref": "", "has": true, "append": true},
+                 "prev": {"ref": "-2", "has": true, "prepend": true}},
+          "": {"data": [{"name": "a1"}, {"name": "a2"}],
+               "next": {"ref": "+1", "has": true, "append": true},
+               "prev": {"ref": "-1", "has": true, "prepend": true}},
+          "+1": {"data": [{"name": "b1"}, {"name": "b2"}],
+                 "next": {"ref": "+2", "has": true, "append": true},
+                 "prev": {"ref": "", "has": true, "prepend": true}},
+          "+2": {"data": [{"name": "c1"}, {"name": "c2"}],
+                 "next": {"ref": "+3", "has": false, "append": true},
+                 "prev": {"ref": "+1", "has": true, "prepend": true}}
+        }
+      </loader-data>
+    </p>
+
+    <template>[<span data-field=name></span>] </template>
+
+    <p>List:</p>
+    <p><button type=button class=list-prev>Previous page</button>
+    <p><list-main></list-main>
+    <p><button type=button class=list-next>Next page</button></p>
+  </list-container>
+
+  <list-container loader=localPagedLoader reverse>
+    <template>[<span data-field=name></span>] </template>
+    
+    <p>Same list, in reverse order:</p>
+    <p><button type=button class=list-next>Next page</button>
+    <p><list-main></list-main>
+    <p><button type=button class=list-prev>Previous page</button></p>
+  </list-container>
+
+  <list-container loader=localPagedLoader>
+    <template><p>[<span data-field=name></span>] </template>
+    
+    <p>Preserving viewport's scroll position:</p>
+    <p><button type=button class=list-prev data-list-scroll=preserve>Previous page</button></p>
+    <p><list-main></list-main>
+    <p><button type=button class=list-next data-list-scroll=preserve>Next page</button>
+  </list-container>
+</section>

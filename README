@@ -266,7 +266,9 @@ element which has a |list-prev| class.  A page button's |hidden|
 attribute is set or removed appropriately, according to whether there
 is the next or previous page or not.  When a page button is clicked,
 the list is updated to inculude the previous or next page
-appropriately and the |list-container| element is rendered.
+appropriately and the |list-container| element is rendered.  A pager
+button may have |data-list-scroll| attribute, whose value is set to
+the |scroll| dictionary option in the equivalent |load| method call.
 
 A |list-container| element can contain |list-is-empty| element
 descendants.  The content model of a |list-is-empty| element is
@@ -279,20 +281,26 @@ A |list-container| element has following members:
 
   load ({})
 
-    Load and render the list data.  The argument must be an empty
-    object.  This method is implicitly invoked when the element is
-    initialized.  It can also be invoked when the list should be
-    reloaded.
+    Load and render the list data.  This method is implicitly invoked
+    when the element is initialized.  It can also be invoked when the
+    list should be reloaded.
 
-  loadNext ()
+    The argument is a dictionary.  If the |scroll| value is set to
+    |preserve| in the dictionary, the rendering after the load
+    preserves the original human-perceived scroll position where
+    possible.
+
+  loadNext ({})
 
     Load and render the next page.  This is equivalent to clicking a
-    next page button.
+    next page button.  The |scroll| option can be specified as a
+    dictionary argument to the method.
 
-  loadPrev ()
+  loadPrev ({})
 
     Load and render the previous page.  This is equivalent to clicking
-    a previous page button.
+    a previous page button.  The |scroll| option can be specified as a
+    dictionary argument to the method.
 
   loaded : Promise
 
