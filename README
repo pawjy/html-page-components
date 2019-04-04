@@ -34,6 +34,7 @@ loaded:
   <list-container>
   <form is=save-data>
   <before-unload-check>
+  <input-datetime>
   <input-tzoffset>
   <image-editor>
   <template-set>
@@ -430,6 +431,47 @@ defines a |beforeunload| event listener.  The event listener sets the
 (i.e. asks the browser to show a dialog box to the user) if the
 document has a |form| element with a |data-pc-modified| attribute.
 
+** <input-datetime>
+
+An |input-datetime| element represents a date and time input control,
+implying a time-zone offset.
+
+An |input-datetime| element has a |value| property, whose value is a
+JavaScript number, representing the so-called Unix time seconds.
+
+If the |input-datetime| element has a |value| content attribute, the
+attribute value is interpreted as the initial value of the |value|
+property of the element.  Otherwise, the initial value is the
+00:00:00.000 (i.e. the first instance) of "today".
+
+The content of an |input-datetime| element is application dependent,
+but it must contain a date component element and a time component
+element.
+
+A *date component element* is an HTML |input| element whose |type|
+attribute is |date|.  When the user changes the value of the element,
+the |input-datetime| element's |value| is changed.
+
+A *time component element* is an HTML |input| element whose |type|
+attribute is |time|.  It may have a |step| attribute.  When the user
+changes the value of the element, the |input-datetime| element's
+|value| is changed.
+
+An |input-datetime| element may contain zero or more HTML |time|
+elements.  When the |input-datetime| element is initialized and
+whenever the element's |value| property is updated, the |datetime|
+attribute value of these |time| elements are set to the value.  This
+is compatible with time.js <https://github.com/wakaba/timejs>.
+
+A |change| event and an |input| event can be listened at an
+|input-datetime| element when the element's |value| is edited by the
+user.
+
+An |input-datetime| element may have a |name| content attribute and
+can be used as a custom form element for the purpose of <form
+is=save-data>.  The element's |name| content attribute value and the
+element's |value| property value are added to the form data set.
+
 ** <input-tzoffset>
 
 An |input-tzoffset| element represents a time-zone offset input
@@ -449,18 +491,18 @@ time-zone offset.  Otherwise, the initial value is 0, i.e. same as
 UTC.
 
 The content of an |input-tzoffset| element is application dependent,
-but it must contain a time-zone offset sign element and a time-zone
-offset time element.
+but it must contain a time-zone offset sign component element and a
+time-zone offset time component element.
 
-A *time-zone offset sign element* is an HTML |select| element, which
-must contain two |option| elements whose |value|s are |+1| and |-1|.
+A *time-zone offset sign component element* is an HTML |select|
+element, which must contain two |option| elements whose |value|s are
+|+1| and |-1|.  When the user changes the value of the element, the
+|input-tzoffset| element's |value| is changed.
+
+A *time-zone offset time component element* is an HTML |input| element
+whose |type| attribute is |time|.  It may have a |step| attribute.
 When the user changes the value of the element, the |input-tzoffset|
 element's |value| is changed.
-
-A *time-zone offset time element* is an HTML |input| element whose
-|type| attribute is |time|.  It may have a |step| attribute.  When the
-user changes the value of the element, the |input-tzoffset| element's
-|value| is changed.
 
 An |input-tzoffset| element may contain zero or more HTML |time|
 elements.  When the |input-tzoffset| element is initialized and

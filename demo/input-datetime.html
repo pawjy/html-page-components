@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<title>input-datetime</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js async></script>
+
+<p>
+<input-datetime onchange="
+  nextElementSibling.value = this.value;
+">
+  <input type=date>
+  <input type=time>
+</input-datetime>
+value=<output></output>
+
+<p>
+<input-datetime onchange="
+  nextElementSibling.value = this.value;
+" value=5123523534.2>
+  <input type=date>
+  <input type=time>
+</input-datetime>
+value=<output></output>

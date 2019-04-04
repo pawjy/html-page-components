@@ -1277,6 +1277,7 @@
         var value = this.value;
         this.querySelectorAll ('select').forEach (c => {
           c.value = value >= 0 ? '+1' : '-1';
+          c.required = true;
           c.onchange = () => {
             var v = this.value;
             if (c.value === '+1') {
@@ -1288,6 +1289,7 @@
         });
         this.querySelectorAll ('input[type=time]').forEach (c => {
           c.valueAsNumber = (value >= 0 ? value : -value)*1000;
+          c.required = true;
           c.onchange = () => {
             this.value = (this.value >= 0 ? c.valueAsNumber : -c.valueAsNumber) / 1000;
           };
@@ -1304,6 +1306,77 @@
     },
   }); // <input-tzoffset>
   defs.filltype["input-tzoffset"] = 'idlattribute';
+
+  defineElement ({
+    name: 'input-datetime',
+    props: {
+      pcInit: function () {
+        this.setAttribute ('formcontrol', '');
+        
+        new MutationObserver ((mutations) => {
+          this.pcRender ();
+        }).observe (this, {childList: true});
+        this.pcRequestRender ();
+
+        this.pcValueTZ = -(new Date).getTimezoneOffset () * 60;
+        var setValue = (newValue) => {
+          var d = new Date ((newValue + this.pcValueTZ) * 1000);
+          this.pcValueDate = Math.floor (d.valueOf () / (24 * 60 * 60 * 1000)) * 24 * 60 * 60;
+          this.pcValueTime = d.valueOf () / 1000 - this.pcValueDate;
+          this.pcRequestRender ();
+        }; // setValue
+        
+        var value = this.value !== undefined ? this.value : parseFloat (this.getAttribute ('value'));
+        if (!Number.isFinite (value)) {
+          setValue ((new Date).valueOf () / 1000); // now
+          this.pcValueTime = 0;
+        } else {
+          setValue (value);
+        }
+        
+        Object.defineProperty (this, 'value', {
+          get: () => this.pcValueDate + this.pcValueTime - this.pcValueTZ,
+          set: (newValue) => {
+            newValue = parseFloat (newValue);
+            if (Number.isFinite (newValue)) {
+              setValue (newValue);
+            }
+          },
+        });
+      }, // pcInit
+      pcRequestRender: function () {
+        this.pcRenderTimer = setTimeout (() => this.pcRender (), 0);
+      }, // pcRequestRender
+      pcRender: function () {
+        this.querySelectorAll ('input[type=date]').forEach (c => {
+          c.valueAsNumber = this.pcValueDate * 1000;
+          c.required = true;
+          c.onchange = () => {
+            this.pcValueDate = c.valueAsNumber / 1000;
+            this.pcRequestRender ();
+          };
+        });
+        this.querySelectorAll ('input[type=time]').forEach (c => {
+          c.valueAsNumber = this.pcValueTime * 1000;
+          c.required = true;
+          c.onchange = () => {
+            this.pcValueTime = c.valueAsNumber / 1000;
+            this.pcRequestRender ();
+          };
+        });
+        var valueDate = new Date (this.value * 1000);
+        this.querySelectorAll ('time').forEach (t => {
+          t.setAttribute ('datetime', valueDate.toISOString ());
+        });
+      }, // pcRender
+      pcModifyFormData: function (fd) {
+        var name = this.getAttribute ('name');
+        if (!name) return;
+        fd.append (name, this.value);
+      }, // pcModifyFormData
+    },
+  }); // <input-datetime>
+  defs.filltype["input-datetime"] = 'idlattribute';
   
   defineElement ({
     name: 'image-editor',
