@@ -438,10 +438,15 @@ control.
 An |input-tzoffset| element has a |value| property, whose value is a
 JavaScript number, representing the time-zone offset from UTC in
 seconds, where positive numbers mean Asian date while negative numbers
-mean American date.  If an |input-tzoffset| element has a |value|
-content attribute, its value is interpreted as the initial value of
-the |value| property of the element.  Otherwise, the initial value is
-0, i.e. same as UTC.
+mean American date.
+
+If the |input-tzoffset| element has a |value| content attribute, the
+attribute value is interpreted as the initial value of the |value|
+property of the element.  Otherwise, if the |input-tzoffset| element
+has a |platformvalue| content attribute specified, the initial value
+of the |value| property of the element is set to the platform's
+time-zone offset.  Otherwise, the initial value is 0, i.e. same as
+UTC.
 
 The content of an |input-tzoffset| element is application dependent,
 but it must contain a time-zone offset sign element and a time-zone
@@ -456,6 +461,13 @@ A *time-zone offset time element* is an HTML |input| element whose
 |type| attribute is |time|.  It may have a |step| attribute.  When the
 user changes the value of the element, the |input-tzoffset| element's
 |value| is changed.
+
+An |input-tzoffset| element may contain zero or more HTML |time|
+elements.  When the |input-tzoffset| element is initialized and
+whenever the element's |value| property is updated, the
+|data-tzoffset| attribute value of these |time| elements are set to
+the value.  This is compatible with time.js
+<https://github.com/wakaba/timejs>'s time-zone offset support.
 
 A |change| event and an |input| event can be listened at an
 |input-tzoffset| element when the element's |value| is edited by the

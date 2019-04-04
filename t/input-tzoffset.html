@@ -24,6 +24,22 @@
     this.assert.equal (s.value, '+1');
     this.assert.equal (t.value, '00:00');
   </test-code>
+  
+  <test-code name="platform default">
+    /*
+      <input-tzoffset platformvalue>
+        <select>
+          <option value=+1>+
+          <option value=-1>-
+        </select>
+        <input type=time>
+      </input-tzoffset>
+    */
+    var e = this.currentScript.querySelector ('input-tzoffset');
+    await this.wait ();
+
+    this.assert.equal (-(e.value / 60), (new Date).getTimezoneOffset ());
+  </test-code>
 
   <test-code name="initial content attribute value (positive)">
     /*
@@ -53,6 +69,8 @@
           <option value=-1>-
         </select>
         <input type=time>
+        <time></time>
+        <time></time>
       </input-tzoffset>
     */
     var e = this.currentScript.querySelector ('input-tzoffset');
@@ -63,6 +81,9 @@
     var t = e.querySelector ('input[type=time]');
     this.assert.equal (s.value, '-1');
     this.assert.equal (t.value, '02:30');
+    
+    this.assert.equal (e.querySelectorAll ('time')[0].getAttribute ('data-tzoffset'), '-9000');
+    this.assert.equal (e.querySelectorAll ('time')[1].getAttribute ('data-tzoffset'), '-9000');
   </test-code>
 
   <test-code name="IDL attribute setter">
@@ -136,7 +157,9 @@
           <option value=+1>+
           <option value=-1>-
         </select>
+        <time></time>
         <input type=time>
+        <span><time></time></span>
       </input-tzoffset>
     */
     var e = this.currentScript.querySelector ('input-tzoffset');
@@ -153,6 +176,9 @@
     this.assert.equal (e.value, -660);
     this.assert.equal (s.value, '-1');
     this.assert.equal (t.value, '00:11');
+    
+    this.assert.equal (e.querySelectorAll ('time')[0].getAttribute ('data-tzoffset'), '-660');
+    this.assert.equal (e.querySelectorAll ('time')[1].getAttribute ('data-tzoffset'), '-660');
   </test-code>
 
   <test-code name="time change, step=second">

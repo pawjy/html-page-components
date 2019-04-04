@@ -1252,7 +1252,13 @@
         this.pcRequestRender ();
 
         var value = this.value !== undefined ? this.value : parseFloat (this.getAttribute ('value'));
-        if (!Number.isFinite (value)) value = 0;
+        if (!Number.isFinite (value)) {
+          if (this.hasAttribute ('platformvalue')) {
+            value = -(new Date).getTimezoneOffset () * 60;
+          } else {
+            value = 0;
+          }
+        }
         Object.defineProperty (this, 'value', {
           get: () => value,
           set: (newValue) => {
@@ -1285,6 +1291,9 @@
           c.onchange = () => {
             this.value = (this.value >= 0 ? c.valueAsNumber : -c.valueAsNumber) / 1000;
           };
+        });
+        this.querySelectorAll ('time').forEach (t => {
+          t.setAttribute ('data-tzoffset', value);
         });
       }, // pcRender
       pcModifyFormData: function (fd) {
