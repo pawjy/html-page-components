@@ -1239,6 +1239,62 @@
       }, // pcInit
     },
   }); // <before-unload-check>
+
+  defineElement ({
+    name: 'input-tzoffset',
+    props: {
+      pcInit: function () {
+        this.setAttribute ('formcontrol', '');
+        
+        new MutationObserver ((mutations) => {
+          this.pcRender ();
+        }).observe (this, {childList: true});
+        this.pcRequestRender ();
+
+        var value = this.value !== undefined ? this.value : parseFloat (this.getAttribute ('value'));
+        if (!Number.isFinite (value)) value = 0;
+        Object.defineProperty (this, 'value', {
+          get: () => value,
+          set: (newValue) => {
+            newValue = parseFloat (newValue);
+            if (Number.isFinite (newValue) && value !== newValue) {
+              value = newValue;
+              this.pcRequestRender ();
+            }
+          },
+        });
+      }, // pcInit
+      pcRequestRender: function () {
+        this.pcRenderTimer = setTimeout (() => this.pcRender (), 0);
+      }, // pcRequestRender
+      pcRender: function () {
+        var value = this.value;
+        this.querySelectorAll ('select').forEach (c => {
+          c.value = value >= 0 ? '+1' : '-1';
+          c.onchange = () => {
+            var v = this.value;
+            if (c.value === '+1') {
+              if (v < 0) this.value = -v;
+            } else {
+              if (v > 0) this.value = -v;
+            }
+          };
+        });
+        this.querySelectorAll ('input[type=time]').forEach (c => {
+          c.valueAsNumber = (value >= 0 ? value : -value)*1000;
+          c.onchange = () => {
+            this.value = (this.value >= 0 ? c.valueAsNumber : -c.valueAsNumber) / 1000;
+          };
+        });
+      }, // pcRender
+      pcModifyFormData: function (fd) {
+        var name = this.getAttribute ('name');
+        if (!name) return;
+        fd.append (name, this.value);
+      }, // pcModifyFormData
+    },
+  }); // <input-tzoffset>
+  defs.filltype["input-tzoffset"] = 'idlattribute';
   
   defineElement ({
     name: 'image-editor',

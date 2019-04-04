@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<title>input-tzoffset</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js async></script>
+
+<p>
+<input-tzoffset onchange="
+  nextElementSibling.value = this.value;
+">
+  <select>
+    <option value=+1>+
+    <option value=-1>-
+  </select>
+  <input type=time>
+</input-tzoffset>
+value=<output></output>
+
+<p>
+<input-tzoffset onchange="
+  nextElementSibling.value = this.value;
+">
+  <select>
+    <option value=+1>+
+    <option value=-1>-
+  </select>
+  <input type=time step=1>
+</input-tzoffset>
+value-<output></output>
+
+<p>
+<input-tzoffset onchange="
+  nextElementSibling.value = this.value;
+" value=-3600>
+  <select>
+    <option value=+1>+
+    <option value=-1>-
+  </select>
+  <input type=time>
+</input-tzoffset>
+value=<output></output>
