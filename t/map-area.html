@@ -181,7 +181,7 @@
     e.setAttribute ('lat', 53);
     e.setAttribute ('lon', -31);
     
-    await this.wait (500);
+    await this.wait (1000);
     this.assert.equal (invoked > 0, true, 'invoked = ' + invoked);
 
     var center = e.getMapCenter ();
