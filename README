@@ -444,6 +444,12 @@ attribute value is interpreted as the initial value of the |value|
 property of the element.  Otherwise, the initial value is the
 00:00:00.000 (i.e. the first instance) of "today".
 
+If the |input-datetime| element has a |tzoffset| content attribute
+whose value is a number, it is interpreted from the time-zone offset
+from UTC in seconds, where positive numbers mean Asian date while
+negative numbers mean American date.  Otherwise, the time-zone offset
+is set to the platform's time-zone offset.
+
 The content of an |input-datetime| element is application dependent,
 but it must contain a date component element and a time component
 element.

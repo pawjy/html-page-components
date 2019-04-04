@@ -237,6 +237,31 @@
     this.assert.equal (new Date (ts[0].getAttribute ('datetime')).valueOf (), 1472005232*1000);
     this.assert.equal (new Date (ts[1].getAttribute ('datetime')).valueOf (), 1472005232*1000);
   </test-code>
+  
+  <test-code name="tzoffset">
+    /*
+      <input-datetime value=1472005232 tzoffset=7200>
+        <input type=date>
+        <input type=time>
+      </input-datetime>
+    */
+    var e = this.currentScript.querySelector ('input-datetime');
+    await this.wait ();
+
+    var d = e.querySelector ('input[type=date]');
+    var t = e.querySelector ('input[type=time]');
+
+    this.assert.equal (e.value, 1472005232);
+    this.assert.equal (d.value, '2016-08-24');
+    this.assert.equal (t.value, '04:20:32');
+
+    e.setAttribute ('tzoffset', '-3600');
+    await this.wait (500);
+
+    this.assert.equal (e.value, 1472005232);
+    this.assert.equal (d.value, '2016-08-24');
+    this.assert.equal (t.value, '01:20:32');
+  </test-code>
 
   <script src=runtests.js data-export=$fill></script>
 </body>

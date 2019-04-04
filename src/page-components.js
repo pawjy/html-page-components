@@ -1318,7 +1318,22 @@
         }).observe (this, {childList: true});
         this.pcRequestRender ();
 
-        this.pcValueTZ = -(new Date).getTimezoneOffset () * 60;
+        var mo = new MutationObserver (() => {
+          var newValue = parseFloat (this.getAttribute ('tzoffset'));
+          if (Number.isFinite (newValue) && newValue !== this.pcValueTZ) {
+            var v = this.value;
+            console.log(newValue,v);
+            this.pcValueTZ = newValue;
+            setValue (v);
+            console.log(this.value);
+          }
+        });
+        mo.observe (this, {attributes: true, attributeFilter: ['tzoffset']});
+
+        this.pcValueTZ = parseFloat (this.getAttribute ('tzoffset'));
+        if (!Number.isFinite (this.pcValueTZ)) {
+          this.pcValueTZ = -(new Date).getTimezoneOffset () * 60;
+        }
         var setValue = (newValue) => {
           var d = new Date ((newValue + this.pcValueTZ) * 1000);
           this.pcValueDate = Math.floor (d.valueOf () / (24 * 60 * 60 * 1000)) * 24 * 60 * 60;
