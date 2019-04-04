@@ -1322,10 +1322,8 @@
           var newValue = parseFloat (this.getAttribute ('tzoffset'));
           if (Number.isFinite (newValue) && newValue !== this.pcValueTZ) {
             var v = this.value;
-            console.log(newValue,v);
             this.pcValueTZ = newValue;
             setValue (v);
-            console.log(this.value);
           }
         });
         mo.observe (this, {attributes: true, attributeFilter: ['tzoffset']});
