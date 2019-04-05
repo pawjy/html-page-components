@@ -517,6 +517,16 @@ whenever the element's |value| property is updated, the
 the value.  This is compatible with time.js
 <https://github.com/wakaba/timejs>'s time-zone offset support.
 
+An |input-tzoffset| element may contain zero or more <enum-value
+data-tzoffset-type=platformdelta-sign> element and <unit-number
+type=duration data-tzoffset-type=platformdelta-time> element.  When
+the |input-tzoffset| element is initialized and whenever the element's
+|value| property is updated, the |value| attributes of these elements
+are set to the sign (either |plus| or |minus|) and the absolute value
+of the time-zone offset of the element's |value| property, relative to
+the platform's time-zone offset.  This is compatible with
+unit-number.js <https://github.com/wakaba/html-unit-number>.
+
 A |change| event and an |input| event can be listened at an
 |input-tzoffset| element when the element's |value| is edited by the
 user.

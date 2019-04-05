@@ -30,13 +30,25 @@ value=<output></output>
 <p>
 <input-tzoffset onchange="
   nextElementSibling.value = this.value;
+" value=32400>
+  <select>
+    <option value=+1>+
+    <option value=-1>-
+  </select>
+  <input type=time>
+</input-tzoffset> (32400)
+value=<output></output>
+
+<p>
+<input-tzoffset onchange="
+  nextElementSibling.value = this.value;
 " value=-3600>
   <select>
     <option value=+1>+
     <option value=-1>-
   </select>
   <input type=time>
-</input-tzoffset>
+</input-tzoffset> (-3600)
 value=<output></output>
 
 <p>

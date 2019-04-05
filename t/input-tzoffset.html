@@ -294,6 +294,32 @@
     this.assert.equal (fd.get ('foo'), '-600');
   </test-code>
 
+  <test-code name="platform delta">
+    /*
+      <input-tzoffset value=14400>
+        <select>
+          <option value=+1>+
+          <option value=-1>-
+        </select>
+        <input type=time step=1>
+        <enum-value data-tzoffset-type=platformdelta-sign></enum-value>
+        <unit-number type=duration data-tzoffset-type=platformdelta-time></unit-number>
+      </input-tzoffset>
+    */
+    var e = this.currentScript.querySelector ('input-tzoffset');
+    var s = e.querySelector ('select');
+    var t = e.querySelector ('input[type=time]');
+    await this.wait ();
+
+    this.assert.equal (e.value, 14400);
+
+    var v = e.querySelector ('enum-value');
+    var u = e.querySelector ('unit-number');
+    var delta = v.getAttribute ('value') === 'plus' ? +1 : -1;
+    delta = delta * parseFloat (u.getAttribute ('value'));
+    this.assert.equal (delta + (-(new Date).getTimezoneOffset () * 60), 14400, delta);
+  </test-code>
+
   <script src=runtests.js data-export=$fill></script>
 </body>
 </html>
