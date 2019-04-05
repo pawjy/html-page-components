@@ -1297,6 +1297,14 @@
         this.querySelectorAll ('time').forEach (t => {
           t.setAttribute ('data-tzoffset', value);
         });
+        var pfValue = -(new Date).getTimezoneOffset () * 60;
+        var pfDelta = value - pfValue;
+        this.querySelectorAll ('enum-value[data-tzoffset-type=platformdelta-sign]').forEach (t => {
+          t.setAttribute ('value', pfDelta >= 0 ? 'plus' : 'minus');
+        });
+        this.querySelectorAll ('unit-number[data-tzoffset-type=platformdelta-time]').forEach (t => {
+          t.setAttribute ('value', pfDelta >= 0 ? pfDelta : -pfDelta);
+        });
       }, // pcRender
       pcModifyFormData: function (fd) {
         var name = this.getAttribute ('name');
