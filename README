@@ -518,8 +518,17 @@ the value.  This is compatible with time.js
 <https://github.com/wakaba/timejs>'s time-zone offset support.
 
 An |input-tzoffset| element may contain zero or more <enum-value
-data-tzoffset-type=platformdelta-sign> element and <unit-number
-type=duration data-tzoffset-type=platformdelta-time> element.  When
+data-tzoffset-type=sign> elements and <unit-number type=duration
+data-tzoffset-type=time> elements.  When the |input-tzoffset| element
+is initialized and whenever the element's |value| property is updated,
+the |value| attributes of these elements are set to the sign (either
+|plus| or |minus|) and the absolute value of the time-zone offset of
+the element's |value| property.  This is compatible with
+unit-number.js <https://github.com/wakaba/html-unit-number>.
+
+An |input-tzoffset| element may contain zero or more <enum-value
+data-tzoffset-type=platformdelta-sign> elements and <unit-number
+type=duration data-tzoffset-type=platformdelta-time> elements.  When
 the |input-tzoffset| element is initialized and whenever the element's
 |value| property is updated, the |value| attributes of these elements
 are set to the sign (either |plus| or |minus|) and the absolute value

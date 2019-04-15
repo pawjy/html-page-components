@@ -294,6 +294,81 @@
     this.assert.equal (fd.get ('foo'), '-600');
   </test-code>
 
+  <test-code name="delta (positive)">
+    /*
+      <input-tzoffset value=14400>
+        <select>
+          <option value=+1>+
+          <option value=-1>-
+        </select>
+        <input type=time step=1>
+        <enum-value data-tzoffset-type=sign></enum-value>
+        <unit-number type=duration data-tzoffset-type=time></unit-number>
+      </input-tzoffset>
+    */
+    var e = this.currentScript.querySelector ('input-tzoffset');
+    var s = e.querySelector ('select');
+    var t = e.querySelector ('input[type=time]');
+    await this.wait ();
+
+    this.assert.equal (e.value, 14400);
+
+    var v = e.querySelector ('enum-value');
+    var u = e.querySelector ('unit-number');
+    this.assert.equal (v.getAttribute ('value'), 'plus');
+    this.assert.equal (u.getAttribute ('value'), '14400');
+  </test-code>
+
+  <test-code name="delta (negative)">
+    /*
+      <input-tzoffset value=-14400>
+        <select>
+          <option value=+1>+
+          <option value=-1>-
+        </select>
+        <input type=time step=1>
+        <enum-value data-tzoffset-type=sign></enum-value>
+        <unit-number type=duration data-tzoffset-type=time></unit-number>
+      </input-tzoffset>
+    */
+    var e = this.currentScript.querySelector ('input-tzoffset');
+    var s = e.querySelector ('select');
+    var t = e.querySelector ('input[type=time]');
+    await this.wait ();
+
+    this.assert.equal (e.value, -14400);
+
+    var v = e.querySelector ('enum-value');
+    var u = e.querySelector ('unit-number');
+    this.assert.equal (v.getAttribute ('value'), 'minus');
+    this.assert.equal (u.getAttribute ('value'), '14400');
+  </test-code>
+
+  <test-code name="delta (zero)">
+    /*
+      <input-tzoffset value=0>
+        <select>
+          <option value=+1>+
+          <option value=-1>-
+        </select>
+        <input type=time step=1>
+        <enum-value data-tzoffset-type=sign></enum-value>
+        <unit-number type=duration data-tzoffset-type=time></unit-number>
+      </input-tzoffset>
+    */
+    var e = this.currentScript.querySelector ('input-tzoffset');
+    var s = e.querySelector ('select');
+    var t = e.querySelector ('input[type=time]');
+    await this.wait ();
+
+    this.assert.equal (e.value, 0);
+
+    var v = e.querySelector ('enum-value');
+    var u = e.querySelector ('unit-number');
+    this.assert.equal (v.getAttribute ('value'), 'plus');
+    this.assert.equal (u.getAttribute ('value'), '0');
+  </test-code>
+
   <test-code name="platform delta">
     /*
       <input-tzoffset value=14400>

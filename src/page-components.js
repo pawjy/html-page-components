@@ -1297,6 +1297,14 @@
         this.querySelectorAll ('time').forEach (t => {
           t.setAttribute ('data-tzoffset', value);
         });
+
+        this.querySelectorAll ('enum-value[data-tzoffset-type=sign]').forEach (t => {
+          t.setAttribute ('value', value >= 0 ? 'plus' : 'minus');
+        });
+        this.querySelectorAll ('unit-number[data-tzoffset-type=time]').forEach (t => {
+          t.setAttribute ('value', value >= 0 ? value : -value);
+        });
+        
         var pfValue = -(new Date).getTimezoneOffset () * 60;
         var pfDelta = value - pfValue;
         this.querySelectorAll ('enum-value[data-tzoffset-type=platformdelta-sign]').forEach (t => {
