@@ -6,5 +6,5 @@ Net::SSLeay~1.85
 Path::Tiny~0.108
 Scalar::Util~1.50
 Socket~2.029
-Test::More~1.302162
+Test::More~1.302164
 Time::HiRes~1.9760
