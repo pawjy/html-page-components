@@ -463,6 +463,30 @@ attribute is |time|.  It may have a |step| attribute.  When the user
 changes the value of the element, the |input-datetime| element's
 |value| is changed.
 
+An |input-datetime| element may contain zero or more HTML |button|
+elements with |data-dt-type| attribute set to one of following values:
+
+  set
+
+    Set the |input-datetime| element's |value| to the button's
+    |value|.  Example:
+
+      <button type=button data-dt-type=set value=12345>Button</button>
+
+  set-now
+
+    Set the |input-datetime| element's |value| to the current time.
+    Example:
+
+      <button type=button data-dt-type=set-now>Button</button>
+
+  set-today
+
+    Set the |input-datetime| element's |value| to the 00:00:00 of the
+    day.  Example:
+
+      <button type=button data-dt-type=set-today>Button</button>
+
 An |input-datetime| element may contain zero or more HTML |time|
 elements.  When the |input-datetime| element is initialized and
 whenever the element's |value| property is updated, the |datetime|

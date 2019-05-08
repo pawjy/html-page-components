@@ -262,6 +262,90 @@
     this.assert.equal (d.value, '2016-08-24');
     this.assert.equal (t.value, '01:20:32');
   </test-code>
+  
+  <test-code name="set button">
+    /*
+      <input-datetime value=1472005232.322 tzoffset=7200>
+        <input type=date>
+        <input type=time>
+        <button type=button data-dt-type=set value=5353>Set</button>
+      </input-datetime>
+    */
+    var e = this.currentScript.querySelector ('input-datetime');
+    await this.wait ();
+
+    var changed = [];
+    e.onchange = () => {
+      changed.push (e.value);
+    };
+    
+    var b = e.querySelector ('button');
+    b.click ();
+    await this.wait ();
+    
+    var d = e.querySelector ('input[type=date]');
+    var t = e.querySelector ('input[type=time]');
+
+    this.assert.equal (e.value, 5353);
+    this.assert.equal (changed.length, 1);
+    this.assert.equal (changed[0], 5353);
+  </test-code>
+  
+  <test-code name="set-now button">
+    /*
+      <input-datetime value=1472005232.322 tzoffset=7200>
+        <input type=date>
+        <input type=time>
+        <button type=button data-dt-type=set-now value=5353>Set</button>
+      </input-datetime>
+    */
+    var e = this.currentScript.querySelector ('input-datetime');
+    await this.wait ();
+
+    var changed = [];
+    e.onchange = () => {
+      changed.push (e.value);
+    };
+    
+    var b = e.querySelector ('button');
+    b.click ();
+    await this.wait ();
+    
+    var d = e.querySelector ('input[type=date]');
+    var t = e.querySelector ('input[type=time]');
+
+    this.assert.equal (((new Date).valueOf () / 1000) - e.value < 60, true, ((new Date).valueOf () / 1000) - e.value);
+    this.assert.equal (changed.length, 1);
+    this.assert.equal (changed[0], e.value);
+  </test-code>
+  
+  <test-code name="set-today button">
+    /*
+      <input-datetime value=1472005232.322 tzoffset=-7200>
+        <input type=date>
+        <input type=time>
+        <button type=button data-dt-type=set-today value=5353>Set</button>
+      </input-datetime>
+    */
+    var e = this.currentScript.querySelector ('input-datetime');
+    await this.wait ();
+
+    var changed = [];
+    e.onchange = () => {
+      changed.push (e.value);
+    };
+    
+    var b = e.querySelector ('button');
+    b.click ();
+    await this.wait ();
+    
+    var d = e.querySelector ('input[type=date]');
+    var t = e.querySelector ('input[type=time]');
+
+    this.assert.equal (e.value, new Date ((new Date).toISOString ().replace (/T.+/, 'T00:00-02:00')).valueOf () / 1000);
+    this.assert.equal (changed.length, 1);
+    this.assert.equal (changed[0], e.value);
+  </test-code>
 
   <script src=runtests.js data-export=$fill></script>
 </body>
