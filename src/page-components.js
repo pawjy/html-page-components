@@ -1381,7 +1381,7 @@
           c.valueAsNumber = this.pcValueDate * 1000;
           c.required = true;
           c.onchange = () => {
-            this.pcValueDate = c.valueAsNumber / 1000;
+            this.pcValueDate = Math.floor (c.valueAsNumber / 1000);
             this.pcRequestRender ();
           };
         });
@@ -1397,7 +1397,35 @@
         this.querySelectorAll ('time').forEach (t => {
           t.setAttribute ('datetime', valueDate.toISOString ());
         });
+        
+        this.querySelectorAll ('button[data-dt-type]').forEach (t => {
+          t.onclick = () => this.pcHandleButton (t);
+        });
       }, // pcRender
+      pcHandleButton: function (button) {
+        var type = button.getAttribute ('data-dt-type');
+        if (type === 'set') {
+          this.value = button.value;
+        } else if (type === 'set-now') {
+          this.value = (new Date).valueOf () / 1000;
+        } else if (type === 'set-today') {
+          var now = new Date;
+          var lDay = new Date (now.toISOString ().replace (/T.*/, 'T00:00'));
+          var uDay = new Date (now.toISOString ().replace (/T.*/, 'T00:00Z'));
+          var delta = -now.getTimezoneOffset () * 60 - this.pcValueTZ;
+          var time = (now.valueOf () - lDay.valueOf ()) / 1000;
+          if (time >= delta) {
+            this.value = uDay.valueOf () / 1000 - this.pcValueTZ;
+          } else {
+            this.value = uDay.valueOf () / 1000 - this.pcValueTZ - 24*60*60;
+          }
+        } else {
+          throw new Error ('Unknown type: button[data-dt-type="'+type+'"]');
+        }
+        setTimeout (() => {
+          this.dispatchEvent (new Event ('change', {bubbles: true}));
+        }, 0);
+      }, // pcHandleButton
       pcModifyFormData: function (fd) {
         var name = this.getAttribute ('name');
         if (!name) return;

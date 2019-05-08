@@ -27,5 +27,20 @@ value=<output></output>
 " value=5123523534.2 tzoffset=3600>
   <input type=date>
   <input type=time>
+  <button type=button data-dt-type=set value=4124334333>set 4124334333</button>
+  <button type=button data-dt-type=set-now>set now</button>
+  <button type=button data-dt-type=set-today>set today</button>
+</input-datetime>
+value=<output></output>
+
+<p>
+<input-datetime onchange="
+  nextElementSibling.value = this.value;
+" value=5123523534.2 tzoffset=-36000>
+  <input type=date>
+  <input type=time>
+  <button type=button data-dt-type=set value=4124334333>set 4124334333</button>
+  <button type=button data-dt-type=set-now>set now</button>
+  <button type=button data-dt-type=set-today>set today</button>
 </input-datetime>
 value=<output></output>
