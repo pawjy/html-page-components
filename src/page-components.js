@@ -209,7 +209,8 @@
     } // notTopLevel
   }; // defineElement
 
-  var filledAttributes = ['href', 'src', 'id', 'title', 'value', 'action'];
+  var filledAttributes = ['href', 'src', 'id', 'title', 'value', 'action',
+                          'class'];
   var $fill = exportable.$fill = function (root, object) {
     root.querySelectorAll ('[data-field]').forEach ((f) => {
       var name = f.getAttribute ('data-field').split (/\./);
