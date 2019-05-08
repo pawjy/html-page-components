@@ -167,13 +167,14 @@
     /*
       <div>
         <span data-href-field=foo.abc>abc</span>
-        <span data-title-field=abc>fff</span>
+        <span data-title-field=abc data-class-field=xyz>fff</span>
       </div>
     */
     var e = this.currentScript.querySelector ('div');
-    $fill (e, {foo: {abc: "134 f<&>\u0022oo"}, "abc": 533});
+    $fill (e, {foo: {abc: "134 f<&>\u0022oo"}, "abc": 533, xyz: true});
     this.assert.equal (e.firstElementChild.getAttribute ('href'), '134 f<&>"oo');
     this.assert.equal (e.lastElementChild.getAttribute ('title'), '533');
+    this.assert.equal (e.lastElementChild.getAttribute ('class'), 'true');
   </test-code>
 
   <test-code name="data-*-template">
@@ -181,15 +182,16 @@
       <div>
         <span data-href-template={foo.abc}.{xyz}>abc</span>
         <span data-title-template=ab{abc}
-              data-id-template={}
+              data-id-template={} data-class-template=.{x2}
               data-src-template={foo.abc}{foo.abc}>fff</span>
       </div>
     */
     var e = this.currentScript.querySelector ('div');
-    $fill (e, {foo: {abc: "134 f<&>\u0022oo"}, "abc": 533});
+    $fill (e, {foo: {abc: "134 f<&>\u0022oo"}, "abc": 533, x2: "aa"});
     this.assert.equal (e.firstElementChild.getAttribute ('href'), '134 f<&>"oo.undefined');
     this.assert.equal (e.lastElementChild.getAttribute ('title'), 'ab533');
     this.assert.equal (e.lastElementChild.getAttribute ('id'), '{}');
+    this.assert.equal (e.lastElementChild.getAttribute ('class'), '.aa');
     this.assert.equal (e.lastElementChild.getAttribute ('src'), '134 f<&>"oo134 f<&>"oo');
   </test-code>
 
