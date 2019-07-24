@@ -299,6 +299,15 @@
     this.assert.equal (e.children[4].textContent, 'undefined');
     this.assert.equal (e.children[5].textContent, 'undefined');
   </test-code>
+  
+  <test-code name="data-filling">
+    /*
+      <div><span data-field=foo data-filling>abc</span></div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {foo: "134 f<&>\u0022oo"});
+    this.assert.equal (e.innerHTML, '&lt;span data-field="foo">134 f&amp;lt;&amp;amp;&amp;gt;"oo&lt;/span>');
+  </test-code>
 
   <script src=runtests.js data-export=$fill></script>
 </body>

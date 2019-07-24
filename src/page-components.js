@@ -254,6 +254,8 @@
           f.textContent = value;
         }
       }
+
+      f.removeAttribute ('data-filling');
     }); // [data-field]
 
     root.querySelectorAll ('[data-enable-by-fill]').forEach ((f) => {
