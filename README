@@ -1011,6 +1011,10 @@ scope.  The following functions are available:
               attribute for /element/, the |textContent| IDL attribute
               value is set to the |data-empty| attribute value.
 
+          If the element has a |data-filling| attribute, it is
+          removed.  This can be used to style the element in an
+          indeterminate state.
+
         An element with |data-/*/-field| attribute
 
           ... where /*/ is the *target attribute name* and is one of:
