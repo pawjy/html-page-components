@@ -25,6 +25,18 @@
     this.assert.equal (ts, this.currentScript.querySelector ('template-set'));
   </test-code>
     
+  <test-code name="$getTemplateSet templating">
+    /*
+      <template-set name=ts3>
+        <template>abc<b data-field=b /></template>
+      </template-set>
+    */
+    var ts = await $getTemplateSet ('ts3');
+    this.assert.equal (ts, this.currentScript.querySelector ('template-set'));
+    var div = ts.createFromTemplate ('div', {b: 43});
+    this.assert.equal (div.textContent, 'abc43');
+  </test-code>
+    
   <script src=runtests.js data-export=$getTemplateSet></script>
 </body>
 </html>
