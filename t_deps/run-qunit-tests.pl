@@ -111,6 +111,8 @@ sub execute_test_html_file {
               allTestsPassed: allTestsPassed,
               testResultsHtmlString: "<!DOCTYPE html>" + html.outerHTML,
             };
+          }).catch (e => {
+            throw '' + e;
           });
         })->then (sub {
           my $result = $_[0];
