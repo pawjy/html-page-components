@@ -1087,6 +1087,14 @@ scope.  The following functions are available:
     |undefined|, the result is |null|).  For example, field value for
     |abc.def.xyz| is the value of |object.abc.def.xyz|.
 
+  |$getTemplateSet| namespace
+
+    ts = await $getTemplateSet (name)
+
+      Get the |template-set| element whose |name| is /name/.  The
+      function returns a promise which is resolved once the template
+      set has been inserted into the document.
+
   |$promised| namespace
 
     promise = $promised.forEach ((item) => { return promise }, list)

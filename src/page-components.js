@@ -380,6 +380,10 @@
     }
   }; // initTemplateSet
 
+  exportable.$getTemplateSet = function (name) {
+    return getDef ('templateSet', name);
+  }; // $getTemplateSet
+
   var ActionStatus = function (elements) {
     this.stages = {};
     this.elements = elements;
