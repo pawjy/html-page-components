@@ -58,6 +58,7 @@ sub run_tests {
   my $exit_code = 0;
   my @failed;
   for my $path (sort { $a cmp $b } $root_path->child ('t')->children (qr/\.html\z/)) {
+    next unless $path =~ /input-datetime/;
     my $url = "http://$BrowserHTTPHost:$HTTPPort/${path}${query_string}";
     my $result_path = $test_results_path->child ($path->basename);
     next if $path =~ m{/data[^/]*\.html\z};
@@ -168,6 +169,10 @@ sub execute_test_html_file {
     return $p->catch (sub {})->then (sub {
       return $wd->close;
     })->then (sub { return $p; });
+  })->catch (sub {
+    my $e = $_[0];
+    print "# Test runner error: |$e|\n";
+    $all_tests_passed = 0;
   })->to_cv->recv;
 
   return $all_tests_passed;
