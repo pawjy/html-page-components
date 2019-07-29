@@ -56,7 +56,8 @@ sub run_tests {
 
   $test_results_path->mkpath;
   my $exit_code = 0;
-  for my $path ($root_path->child ('t')->children (qr/\.html\z/)) {
+  my @failed;
+  for my $path (sort { $a cmp $b } $root_path->child ('t')->children (qr/\.html\z/)) {
     my $url = "http://$BrowserHTTPHost:$HTTPPort/${path}${query_string}";
     my $result_path = $test_results_path->child ($path->basename);
     next if $path =~ m{/data[^/]*\.html\z};
@@ -67,8 +68,12 @@ sub run_tests {
       print "ok - $url -> $result_path\n";
     } else {
       print "not ok - $url -> $result_path\n";
+      push @failed, "$url -> $result_path";
       $exit_code = 1;
     }
+  }
+  for (@failed) {
+    print STDERR "# Failed: $_\n";
   }
   return $exit_code;
 }
