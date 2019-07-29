@@ -381,7 +381,10 @@
   }; // initTemplateSet
 
   exportable.$getTemplateSet = function (name) {
-    return getDef ('templateSet', name);
+    return getDef ('templateSet', name).then (ts => {
+      ts.pcCreateTemplateList ();
+      return ts;
+    });
   }; // $getTemplateSet
 
   var ActionStatus = function (elements) {
