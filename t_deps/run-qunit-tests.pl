@@ -94,7 +94,7 @@ sub execute_test_html_file {
         return $session->execute (q{
           return Promise.resolve().then(function () {
             var bannerElem = document.querySelector("#qunit-banner");
-            var testFinished = bannerElem.classList.contains("qunit-pass") || bannerElem.classList.contains("qunit-fail");
+            var testFinished = bannerElem && (bannerElem.classList.contains("qunit-pass") || bannerElem.classList.contains("qunit-fail"));
             if (!testFinished) {
               return new Promise(function (resolve, reject) {
                 QUnit.done(function () { resolve() });
