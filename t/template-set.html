@@ -162,6 +162,29 @@
     this.assert.equal (list.textContent, 'x1x22');
   </test-code>
   
+  <test-code name="template attributes">
+    /*
+      <list-container loader=localLoader template=templateSet7>
+        <loader-data>
+          {"data": [{"name":1},{"name":2}]}
+        </loader-data>
+        <list-main></list-main>
+      </list-container>
+      <template-set name=templateSet7>
+        <template class=name data-title-template=x{name}y data-id-field=name>a<span data-field=name></span>b</template>
+      </template-set>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    await this.wait ();
+    var list = e.querySelector ('list-main');
+    this.assert.equal (list.children[0].className, 'name');
+    this.assert.equal (list.children[0].title, 'x1y');
+    this.assert.equal (list.children[0].id, '1');
+    this.assert.equal (list.children[1].className, 'name');
+    this.assert.equal (list.children[1].title, 'x2y');
+    this.assert.equal (list.children[1].id, '2');
+  </test-code>
+  
   <script src=runtests.js></script>
 </body>
 </html>
