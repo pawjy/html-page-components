@@ -788,8 +788,9 @@ When a /name/ element is created from an /object/ using /template/,
     space-separated list of the definition type-name pair separated by
     |:| required to process the template.
 
-  - Its |class| attribute value is set to the |class| attribute value
-    of /template/.
+  - Its |class|, |title|, and |id| attribute values are set by
+    attributes of /template/, in the same way as the |$fill| function
+    (e.g. |data-title-template| attributes are applicable).
 
   - Its content is set to a deep clone of the template content of
     /template/.
