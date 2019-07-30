@@ -125,7 +125,7 @@
 
   defs.filltype.time = 'datetime';
   // <data>
-  defs.filltype.input = 'idlattribute';
+  defs.filltype.input = 'input';
   defs.filltype.select = 'idlattribute';
   defs.filltype.textarea = 'idlattribute';
   defs.filltype.output = 'idlattribute';
@@ -226,6 +226,21 @@
         f.setAttribute ('value', value);
       } else if (fillType === 'idlattribute') {
         f.value = value;
+      } else if (fillType === 'input') {
+        var type = f.type;
+        if (type === 'date' ||
+            type === 'month' ||
+            type === 'week' ||
+            type === 'datetime-local') {
+          value = parseFloat (value);
+          if (!Number.isFinite (value)) {
+            f.value = '';
+          } else {
+            f.valueAsNumber = value * 1000;
+          }
+        } else {
+          f.value = value;
+        }
       } else if (fillType === 'datetime') {
         try {
           var dt = new Date (value * 1000);

@@ -967,15 +967,16 @@ scope.  The following functions are available:
               The value of /element/ is the |value| content attribute
               value of /element/, if specified, or |null|.
 
-              |enum-value| elements are set to this mode.
+              HTML page components' |enum-value| elements are set to
+              this mode.
 
             |idlattribute|
 
               The value of /element/ is the |value| IDL attribute
               value of /element/.
 
-              |input|, |select|, |textarea|, and |output| elements are
-               set to this mode.
+              HTML |select|, |textarea|, and |output| elements are set
+              to this mode.
 
             |datetime|
 
@@ -1000,7 +1001,18 @@ scope.  The following functions are available:
               It should be handled by another JavaScript codes, such
               as time.js <https://github.com/wakaba/timejs>.
 
-              |time| element is set to this mode.
+              HTML |time| element is set to this mode.
+
+            |input|
+            
+              The value of /element/ is the |value| IDL attribute
+              value of /element/.  If /element/'s |type| content
+              attribute value is |date|, |month|, |week|, or
+              |datetime-local|, the value is the result of the |new
+              Date (/field value/ * 1000).toISOString ()|, or the
+              empty string if /field value/ is not defined.
+
+              HTML |input| elements are set to this mode.
 
             Any other value
 
