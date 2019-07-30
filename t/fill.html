@@ -45,6 +45,26 @@
     this.assert.equal (e.lastChild.value, 'undefined');
   </test-code>
   
+  <test-code name="input date">
+    /*
+      <div><input data-field=abc value=2000-10-01 type=date>
+        <input data-field=xyz value=2011-01 type=month>
+        <input data-field=z value=2011-W01 type=week>
+        <input data-field=x value=2011-02-01T00:00 type=datetime-local>
+        <input data-field=a value=2011-01 type=month>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {abc: 163463444, z:0, x:null, a:''});
+    this.assert.equal (e.firstChild.getAttribute ('value'), "2000-10-01");
+    this.assert.equal (e.firstChild.value, '1975-03-07');
+    this.assert.equal (e.children[1].getAttribute ('value'), "2011-01");
+    this.assert.equal (e.children[1].value, '');
+    this.assert.equal (e.children[2].value, '1970-W01');
+    this.assert.equal (e.children[3].value, '');
+    this.assert.equal (e.children[4].value, '');
+  </test-code>
+  
   <test-code name="textarea">
     /*
       <div><textarea data-field=abc>a</textarea><textarea data-field=xyz>b</textarea></div>
