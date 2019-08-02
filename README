@@ -1090,7 +1090,9 @@ scope.  The following functions are available:
       Return the result of processing the *value template*
       /templateString/ with /object/, i.e. a copy of /templateString/
       where any substring |{/field-name/}| is replaced by the field
-      value for /field-name/ of /object/.
+      value for /field-name/ of /object/ and any substring
+      |{url:/field-name/}| is replaced by the percent-encoded (or
+      URL-encoded) field value for /field-name/ of /object/.
 
     The *field value* for /field/ of /object/ is the /field/ property
     value of /object/.  If /field/ contains a |.| character, the
