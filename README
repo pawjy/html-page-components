@@ -29,6 +29,8 @@ loaded:
   <enum-value>
   <button is=command-button>
   <button is=mode-button>
+  <button is=copy-text-content>
+  <a is=copy-url>
   <popup-menu>
   <tab-set>
   <list-container>
@@ -110,6 +112,24 @@ The element selected by the |data-selector| attribute is expected to
 be fired a bubbling |pcModeChange| event whose |mode| property is set
 to the value equal to the |name| attribute value when a new mode value
 is set.
+
+** <button is=copy-text-content>
+
+A |button| element whose |is| attribute value is |copy-text-content|
+represents a button used to copy the text content of another element.
+(Be aware that this implementation does not support mutation of |is|
+attribute; it must be set to a value before the element's insertion
+into the document.)
+
+The element must have a |data-selector| attribute.  Its value is a
+group of selectors that selects an element in the document.
+
+** <a is=copy-url>
+
+An |a| element whose |is| attribute value is |copy-url| represents a
+button used to copy the linked URL.  (Be aware that this
+implementation does not support mutation of |is| attribute; it must be
+set to a value before the element's insertion into the document.)
 
 ** <popup-menu>
 
