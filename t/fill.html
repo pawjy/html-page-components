@@ -329,6 +329,22 @@
     this.assert.equal (e.innerHTML, '&lt;span data-field="foo">134 f&amp;lt;&amp;amp;&amp;gt;"oo&lt;/span>');
   </test-code>
 
+  <test-code name="data-filled">
+    /*
+      <div>
+        <button data-data-abc-template="abc{foo.abc}"
+                data-align-field=abc
+                data-name-field=abc
+                data-filled="aa data-abc name"></button>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {foo: {abc: "134 f<&>\u0022oo"}, "abc": 533});
+    this.assert.equal (e.firstElementChild.getAttribute ('data-abc'), 'abc134 f<&>"oo');
+    this.assert.equal (e.firstElementChild.getAttribute ('align'), null);
+    this.assert.equal (e.firstElementChild.getAttribute ('name'), '533');
+  </test-code>
+
   <script src=runtests.js data-export=$fill></script>
 </body>
 </html>
