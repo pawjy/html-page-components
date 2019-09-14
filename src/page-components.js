@@ -792,6 +792,9 @@
           if (this.pmGlobalClickHandler) {
             window.removeEventListener ('click', this.pmGlobalClickHandler);
             delete this.pmGlobalClickHandler;
+
+            var ev = new Event ('toggle', {bubbles: true});
+            this.dispatchEvent (ev);
           }
         }
       }, // pmToggle
@@ -823,6 +826,9 @@
             menu.style.left = 'auto';
           }
         }
+
+        var ev = new Event ('toggle', {bubbles: true});
+        this.dispatchEvent (ev);
       }, // pmLayout
     },
   }); // popup-menu
