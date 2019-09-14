@@ -363,6 +363,44 @@
     this.assert.equal (getComputedStyle (menu).display, 'none');
     
   </test-code>
+  
+  <test-code name="toggle event dispatched (not open by default)">
+    /*
+      <div ontoggle="
+        this.pcEvents = this.pcEvents || [];
+        this.pcEvents.push (event);
+      ">
+      <popup-menu>
+        <button type=button>A</button>
+        <menu-main>BBBBBBBBBBBBBBB</menu-main>
+      </popup-menu>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    var menu = e.querySelector ('menu-main');
+    var button = e.querySelector ('button');
+
+    var parent = e.parentNode;
+    this.assert.equal (parent.pcEvents, undefined);
+
+    e.toggle ();
+    await this.wait ();
+
+    this.assert.equal (parent.pcEvents.length, 1);
+    this.assert.equal (parent.pcEvents[0].type, 'toggle');
+    this.assert.equal (parent.pcEvents[0].target, e);
+    this.assert.equal (parent.pcEvents[0].bubbles, true);
+
+    e.toggle ();
+    await this.wait ();
+    
+    this.assert.equal (parent.pcEvents.length, 2);
+
+    e.setAttribute ('open', '');
+    await this.wait ();
+    
+    this.assert.equal (parent.pcEvents.length, 3);
+  </test-code>
 
   <script src=runtests.js></script>
 </body>

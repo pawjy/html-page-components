@@ -172,6 +172,9 @@ Clicking a |button| or |a| element descendant of the |menu-main|
 element is equivalent to invoking the |toggle| method with argument
 false (unless the |click| event's propagation has been stopped).
 
+When the popup menu is open, or is closed, a bubbling |toggle| event
+is fired at the |popup-menu| element.
+
 ** <tab-set>
 
 A |tab-set| element represents a set of sections where one of them are
