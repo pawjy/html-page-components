@@ -726,7 +726,11 @@
           this.pmToggle (this.hasAttribute ('open'));
         });
         mo.observe (this, {attributes: true, attributeFilter: ['open']});
-        setTimeout (() => this.pmLayout (), 100);
+        setTimeout (() => {
+          if (this.hasAttribute ('open') && !this.pmGlobalClickHandler) {
+            this.pmToggle (true);
+          }
+        }, 100);
       }, // pcInit
       pmClick: function (ev) {
         var current = ev.target;
