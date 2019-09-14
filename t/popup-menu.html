@@ -91,6 +91,23 @@
     this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none');
   </test-code>
   
+  <test-code name="not hidden if command's click's propagation is stopped">
+    /*
+      <popup-menu>
+        <button type=button>A</button>
+        <menu-main>B <button onclick="event.stopPropagation ()">C</button></menu-main>
+      </popup-menu>
+    */
+    var e = this.currentScript.querySelector ('popup-menu');
+    
+    e.querySelector ('button').click ();
+    this.assert.equal (e.getAttribute ('open'), '', 'e is opened');
+    
+    await this.wait ();
+    e.querySelector ('menu-main button').click ();
+    this.assert.equal (e.getAttribute ('open'), '', 'e is still opened');
+  </test-code>
+  
   <test-code name="hide by click-outside">
     /*
       <popup-menu>
@@ -155,42 +172,9 @@
     this.assert.equal (f.getAttribute ('open'), '', 'f is opened');
   </test-code>
   
-  <test-code name="not hidden if command's click's propagation is stopped">
-    /*
-      <popup-menu>
-        <button type=button>A</button>
-        <menu-main>B <button onclick="event.stopPropagation ()">C</button></menu-main>
-      </popup-menu>
-    */
-    var e = this.currentScript.querySelector ('popup-menu');
-    
-    e.querySelector ('button').click ();
-    this.assert.equal (e.getAttribute ('open'), '', 'e is opened');
-    
-    await this.wait ();
-    e.querySelector ('menu-main button').click ();
-    this.assert.equal (e.getAttribute ('open'), '', 'e is still opened');
-  </test-code>
-  
-  <test-code name="open by default">
-    /*
-      <popup-menu open>
-        <button type=button>A</button>
-        <menu-main>B</menu-main>
-      </popup-menu>
-    */
-    var e = this.currentScript.querySelector ('popup-menu');
-    this.assert.equal (e.getAttribute ('open'), '');
-    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'block', 'default style');
-    await this.wait ();
-    e.toggle ();
-    this.assert.equal (e.getAttribute ('open'), null);
-    this.assert.equal (getComputedStyle (e.querySelector ('menu-main')).display, 'none');
-  </test-code>
-  
   <test-code name="menu align (left)">
     /*
-      <popup-menu open>
+      <popup-menu>
         <button type=button>A</button>
         <menu-main>BBBBBBBBBBBBBBBB</menu-main>
       </popup-menu>
@@ -198,6 +182,8 @@
     var e = this.currentScript.querySelector ('popup-menu');
     var button = e.querySelector ('button');
     var menu = e.querySelector ('menu-main');
+    button.click ();
+    await this.wait ();
     this.assert.equal (menu.offsetLeft, 0);
   </test-code>
   
@@ -213,6 +199,8 @@
     var e = this.currentScript.querySelector ('popup-menu');
     var button = e.querySelector ('button');
     var menu = e.querySelector ('menu-main');
+    button.click ();
+    await this.wait ();
     this.assert.equal (menu.offsetLeft + menu.offsetWidth, button.offsetLeft + button.offsetWidth);
   </test-code>
   
@@ -233,7 +221,7 @@
   <test-code name="menu align (right)">
     /*
       <div style=text-align:right>
-      <popup-menu open>
+      <popup-menu>
         <button type=button>A</button>
         <menu-main>B</menu-main>
       </popup-menu>
@@ -242,6 +230,8 @@
     var e = this.currentScript.querySelector ('popup-menu');
     var button = e.querySelector ('button');
     var menu = e.querySelector ('menu-main');
+    button.click ();
+    await this.wait ();
     this.assert.equal (menu.offsetLeft + menu.offsetWidth, button.offsetLeft + button.offsetWidth);
     await this.wait ();
     e.toggle ();
@@ -253,7 +243,7 @@
   <test-code name="menu align (end) rtl">
     /*
       <div style=text-align:left;direction:rtl>
-      <popup-menu open>
+      <popup-menu>
         <button type=button>A</button>
         <menu-main>B</menu-main>
       </popup-menu>
@@ -262,6 +252,8 @@
     var e = this.currentScript.querySelector ('popup-menu');
     var button = e.querySelector ('button');
     var menu = e.querySelector ('menu-main');
+    button.click ();
+    await this.wait ();
     this.assert.equal (menu.offsetLeft, 0);
     await this.wait ();
     e.toggle ();
@@ -273,7 +265,7 @@
   <test-code name="menu align (large menu)">
     /*
       <div style=text-align:right>
-      <popup-menu open>
+      <popup-menu>
         <button type=button>A</button>
         <menu-main style="width:150vw">B</menu-main>
       </popup-menu>
@@ -282,13 +274,15 @@
     var e = this.currentScript.querySelector ('popup-menu');
     var button = e.querySelector ('button');
     var menu = e.querySelector ('menu-main');
+    button.click ();
+    await this.wait ();
     this.assert.equal (menu.offsetLeft, 0);
   </test-code>
 
   <test-code name="menu align (large menu) rtl">
     /*
       <div style=direction:rtl>
-      <popup-menu open>
+      <popup-menu>
         <button type=button>A</button>
         <menu-main style="width:150vw">B</menu-main>
       </popup-menu>
@@ -297,13 +291,25 @@
     var e = this.currentScript.querySelector ('popup-menu');
     var button = e.querySelector ('button');
     var menu = e.querySelector ('menu-main');
-    this.assert.equal (menu.offsetLeft + menu.offsetWidth, button.offsetLeft + button.offsetWidth);
+    button.click ();
+    await this.wait ();
+    this.assert.equal (
+      menu.offsetLeft + menu.offsetWidth
+      -
+      button.offsetLeft + button.offsetWidth
+      < 100,
+      true,
+      [
+        menu.offsetLeft + menu.offsetWidth,
+        button.offsetLeft + button.offsetWidth,
+      ],
+    );
   </test-code>
 
   <test-code name="menu align (center)">
     /*
       <div style=width:100em;padding-left:30em>
-      <popup-menu open>
+      <popup-menu>
         <button type=button>A</button>
         <menu-main style="width:20em">B</menu-main>
       </popup-menu>
@@ -312,13 +318,15 @@
     var e = this.currentScript.querySelector ('popup-menu');
     var button = e.querySelector ('button');
     var menu = e.querySelector ('menu-main');
+    button.click ();
+    await this.wait ();
     this.assert.equal (menu.offsetLeft + menu.offsetWidth, button.offsetLeft + button.offsetWidth);
   </test-code>
 
   <test-code name="menu align (center) rtl">
     /*
       <div style=width:100em;padding-right:30em>
-      <popup-menu open>
+      <popup-menu>
         <button type=button>A</button>
         <menu-main style="width:20em">B</menu-main>
       </popup-menu>
@@ -327,6 +335,8 @@
     var e = this.currentScript.querySelector ('popup-menu');
     var button = e.querySelector ('button');
     var menu = e.querySelector ('menu-main');
+    button.click ();
+    await this.wait ();
     this.assert.equal (menu.offsetLeft, button.offsetLeft);
   </test-code>
   
