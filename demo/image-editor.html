@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html
+    data-google-picker-key=AIzaSyBQ_VReK_meBgu-VfNZA7a8_DQ0A1eRAXo
+    data-google-picker-client-id=379902789782-5so6qru35je5rm3d9lkbqnqnf2ot2bvd.apps.googleusercontent.com
+    data-paco-image-proxy=https://cors-anywhere.herokuapp.com/{url}
+>
+<title>image-editor</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js async data-export=$fill></script>
+
+<image-editor onchange="
+  var jpeg = document.querySelector ('.jpeg');
+  var png = document.querySelector ('.png');
+  png.textContent = 'PNG';
+  jpeg.textContent = 'JPEG';
+  jpeg.href = png.href = 'javascript:';
+  this.getPNGBlob ().then (blob => {
+    png.textContent = 'PNG ('+blob.size+')';
+    png.href = window.URL.createObjectURL (blob);
+  });
+  this.getJPEGBlob ().then (blob => {
+    jpeg.textContent = 'JPEG ('+blob.size+')';
+    jpeg.href = window.URL.createObjectURL (blob);
+  });
+"><image-layer></image-layer></image-editor>
+
+<p>
+  <button type=button is=command-button data-selector=image-layer data-command=selectImageFromFile>File...</button>
+  <button type=button onclick="
+    document.querySelector ('image-layer').selectImageByURL ('../t/image.png');
+  ">URL (same origin)</button>
+  <button type=button is=command-button data-selector=image-layer data-command=selectImageFromGooglePhoto>Google Photo...</button>
+  
+<p><a href target=image class=jpeg>JPEG</a> <a href target=image class=png>PNG</a>
