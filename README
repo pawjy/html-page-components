@@ -703,6 +703,33 @@ An |image-layer| element has these methods:
     fulfilled once the image has been loaded.  It is rejected if the
     image cannot be loaded.  This is a |command-button| command.
 
+  selectImageFromGooglePhoto () : Promise
+
+    Set the layer to an image for the element by showing a dialog to
+    choose an image from Google Photo.  It returns a promise which is
+    fulfilled once the image has been loaded.  It is rejected if the
+    image is not selected.  This is a |command-button| command.
+
+    This method invokes Google Picker API
+    <https://developers.google.com/picker>, which requires an API key
+    and OAuth client ID.  They must be set to the
+    |data-google-picker-key| and |data-google-picker-client-id|
+    attributes of the document root |html| element.
+
+    This method requires an HTTP server endpoint that returns image
+    data specified by a URL in CORS-same-origin as the document
+    (otherwise the page cannot load the Google Photo image data hosted
+    on the Google server).  It must be specified as the
+    |data-paco-image-proxy| attribute of the document root |html|
+    element, using "{url}" as placeholder for the image URL, and
+    "{url:url}" as for the percent-encoded image URL.  Examples:
+
+      data-paco-image-proxy=https://cors-anywhere.herokuapp.com/{url}
+      data-paco-image-proxy=https://crossorigin.me/{url}
+      data-paco-image-proxy=https://example.com/image?url={url:url}
+
+    See also |demo/image-editor.html|.
+
   startCaptureMode ()
 
     Starts the element's *camera capture mode*, if not yet and if
