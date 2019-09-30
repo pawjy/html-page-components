@@ -1698,7 +1698,7 @@
       selectImageFromCaptureModeAndEndCaptureMode: {},
       
       selectImageFromFile: {},
-      selectImageFromGooglePhoto: {},
+      selectImageFromGooglePhotos: {},
 
       rotateClockwise: {},
       rotateCounterclockwise: {},
@@ -2067,7 +2067,8 @@
         });
       });
     }, // iePrepareGoogleOAuth
-    selectImageFromGooglePhoto: function () {
+    // XXX not tested :-<
+    selectImageFromGooglePhotos: function () {
       var key = document.documentElement.getAttribute ('data-google-picker-key');
       var proxyTemplate = document.documentElement.getAttribute ('data-paco-image-proxy');
       return Promise.resolve ().then (() => {
@@ -2104,7 +2105,7 @@
         if (!imageURL) throw new Error ('Google Picker API response is broken');
         return this.selectImageByURL ($fill.string (proxyTemplate, {url: imageURL}));
       });
-    }, // selectImageFromGooglePhoto
+    }, // selectImageFromGooglePhotos
 
     ieRotateByDegree: function (degree) {
       var canvas = document.createElement ('canvas');
