@@ -2103,6 +2103,10 @@
         var url = doc[google.picker.Document.URL];
         var imageURL = doc.thumbnails[doc.thumbnails.length-1].url;
         if (!imageURL) throw new Error ('Google Picker API response is broken');
+        imageURL = imageURL.replace (/\/s[0-9]+[-a-z]*\/([^\/]+)$/, '/s1200/$1');
+        if (!/\/s1200\/[^\/]+$/.test (imageURL)) {
+          imageURL = imageURL.replace (/(?=[^\/]+$)/, 's1200/');
+        }
         return this.selectImageByURL ($fill.string (proxyTemplate, {url: imageURL}));
       });
     }, // selectImageFromGooglePhotos
