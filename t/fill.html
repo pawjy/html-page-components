@@ -319,6 +319,21 @@
     this.assert.equal (e.children[4].textContent, 'undefined');
     this.assert.equal (e.children[5].textContent, 'undefined');
   </test-code>
+
+  <test-code name="empty attribute value">
+    /*
+      <div>
+        <input data-field=abc>
+        <p data-title-field=abc>
+        <q data-abc-field=abc data-filled=abc></q>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {"abc": 0});
+    this.assert.equal (e.querySelector ('input').value, "0");
+    this.assert.equal (e.querySelector ('p').title, "0");
+    this.assert.equal (e.querySelector ('q').getAttribute ('abc'), "0");
+  </test-code>
   
   <test-code name="data-filling">
     /*
