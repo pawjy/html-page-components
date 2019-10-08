@@ -2215,6 +2215,8 @@
       }, // setExpectedStructure
       pcRecompute: function () {
         var mapping = this.pcComputedMapping = [];
+        var hasMapping = [];
+        var mapped = {};
         for (var i = 0; i < this.pcHeader.length; i++) {
           mapping[i] = {
             index: i,
@@ -2223,25 +2225,44 @@
           if (this.pcOverrideMapping[i] &&
               this.pcOverrideMapping[i].mappedKey != null) {
             if (mapping[i].mappedKey === '') {
-              //
+              hasMapping[i] = true;
             } else {
-              mapping[i].mappedKey = this.pcOverrideMapping[i].mappedKey;
+              var key = this.pcOverrideMapping[i].mappedKey;
+              if (!mapped[key]) {
+                mapping[i].mappedKey = key;
+                hasMapping[i] = true;
+                mapped[key] = true;
+              }
             }
+          }
+        }
+        for (var i = 0; i < this.pcHeader.length; i++) {
+          if (hasMapping[i]) {
+            //
           } else if (mapping[i].headerValue) {
             if (this.pcExpected[mapping[i].headerValue]) {
-              mapping[i].mappedKey = mapping[i].headerValue;
+              var key = mapping[i].headerValue;
+              if (!mapped[key]) {
+                mapping[i].mappedKey = key;
+                hasMapping[i] = true;
+                mapped[key] = true;
+              }
             } else {
               var keys = Object.keys (this.pcExpected);
               for (var j = 0; j < keys.length; j++) {
-                if ((this.pcExpected[keys[j]].headerValues || []).includes (mapping[i].headerValue)) {
-                  mapping[i].mappedKey = keys[j];
+                var key = keys[j];
+                if ((this.pcExpected[key].headerValues || []).includes (mapping[i].headerValue)) {
+                  if (!mapped[key]) {
+                    mapping[i].mappedKey = key;
+                    hasMapping[i] = true;
+                    mapped[key] = true;
+                  }
                   break;
                 }
               }
             }
           }
         }
-        // XXX if dup
 
         this.pcComputedData = this.pcRawData.map (raw => {
           var data = {};
