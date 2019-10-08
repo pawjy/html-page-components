@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+  
+  <test-code name="basic">
+    /*
+    <table-mapper>
+      <list-container loader=tableMapperLoader loader-type=data>
+        <list-main></list-main>
+        <template>
+          <p>Name: <bdi data-field=data.name></bdi>
+          <p>Unmapped: <bdi data-field=data.unmapped></bdi>
+          <p><code data-field=raw.0></code>,
+          <code data-field=raw.1></code>,
+          <code data-field=raw.2></code>
+        </template>
+      </list-container>
+      <list-container loader=tableMapperLoader loader-type=mapping>
+        <list-main></list-main>
+        <template>
+          <p><code data-field=index></code>=<code data-field=headerValue></code></p>
+          <p><select is=table-mapper-header data-data-index-field=index data-data-mappedkey-field=mappedKey data-filled="data-index data-mappedkey">
+            <option value>None
+          </select>
+        </template>
+      </list-container>
+    </table-mapper>
+    */
+
+    var inputData = [
+      ["key", "名前", "xyz"],
+      ["abc", "def", "xyz"],
+      ["124", "10.1", "ab e", "aa"],
+      ["42", "aa", "aaa"]
+    ];
+    
+    var tm = this.currentScript.querySelector ('table-mapper');
+    tm.setRawData (inputData, {
+      header: true,
+    });
+    tm.setExpectedStructure ({
+      "name": {
+        "headerValues": ["name", "名前"]
+      },
+      "xyz": {},
+      "123": {},
+      "unmapped": {},
+    });
+    await this.wait (500);
+
+    var cd = tm.getComputedData ();
+    this.assert.deepEqual (cd, [
+      {raw: inputData[1], data: {name: "def", xyz: "xyz"}},
+      {raw: inputData[2], data: {name: "10.1", xyz: "ab e"}},
+      {raw: inputData[3], data: {name: "aa", xyz: "aaa"}},
+    ]);
+
+    var items = tm.querySelectorAll ('[loader-type=data] list-item');
+    this.assert.equal (items.length, 3);
+    this.assert.equal (items[0].querySelectorAll ('bdi')[0].textContent, 'def');
+    this.assert.equal (items[0].querySelectorAll ('bdi')[1].textContent, '');
+    this.assert.equal (items[1].querySelectorAll ('bdi')[0].textContent, '10.1');
+    this.assert.equal (items[2].querySelectorAll ('bdi')[0].textContent, 'aa');
+
+    var items = tm.querySelectorAll ('[loader-type=mapping] list-item');
+    this.assert.equal (items.length, 3);
+    this.assert.equal (items[0].querySelectorAll ('p')[0].textContent, '0=key');
+    this.assert.equal (items[0].querySelector ('select').value, '');
+    this.assert.equal (items[1].querySelectorAll ('p')[0].textContent, '1=名前');
+    this.assert.equal (items[1].querySelector ('select').value, 'name');
+    this.assert.equal (items[2].querySelectorAll ('p')[0].textContent, '2=xyz');
+    this.assert.equal (items[2].querySelector ('select').value, 'xyz');
+
+    items[0].querySelector ('select').value = '123';
+    items[0].querySelector ('select').dispatchEvent (new Event ('change', {bubbles: true}));
+    await this.wait (500);
+
+    var cd = tm.getComputedData ();
+    this.assert.deepEqual (cd, [
+      {raw: inputData[1], data: {name: "def", xyz: "xyz", "123": "abc"}},
+      {raw: inputData[2], data: {name: "10.1", xyz: "ab e", "123": "124"}},
+      {raw: inputData[3], data: {name: "aa", xyz: "aaa", "123": "42"}},
+    ]);
+
+    var items = tm.querySelectorAll ('[loader-type=mapping] list-item');
+    this.assert.equal (items[0].querySelector ('select').value, '123');
+    this.assert.equal (items[1].querySelector ('select').value, 'name');
+    this.assert.equal (items[2].querySelector ('select').value, 'xyz');
+  </test-code>
+  
+  <test-code name="no header row">
+    /*
+    <table-mapper>
+      <list-container loader=tableMapperLoader loader-type=data>
+        <list-main></list-main>
+        <template>
+          <p>Name: <bdi data-field=data.name></bdi>
+          <p>Unmapped: <bdi data-field=data.unmapped></bdi>
+          <p><code data-field=raw.0></code>,
+          <code data-field=raw.1></code>,
+          <code data-field=raw.2></code>
+        </template>
+      </list-container>
+      <list-container loader=tableMapperLoader loader-type=mapping>
+        <list-main></list-main>
+        <template>
+          <p><code data-field=index></code>=<code data-field=headerValue></code>
+          <p><select is=table-mapper-header data-data-index-field=index data-data-mappedkey-field=mappedKey data-filled="data-index data-mappedkey">
+            <option value>None
+          </select>
+        </template>
+      </list-container>
+    </table-mapper>
+    */
+
+    var inputData = [
+      ["key", "名前", "xyz"],
+      ["abc", "def", "xyz"],
+      ["124", "10.1", "ab e", "aa"],
+      ["42", "aa", "aaa"]
+    ];
+    
+    var tm = this.currentScript.querySelector ('table-mapper');
+    tm.setRawData (inputData, {
+    });
+    tm.setExpectedStructure ({
+      "name": {
+        "headerValues": ["name", "名前"]
+      },
+      "xyz": {},
+      "123": {}
+    });
+    await this.wait (100);
+
+    var cd = tm.getComputedData ();
+    this.assert.deepEqual (cd, [
+      {raw: inputData[0], data: {}},
+      {raw: inputData[1], data: {}},
+      {raw: inputData[2], data: {}},
+      {raw: inputData[3], data: {}},
+    ]);
+  </test-code>
+  
+  <script src=runtests.js></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->

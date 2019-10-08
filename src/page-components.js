@@ -285,7 +285,7 @@
           value = value[name[i]];
           if (value == null) break;
         }
-        if (value) {
+        if (value != null) {
           f.setAttribute (n, value);
         } else {
           f.removeAttribute (n);
@@ -306,7 +306,7 @@
             value = value[name[i]];
             if (value == null) break;
           }
-          if (value) {
+          if (value != null) {
             f.setAttribute (n, value);
           } else {
             f.removeAttribute (n);
@@ -2175,7 +2175,155 @@
       this.ieUpdateDimension ();
     }, // setScale
     },
-  }); // image-layer
+  }); // <image-layer>
+
+  defineElement ({
+    name: 'table-mapper',
+    props: {
+      pcInit: function () {
+        this.pcHeader = [];
+        this.pcRawData = [];
+        this.pcExpected = {};
+        this.pcOverrideMapping = [];
+        this.pcComputedData = [];
+        this.pcComputedMapping = [];
+        this.onchange = (ev) => {
+          if (ev.target.localName === 'select' &&
+              ev.target.getAttribute ('is') === 'table-mapper-header') {
+            var index = ev.target.getAttribute ('data-index');
+            var mappedKey = ev.target.value;
+            if (index != null) {
+              this.pcOverrideMapping[index] = this.pcOverrideMapping[index] || {};
+              this.pcOverrideMapping[index].mappedKey = mappedKey;
+              this.pcRender ();
+            }
+          }
+        }; // onchange
+      }, // pcInit
+      setRawData: function (data, opts) {
+        this.pcRawData = Array.prototype.slice.call (data || []);
+        if (opts.header) {
+          this.pcHeader = this.pcRawData.shift ();
+        } else {
+          this.pcHeader = [];
+        }
+        this.pcRender ();
+      }, // setRawData
+      setExpectedStructure: function (data) {
+        this.pcExpected = data || {};
+        this.pcRender ();
+      }, // setExpectedStructure
+      pcRecompute: function () {
+        var mapping = this.pcComputedMapping = [];
+        for (var i = 0; i < this.pcHeader.length; i++) {
+          mapping[i] = {
+            index: i,
+            headerValue: this.pcHeader[i], // or undefined
+          };
+          if (this.pcOverrideMapping[i] &&
+              this.pcOverrideMapping[i].mappedKey != null) {
+            if (mapping[i].mappedKey === '') {
+              //
+            } else {
+              mapping[i].mappedKey = this.pcOverrideMapping[i].mappedKey;
+            }
+          } else if (mapping[i].headerValue) {
+            if (this.pcExpected[mapping[i].headerValue]) {
+              mapping[i].mappedKey = mapping[i].headerValue;
+            } else {
+              var keys = Object.keys (this.pcExpected);
+              for (var j = 0; j < keys.length; j++) {
+                if ((this.pcExpected[keys[j]].headerValues || []).includes (mapping[i].headerValue)) {
+                  mapping[i].mappedKey = keys[j];
+                  break;
+                }
+              }
+            }
+          }
+        }
+        // XXX if dup
+
+        this.pcComputedData = this.pcRawData.map (raw => {
+          var data = {};
+          for (var i = 0; i < raw.length; i++) {
+            if (mapping[i] && mapping[i].mappedKey) {
+              data[mapping[i].mappedKey] = raw[i];
+            }
+          }
+          return {
+            data: data,
+            raw: raw,
+          };
+        });
+      }, // pcRecompute
+      pcRender: function () {
+        clearTimeout (this.pcRenderTimer);
+        this.pcRenderTimer = setTimeout (() => {
+          this._pcRender ();
+        }, 100);
+      }, // pcRender
+      _pcRender: function () {
+        this.pcRecompute ();
+        this.querySelectorAll ('list-container[loader=tableMapperLoader]').forEach (_ => {
+          _.load ({});
+        });
+      }, // _pcRender
+      getComputedData: function () {
+        return this.pcComputedData;
+      }, // getComputedData
+    },
+  }); // <table-mapper>
+
+  defs.loader.tableMapperLoader = function () {
+    var tm = this;
+    while (tm && tm.localName !== 'table-mapper') {
+      tm = tm.parentNode;
+    }
+
+    var data = [];
+    if (tm) {
+      var type = this.getAttribute ('loader-type');
+      if (type === 'data') {
+        data = tm.pcComputedData;
+      } else if (type === 'mapping') {
+        data = tm.pcComputedMapping;
+      } else {
+        console.log (this, 'Unknown |loader-type| value: |'+type+'|');
+      }
+    } else {
+      console.log (this, 'No ancestor <table-mapper>');
+    }
+
+    return {
+      data: data,
+    };
+  }; // loader=tableMapperLoader
+
+  defineElement ({
+    name: 'select',
+    is: 'table-mapper-header',
+    props: {
+      pcInit: function () {
+        this.pcRender ();
+      }, // pcInit
+      pcRender: function () {
+        var tm = this;
+        while (tm && tm.localName !== 'table-mapper') {
+          tm = tm.parentNode;
+        } 
+        if (!tm) return;
+
+        this.querySelectorAll ('option:not([value=""])').forEach (_ => _.remove ());
+        Object.keys (tm.pcExpected).forEach (key => {
+          var opt = document.createElement ('option');
+          opt.value = key;
+          opt.label = tm.pcExpected[key].label || key;
+          this.appendChild (opt);
+        });
+        this.value = this.getAttribute ('data-mappedkey') || '';
+      }, // pcRender
+    },
+  }); // <select is=table-mapper-header>
 
   (document.currentScript.getAttribute ('data-export') || '').split (/\s+/).filter ((_) => { return _.length }).forEach ((name) => {
     self[name] = exportable[name];

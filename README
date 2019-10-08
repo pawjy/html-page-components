@@ -39,6 +39,7 @@ loaded:
   <input-datetime>
   <input-tzoffset>
   <image-editor>
+  <table-mapper>
   <template-set>
 
 The following element is defined in another script file:
@@ -780,6 +781,127 @@ data.
 The |change| event is fired at an |image-layer| element when the
 element is initialized and whenever the layer is set to a new image or
 placeholder.
+
+** <table-mapper>
+
+A |table-mapper| element represents a possibly user-configurable
+tabular-data mapping tool.  It can be used as a data mapping proxy
+converting a tabular data extracted from a CSV file or similar data
+source to an application-specific data structure.
+
+It has following methods:
+
+  setRawData (inputData, {
+    header: boolean,
+  })
+
+    Set the input tabular data.
+
+    The first argument must be an Array whose items are Array values.
+    The inner Array values represents rows, which contains cells.  In
+    other words, |inputData[/row/][/column/]| is the value in the cell
+    (/row/, /column/), if any.
+
+    The second argument is a dictionary of options.  If the |header|
+    option is set to |true|, the first row (|inputData[0]|) is
+    interpreted as the header row.
+
+  setExpectedStructure (structureData)
+
+    Set the expected structure data.
+
+    The first argument must be an Object of name/value pairs, where
+    names are keys of mapped field and whose values are their
+    descriptions.  The key is used to determine column to field
+    mapping.  The key must not be the empty string.
+
+    For example:
+
+      tm = document.createElement ('table-mapper');
+      tm.setData ([
+        ["name", "keyword"],
+        ["A", "a"],
+        ["B", "b"],
+      ], {header: true});
+      tm.setExpectedStructure ({
+        "name": {},
+        "keyword": {},
+      });
+
+    ... will generate:
+
+      [
+        {name: "A", keyword: "a"},
+        {name: "B", keyword: "b"},
+      ]
+
+    Values can have following properties:
+
+      headerValues : Array
+
+        An Array of zero or more header values used to determine
+        column to field mapping.
+
+        Column to field mapping is determined by these rules:
+
+          1. If the column's header value is equal to a key, the
+             column is mapped to that field.
+
+          2. If the column's header value is one of values in the
+             |headerValues| array, the column is mapped to that field.
+
+      label : String
+
+        The human readable name of the field.  If missing, the key of
+        the field is used.
+
+    getComputedData () : Array
+
+      Get the mapped objects.  It returns an Array containing objects
+      generated from the data rows.  An object has |raw| property,
+      whose value is the original row Array, and |data| property,
+      whose value is the mapped object.
+
+A |table-mapper| element can contain |list-container| element
+descendants whose |loader| is |tableMapperLoader|, representing
+mapping data:
+
+  If the |loader-type| attribute value is set to |data|, the list is
+  expanded with the |getComputedData|'s array items.
+
+  If the |loader-type| attribute value is set to |mapping|, the list
+  is expanded with the objects with following properties:
+
+    index : Number
+
+      The index (0-origin) of the column.
+
+    headerValue : String
+
+      The value of the header cell of the column, if any.
+
+    mappedKey : String
+
+      The key of the field the column is mapped to, if any.
+
+A |table-mapper| element can contain |select| element descendants
+whose |is| attribute values is |table-mapper-header|.  It allows the
+user to manually override column to field mapping.  Its content is
+expanded with the list of available fields (taken from the expected
+structure data).  It can also contain an |option| element whose
+|value| is the empty string, representing the column is not mapped to
+any field.  The |data-index| attribute specifies the column's index.
+The |data-mappedkey| attribute specifies the initial value of the
+mapped field's key.  This is the idiomatic example of a column mapping
+editor, which can be used in the |loader-type=mapping| list template
+as is:
+
+  <select is=table-mapper-header
+      data-data-index-field=index
+      data-data-mappedkey-field=mappedKey
+      data-filled="data-index data-mappedkey">
+    <option value>None
+  </select>
 
 ** <template-set>
 

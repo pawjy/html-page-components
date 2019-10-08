@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>table-mapper</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js async></script>
+
+<table-mapper>
+  <list-container loader=tableMapperLoader loader-type=data>
+    <list-main></list-main>
+    <template>
+      <p>name: <code data-field=data.name></code>,
+      xyz: <code data-field=data.xyz></code>,
+      123: <code data-field=data.123></code>
+      
+      <p>(<code data-field=raw.0></code>,
+      <code data-field=raw.1></code>,
+      <code data-field=raw.2></code>)
+    </template>
+  </list-container>
+  <list-container loader=tableMapperLoader loader-type=mapping>
+    <list-main></list-main>
+    <template>
+      <code data-field=index></code>: <code data-field=headerValue></code>
+      ->
+      <select is=table-mapper-header data-data-index-field=index data-data-mappedkey-field=mappedKey data-filled="data-index data-mappedkey">
+        <option value>なし
+      </select>
+    </template>
+  </list-container>
+</table-mapper>
+
+<p><textarea style="width:100%;height:10em" onchange="
+  var data = JSON.parse (this.value);
+  var tm = document.querySelector ('table-mapper');
+  tm.setRawData (data.input, data.inputOptions);
+  tm.setExpectedStructure (data.dest);
+">{
+  "input": [
+    ["key", "名前", "xyz"],
+    ["abc", "def", "xyz"],
+    ["124", "10.1", "ab e", "aa"],
+    ["42", "aa", "aaa"]
+  ],
+  "inputOptions": {"header": true},
+  "dest": {
+    "name": {
+      "headerValues": ["name", "名前"]
+    },
+    "xyz": {},
+    "123": {}
+  }
+}</textarea>
