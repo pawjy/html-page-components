@@ -9,6 +9,8 @@
     <list-main></list-main>
     <template>
       <p>name: <code data-field=data.name></code>,
+      Gender: <enum-value data-field=data.sex
+                  label-1=♂ label-2=♀></enum-value>,
       xyz: <code data-field=data.xyz></code>,
       123: <code data-field=data.123></code>
       
@@ -25,6 +27,7 @@
       <select is=table-mapper-header data-data-index-field=index data-data-mappedkey-field=mappedKey data-filled="data-index data-mappedkey">
         <option value>なし
       </select>
+      (<data data-field=errorCount></data> errors; <code data-field=errors.0></code>)
     </template>
   </list-container>
 </table-mapper>
@@ -36,15 +39,29 @@
   tm.setExpectedStructure (data.dest);
 ">{
   "input": [
-    ["key", "名前", "xyz"],
-    ["abc", "def", "xyz"],
-    ["124", "10.1", "ab e", "aa"],
-    ["42", "aa", "aaa"]
+    ["key", "名前", "xyz", "gender"],
+    ["abc", "def", "xyz", "男"],
+    ["124", "10.1", "ab e", "female", "aa"],
+    ["42", "aa", "aaa", "???"]
   ],
   "inputOptions": {"header": true},
   "dest": {
     "name": {
       "headerValues": ["name", "名前"]
+    },
+    "sex": {
+      "headerValues": ["gender", "性", "性別"],
+      "valueMapping": {
+        "男": 1,
+        "女": 2,
+        "男性": 1,
+        "女性": 2,
+        "male": 1,
+        "female": 2,
+        "1": 1,
+        "2": 2
+      },
+      "allowOtherValues": false
     },
     "xyz": {},
     "123": {}

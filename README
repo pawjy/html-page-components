@@ -837,7 +837,13 @@ It has following methods:
 
     Values can have following properties:
 
-      headerValues : Array
+      allowOtherValues : Boolean
+
+        If true and |valueMapping| is also specified, any other value
+        than those in the |valueMapping| is marked as in error and the
+        field value is not set.
+
+      headerValues : Array?
 
         An Array of zero or more header values used to determine
         column to field mapping.
@@ -850,10 +856,24 @@ It has following methods:
           2. If the column's header value is one of values in the
              |headerValues| array, the column is mapped to that field.
 
-      label : String
+      label : String?
 
         The human readable name of the field.  If missing, the key of
         the field is used.
+
+      valueMapping : Object?
+
+        An object describing value mapping as name/value pairs.  If
+        the cell's value is found in the object as a name, the field's
+        value is set to the name's value instead.
+
+    evaluate () : Promise
+
+      Return a promise, which is resolved when |getComputedData|
+      method is ready to return a new data.  The promise is resolved
+      after any input data given before the |evaluate| method is
+      reflected to |getComputedData|'s result.  Input data given after
+      the |evaluate| method, if any, may or may not be reflected.
 
     getComputedData () : Array
 
@@ -861,6 +881,10 @@ It has following methods:
       generated from the data rows.  An object has |raw| property,
       whose value is the original row Array, and |data| property,
       whose value is the mapped object.
+
+    getComputedInError () : Boolean
+
+      Return whether the mapped object computation is in error or not.
 
 A |table-mapper| element can contain |list-container| element
 descendants whose |loader| is |tableMapperLoader|, representing
@@ -884,6 +908,15 @@ mapping data:
 
       The key of the field the column is mapped to, if any.
 
+    errorCount : Number
+
+      The number of the cells in the column whose values are in error.
+
+    errors : Array
+
+      The array of the errors of the values of the cells in the
+      column.
+
 A |table-mapper| element can contain |select| element descendants
 whose |is| attribute values is |table-mapper-header|.  It allows the
 user to manually override column to field mapping.  Its content is
@@ -902,6 +935,11 @@ as is:
       data-filled="data-index data-mappedkey">
     <option value>None
   </select>
+
+If a cell's value is in error, the mapped object's |pcError| property
+is set to an object and the object's property whose name is the
+field's key is set to the error object for the cell's value.
+(Therefore the field's key cannot be |pcError|.)
 
 ** <template-set>
 

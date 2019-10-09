@@ -51,6 +51,7 @@
       "unmapped": {},
     });
     await this.wait (500);
+    await tm.evaluate ();
 
     var cd = tm.getComputedData ();
     this.assert.deepEqual (cd, [
@@ -78,6 +79,7 @@
     items[0].querySelector ('select').value = '123';
     items[0].querySelector ('select').dispatchEvent (new Event ('change', {bubbles: true}));
     await this.wait (500);
+    await tm.evaluate ();
 
     var cd = tm.getComputedData ();
     this.assert.deepEqual (cd, [
@@ -94,6 +96,7 @@
     items[0].querySelector ('select').value = 'name';
     items[0].querySelector ('select').dispatchEvent (new Event ('change', {bubbles: true}));
     await this.wait (500);
+    await tm.evaluate ();
 
     var cd = tm.getComputedData ();
     this.assert.deepEqual (cd, [
@@ -150,7 +153,7 @@
       "xyz": {},
       "123": {}
     });
-    await this.wait (100);
+    await tm.evaluate ();
 
     var cd = tm.getComputedData ();
     this.assert.deepEqual (cd, [
@@ -159,6 +162,139 @@
       {raw: inputData[2], data: {}},
       {raw: inputData[3], data: {}},
     ]);
+  </test-code>
+  
+  <test-code name="valueMapping">
+    /*
+    <table-mapper>
+      <list-container loader=tableMapperLoader loader-type=data>
+        <list-main></list-main>
+        <template>
+          <p>Gender: <bdi data-field=data.gender></bdi>
+        </template>
+      </list-container>
+    </table-mapper>
+    */
+
+    var inputData = [
+      ["gender"],
+      ["M"],
+      ["female"],
+      ["男"],
+      ["女性"],
+      ["unknown"],
+      ["__proto__"],
+      ["toString"],
+      ["0"],
+      [""],
+      [],
+    ];
+    
+    var tm = this.currentScript.querySelector ('table-mapper');
+    tm.setRawData (inputData, {
+      header: true,
+    });
+    tm.setExpectedStructure ({
+      "gender": {
+        "valueMapping": {
+          "M": "♂",
+          "F": "♀",
+          "male": "♂",
+          "female": "♀",
+          "男": "♂",
+          "女": "♀",
+          "男性": "♂",
+          "女性": "♀",
+        },
+        allowOtherValues: true,
+      },
+    });
+    await tm.evaluate ();
+
+    var cd = tm.getComputedData ();
+    this.assert.equal (cd[0].data.gender, '♂');
+    this.assert.equal (cd[1].data.gender, '♀');
+    this.assert.equal (cd[2].data.gender, '♂');
+    this.assert.equal (cd[3].data.gender, '♀');
+    this.assert.equal (cd[4].data.gender, 'unknown');
+    this.assert.equal (cd[5].data.gender, '__proto__');
+    this.assert.equal (cd[6].data.gender, 'toString');
+    this.assert.equal (cd[7].data.gender, '0');
+    this.assert.equal (cd[8].data.gender, '');
+    this.assert.equal (cd[9].data.gender, undefined);
+    this.assert.equal (cd[9].data.pcErrors, undefined);
+    this.assert.equal (tm.getComputedInError (), false);
+
+    this.assert.equal (tm.pcComputedMapping[0].errorCount, 0);
+    this.assert.equal (tm.pcComputedMapping[0].errors.length, 0);
+  </test-code>
+  
+  <test-code name="valueMapping allowOtherValues:false">
+    /*
+    <table-mapper>
+      <list-container loader=tableMapperLoader loader-type=data>
+        <list-main></list-main>
+        <template>
+          <p>Gender: <bdi data-field=data.gender></bdi>
+        </template>
+      </list-container>
+    </table-mapper>
+    */
+
+    var inputData = [
+      ["gender"],
+      ["M"],
+      ["female"],
+      ["男"],
+      ["女性"],
+      ["unknown"],
+      ["__proto__"],
+      ["toString"],
+      ["0"],
+      [""],
+      [],
+    ];
+    
+    var tm = this.currentScript.querySelector ('table-mapper');
+    tm.setRawData (inputData, {
+      header: true,
+    });
+    tm.setExpectedStructure ({
+      "gender": {
+        "valueMapping": {
+          "M": "♂",
+          "F": "♀",
+          "male": "♂",
+          "female": "♀",
+          "男": "♂",
+          "女": "♀",
+          "男性": "♂",
+          "女性": "♀",
+        },
+      },
+    });
+    await tm.evaluate ();
+
+    var cd = tm.getComputedData ();
+    this.assert.equal (cd[0].data.gender, '♂');
+    this.assert.equal (cd[1].data.gender, '♀');
+    this.assert.equal (cd[2].data.gender, '♂');
+    this.assert.equal (cd[3].data.gender, '♀');
+    this.assert.equal (cd[4].data.gender, undefined);
+    this.assert.equal (cd[5].data.gender, undefined);
+    this.assert.equal (cd[6].data.gender, undefined);
+    this.assert.equal (cd[7].data.gender, undefined);
+    this.assert.equal (cd[8].data.gender, undefined);
+    this.assert.equal (cd[9].data.gender, undefined);
+    this.assert.equal (Object.keys (cd[9].data.pcErrors).length, 1);
+    this.assert.equal (cd[9].data.pcErrors.gender.name, 'InvalidValueError');
+    this.assert.equal (cd[9].data.pcErrors.gender.pcValue, undefined);
+    this.assert.equal (tm.getComputedInError (), true);
+
+    this.assert.equal (tm.pcComputedMapping[0].errorCount, 6);
+    this.assert.equal (tm.pcComputedMapping[0].errors[0].name, 'InvalidValueError');
+    this.assert.equal (tm.pcComputedMapping[0].errors[0].pcValue, 'unknown');
+    this.assert.equal (tm.pcComputedMapping[0].errors[0].message, 'The specified value |unknown| is invalid');
   </test-code>
   
   <script src=runtests.js></script>
