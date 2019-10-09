@@ -297,6 +297,77 @@
     this.assert.equal (tm.pcComputedMapping[0].errors[0].message, 'The specified value |unknown| is invalid');
   </test-code>
   
+  <test-code name="custom validator">
+    /*
+    <table-mapper>
+      <list-container loader=tableMapperLoader loader-type=data>
+        <list-main></list-main>
+        <template>
+          <p>Gender: <bdi data-field=data.gender></bdi>
+        </template>
+      </list-container>
+    </table-mapper>
+    */
+
+    var inputData = [
+      ["gender"],
+      ["M"],
+      ["female"],
+      ["男"],
+      ["女性"],
+      ["unknown"],
+      ["0"],
+      [""],
+      [],
+    ];
+    
+    var tm = this.currentScript.querySelector ('table-mapper');
+    tm.setRawData (inputData, {
+      header: true,
+    });
+    tm.setExpectedStructure ({
+      "gender": {
+        validator: function (value) {
+          var table = {
+            "M": "♂",
+            "F": "♀",
+            "male": "♂",
+            "female": "♀",
+            "男": "♂",
+            "女": "♀",
+            "男性": "♂",
+            "女性": "♀",
+          };
+          return Promise.resolve ().then (() => {
+            if (table[value]) {
+              return table[value];
+            } else {
+              throw new Error ("Bad value error |"+value+"|");
+            }
+          });
+        },
+      },
+    });
+    await tm.evaluate ();
+
+    var cd = tm.getComputedData ();
+    this.assert.equal (cd[0].data.gender, '♂');
+    this.assert.equal (cd[1].data.gender, '♀');
+    this.assert.equal (cd[2].data.gender, '♂');
+    this.assert.equal (cd[3].data.gender, '♀');
+    this.assert.equal (cd[4].data.gender, undefined);
+    this.assert.equal (cd[5].data.gender, undefined);
+    this.assert.equal (cd[6].data.gender, undefined);
+    this.assert.equal (cd[7].data.gender, undefined);
+    this.assert.equal (Object.keys (cd[7].data.pcErrors).length, 1);
+    this.assert.equal (cd[7].data.pcErrors.gender.name, 'Error');
+    this.assert.equal (tm.getComputedInError (), true);
+
+    this.assert.equal (tm.pcComputedMapping[0].errorCount, 4);
+    this.assert.equal (tm.pcComputedMapping[0].errors[0].name, 'Error');
+    this.assert.equal (tm.pcComputedMapping[0].errors[0].message, 'Bad value error |unknown|');
+  </test-code>
+  
   <script src=runtests.js></script>
 </body>
 </html>

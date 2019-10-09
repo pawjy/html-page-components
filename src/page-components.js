@@ -2223,8 +2223,9 @@
         this.pcRender ();
       }, // setExpectedStructure
       pcRecompute: function () {
-        delete this.pcComputedInError;
-        var mapping = this.pcComputedMapping = [];
+        var newProps = {};
+        // newProps.pcComputedInError = false
+        var mapping = newProps.pcComputedMapping = [];
         var hasMapping = [];
         var mapped = {};
         for (var i = 0; i < this.pcHeader.length; i++) {
@@ -2276,9 +2277,12 @@
           }
         }
 
-        this.pcComputedData = this.pcRawData.map (raw => {
+        var wait = [];
+        newProps.pcComputedData = [];
+        for (var rowIndex = 0; rowIndex < this.pcRawData.length; rowIndex++) ((rowIndex) => {
+          var raw = this.pcRawData[rowIndex];
           var data = {};
-          for (var i = 0; i < mapping.length; i++) {
+          for (var i = 0; i < mapping.length; i++) ((i) => {
             if (mapping[i] && mapping[i].mappedKey) {
               var value = raw[i]; // or undefined
               var fieldDef = this.pcExpected[mapping[i].mappedKey];
@@ -2291,21 +2295,38 @@
                     mapping[i].errors.push (error);
                     data.pcErrors = data.pcErrors || {};
                     data.pcErrors[mapping[i].mappedKey] = error;
-                    this.pcComputedInError = true;
-                    continue;
+                    newProps.pcComputedInError = true;
+                    return; // continue i
                   }
                 } else {
                   value = replaced;
                 }
+              } // valueMapping
+              if (fieldDef.validator) {
+                wait.push (Promise.resolve (value).then (fieldDef.validator).then (_ => {
+                  data[mapping[i].mappedKey] = _;
+                }, error => {
+                  mapping[i].errorCount++;
+                  mapping[i].errors.push (error);
+                  data.pcErrors = data.pcErrors || {};
+                  data.pcErrors[mapping[i].mappedKey] = error;
+                  newProps.pcComputedInError = true;
+                }));
+                return; // continue i
               }
               data[mapping[i].mappedKey] = value;
             }
-          }
-          return {
+          }) (i);
+          newProps.pcComputedData[rowIndex] = {
             data: data,
             raw: raw,
           };
-        });
+        }) (rowIndex);
+        return Promise.all (wait).then (() => {
+          for (var n in newProps) {
+            this[n] = newProps[n];
+          }
+        });  
       }, // pcRecompute
       pcRender: function () {
         clearTimeout (this.pcRenderTimer);
@@ -2318,11 +2339,12 @@
         });
       }, // pcRender
       _pcRender: function () {
-        this.pcRecompute ();
-        this.querySelectorAll ('list-container[loader=tableMapperLoader]').forEach (_ => {
-          _.load ({});
+        this.pcRecompute ().then (() => {
+          this.querySelectorAll ('list-container[loader=tableMapperLoader]').forEach (_ => {
+            _.load ({});
+          });
+          if (this.pcResolveEvaluated) this.pcResolveEvaluated ();
         });
-        if (this.pcResolveEvaluated) this.pcResolveEvaluated ();
       }, // _pcRender
       evaluate: function () {
         return this.pcEvaluated;

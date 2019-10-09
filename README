@@ -861,6 +861,19 @@ It has following methods:
         The human readable name of the field.  If missing, the key of
         the field is used.
 
+      validator : (any) => Promise<any>
+
+        A custom validator.
+
+        The value must be a function.  It can directly return a value
+        or throw an exception, or can return a promise which is
+        resolved with a value or rejected with an error.
+
+        The function is invoked with the cell's value.  If the value
+        is valid, it is expected to return the value that should be
+        set to the field.  If the value is invalid, it is expected to
+        throw an error object.
+
       valueMapping : Object?
 
         An object describing value mapping as name/value pairs.  If
