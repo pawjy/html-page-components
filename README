@@ -930,6 +930,9 @@ mapping data:
       The array of the errors of the values of the cells in the
       column.
 
+If the |loader-limit| attribute is set to a non-negative integer, the
+maximum number of the list items are set to that value.
+
 A |table-mapper| element can contain |select| element descendants
 whose |is| attribute values is |table-mapper-header|.  It allows the
 user to manually override column to field mapping.  Its content is
