@@ -417,6 +417,56 @@
     this.assert.equal (items[2].querySelectorAll ('bdi')[0].textContent, '男');
   </test-code>
   
+  <test-code name="state">
+    /*
+    <table-mapper>
+      <list-container loader=tableMapperLoader loader-type=data loader-limit=3>
+        <list-main></list-main>
+        <template>
+          <p>Gender: <bdi data-field=data.gender></bdi>
+        </template>
+      </list-container>
+    </table-mapper>
+    */
+
+    var inputData = [
+      ["gender"],
+      ["M"],
+      ["female"],
+      ["男"],
+      ["女性"],
+      ["unknown"],
+      ["0"],
+      [""],
+      [],
+    ];
+    
+    var tm = this.currentScript.querySelector ('table-mapper');
+    tm.setExpectedStructure ({
+      "gender": {
+        validator: (value, state) => {
+          if (!state.count) state.count = 0;
+          state.count++;
+          return state.count < 4 ? '-' : '+';
+        },
+      },
+    });
+
+    tm.setRawData ([["a"], ["b"] ,["c"], ["d"], "e"], {
+      header: true,
+    });
+    await tm.evaluate ();
+    
+    tm.setRawData (inputData, {
+      header: true,
+    });
+    await tm.evaluate ();
+
+    var cd = tm.getComputedData ();
+    this.assert.equal (cd.filter (_ => _.data.gender === '-').length, 3);
+    this.assert.equal (cd.filter (_ => _.data.gender === '+').length, 5);
+  </test-code>
+  
   <script src=runtests.js></script>
 </body>
 </html>

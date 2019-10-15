@@ -861,7 +861,7 @@ It has following methods:
         The human readable name of the field.  If missing, the key of
         the field is used.
 
-      validator : (any) => Promise<any>
+      validator : (any, state) => Promise<any>
 
         A custom validator.
 
@@ -869,10 +869,15 @@ It has following methods:
         or throw an exception, or can return a promise which is
         resolved with a value or rejected with an error.
 
-        The function is invoked with the cell's value.  If the value
-        is valid, it is expected to return the value that should be
-        set to the field.  If the value is invalid, it is expected to
-        throw an error object.
+        The function is invoked with the cell's value and a state
+        object.  If the value is valid, it is expected to return the
+        value that should be set to the field.  If the value is
+        invalid, it is expected to throw an error object.
+
+        The function can use the state object in any way.  The same
+        object is used for the all invocations for one evaluation of
+        an input data set.  For example, it can be used to check
+        whether there is any duplicate value.
 
       valueMapping : Object?
 
