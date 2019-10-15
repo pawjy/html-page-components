@@ -2378,6 +2378,11 @@
       console.log (this, 'No ancestor <table-mapper>');
     }
 
+    var limit = parseInt (this.getAttribute ('loader-limit'));
+    if (Number.isFinite (limit)) {
+      data = data.slice (0, limit);
+    }
+
     return {
       data: data,
     };

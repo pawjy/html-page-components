@@ -368,6 +368,55 @@
     this.assert.equal (tm.pcComputedMapping[0].errors[0].message, 'Bad value error |unknown|');
   </test-code>
   
+  <test-code name="loader-limit">
+    /*
+    <table-mapper>
+      <list-container loader=tableMapperLoader loader-type=data loader-limit=3>
+        <list-main></list-main>
+        <template>
+          <p>Gender: <bdi data-field=data.gender></bdi>
+        </template>
+      </list-container>
+    </table-mapper>
+    */
+
+    var inputData = [
+      ["gender"],
+      ["M"],
+      ["female"],
+      ["男"],
+      ["女性"],
+      ["unknown"],
+      ["0"],
+      [""],
+      [],
+    ];
+    
+    var tm = this.currentScript.querySelector ('table-mapper');
+    tm.setRawData (inputData, {
+      header: true,
+    });
+    tm.setExpectedStructure ({
+      "gender": {
+      },
+    });
+    await tm.evaluate ();
+
+    var cd = tm.getComputedData ();
+    this.assert.equal (cd.length, 8);
+    this.assert.equal (cd[0].data.gender, 'M');
+    this.assert.equal (cd[1].data.gender, 'female');
+    this.assert.equal (cd[2].data.gender, '男');
+
+    await this.wait (100);
+
+    var items = tm.querySelectorAll ('[loader-type=data] list-item');
+    this.assert.equal (items.length, 3);
+    this.assert.equal (items[0].querySelectorAll ('bdi')[0].textContent, 'M');
+    this.assert.equal (items[1].querySelectorAll ('bdi')[0].textContent, 'female');
+    this.assert.equal (items[2].querySelectorAll ('bdi')[0].textContent, '男');
+  </test-code>
+  
   <script src=runtests.js></script>
 </body>
 </html>
