@@ -2279,6 +2279,7 @@
 
         var wait = [];
         newProps.pcComputedData = [];
+        var state = {};
         for (var rowIndex = 0; rowIndex < this.pcRawData.length; rowIndex++) ((rowIndex) => {
           var raw = this.pcRawData[rowIndex];
           var data = {};
@@ -2303,7 +2304,9 @@
                 }
               } // valueMapping
               if (fieldDef.validator) {
-                wait.push (Promise.resolve (value).then (fieldDef.validator).then (_ => {
+                wait.push (Promise.resolve ().then (() => {
+                  return fieldDef.validator (value, state);
+                }).then (_ => {
                   data[mapping[i].mappedKey] = _;
                 }, error => {
                   mapping[i].errorCount++;
@@ -2339,11 +2342,13 @@
         });
       }, // pcRender
       _pcRender: function () {
+        var done = this.pcResolveEvaluated; // or undefined
+        delete this.pcResolveEvaluated;
         this.pcRecompute ().then (() => {
           this.querySelectorAll ('list-container[loader=tableMapperLoader]').forEach (_ => {
             _.load ({});
           });
-          if (this.pcResolveEvaluated) this.pcResolveEvaluated ();
+          if (done) done ();
         });
       }, // _pcRender
       evaluate: function () {
