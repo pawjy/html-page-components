@@ -2223,8 +2223,7 @@
         this.pcRender ();
       }, // setExpectedStructure
       pcRecompute: function () {
-        var newProps = {};
-        // newProps.pcComputedInError = false
+        var newProps = {pcComputedInError: false};
         var mapping = newProps.pcComputedMapping = [];
         var hasMapping = [];
         var mapped = {};

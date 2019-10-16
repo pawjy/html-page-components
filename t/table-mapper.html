@@ -389,6 +389,21 @@
     this.assert.equal (tm.pcComputedMapping[0].errorCount, 4);
     this.assert.equal (tm.pcComputedMapping[0].errors[0].name, 'Error');
     this.assert.equal (tm.pcComputedMapping[0].errors[0].message, 'Bad value error |unknown|');
+
+    // validation error fixed
+    tm.setRawData (inputData.slice (0, 5), {
+      header: true,
+    });
+    await tm.evaluate ();
+
+    var cd = tm.getComputedData ();
+    this.assert.equal (cd.length, 4);
+    this.assert.equal (cd[0].data.gender, '♂');
+    this.assert.equal (cd[1].data.gender, '♀');
+    this.assert.equal (cd[2].data.gender, '♂');
+    this.assert.equal (cd[3].data.gender, '♀');
+    this.assert.equal (tm.getComputedInError (), false);
+    this.assert.equal (tm.pcComputedMapping[0].errorCount, 0);
   </test-code>
   
   <test-code name="loader-limit">
