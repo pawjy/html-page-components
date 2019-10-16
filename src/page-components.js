@@ -2195,7 +2195,7 @@
         this.pcOverrideMapping = [];
         this.pcComputedData = [];
         this.pcComputedMapping = [];
-        this.onchange = (ev) => {
+        this.addEventListener ('change', (ev) => {
           if (ev.target.localName === 'select' &&
               ev.target.getAttribute ('is') === 'table-mapper-header') {
             var index = ev.target.getAttribute ('data-index');
@@ -2206,7 +2206,7 @@
               this.pcRender ();
             }
           }
-        }; // onchange
+        }); // onchange
         this.pcEvaluated = Promise.resolve ();
       }, // pcInit
       setRawData: function (data, opts) {
@@ -2237,7 +2237,7 @@
           };
           if (this.pcOverrideMapping[i] &&
               this.pcOverrideMapping[i].mappedKey != null) {
-            if (mapping[i].mappedKey === '') {
+            if (this.pcOverrideMapping[i].mappedKey === '') {
               hasMapping[i] = true;
             } else {
               var key = this.pcOverrideMapping[i].mappedKey;
@@ -2248,7 +2248,7 @@
               }
             }
           }
-        }
+        } // i
         for (var i = 0; i < this.pcHeader.length; i++) {
           if (hasMapping[i]) {
             //

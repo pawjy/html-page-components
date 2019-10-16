@@ -109,6 +109,29 @@
     this.assert.equal (items[0].querySelector ('select').value, 'name');
     this.assert.equal (items[1].querySelector ('select').value, '');
     this.assert.equal (items[2].querySelector ('select').value, 'xyz');
+
+    items[2].querySelector ('select').value = '';
+    items[2].querySelector ('select').dispatchEvent (new Event ('change', {bubbles: true}));
+    await this.wait (500);
+    await tm.evaluate ();
+
+    var items = tm.querySelectorAll ('[loader-type=mapping] list-item');
+    items[0].querySelector ('select').value = '';
+    items[0].querySelector ('select').dispatchEvent (new Event ('change', {bubbles: true}));
+    await this.wait (500);
+    await tm.evaluate ();
+
+    var cd = tm.getComputedData ();
+    this.assert.deepEqual (cd, [
+      {raw: inputData[1], data: {name: "def"}},
+      {raw: inputData[2], data: {name: "10.1"}},
+      {raw: inputData[3], data: {name: "aa"}},
+    ]);
+
+    var items = tm.querySelectorAll ('[loader-type=mapping] list-item');
+    this.assert.equal (items[0].querySelector ('select').value, '');
+    this.assert.equal (items[1].querySelector ('select').value, 'name');
+    this.assert.equal (items[2].querySelector ('select').value, '');
   </test-code>
   
   <test-code name="no header row">
