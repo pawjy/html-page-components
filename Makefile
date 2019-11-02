@@ -35,6 +35,15 @@ pmbp-install: pmbp-upgrade
 	    --create-bootstrap-script "bin/lserver.in lserver"
 	chmod u+x lserver
 
+local/qr.js:
+	$(WGET) -O $@ https://raw.githubusercontent.com/lifthrasiir/qr.js/master/qr.js
+src/qrcode.js: src/qrcode-src.js local/qr.js
+	cat $< | perl -n -e 's{/\*\@\@\@qr.js\@\@\@\*/}{open $$f, "<", "local/qr.js"; join "", <$$f>}ge; print' > $@
+
+build: build-deps build-main
+build-deps:
+build-main: src/qrcode.js
+
 ## ------ Tests ------
 
 test: test-deps test-main

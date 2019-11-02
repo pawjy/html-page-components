@@ -6,8 +6,8 @@ HTML page components
 The |src/page-components.js| file implements most elements described
 in this document.
 
-The |src/maps.js| file implements some elements described in this
-document.
+The |src/maps.js| and |src/qr-code.js| files implement some elements
+described in this document.
 
 The |css/default.css| file describes the default style for these
 elements.  Though the file itself is not required to be loaded itself,
@@ -42,9 +42,10 @@ loaded:
   <table-mapper>
   <template-set>
 
-The following element is defined in another script file:
+The following elements are defined in another script files:
 
   <map-area>
+  <qr-code>
 
 ** <enum-value>
 
@@ -1170,6 +1171,22 @@ initialized, the map's center has been moved (when |engine| is
 |googlemaps|), and so on.  This event can be used as the oppotunity to
 relocate map overlay objects or to recalculate any associated data
 outside of the map.
+
+** <qr-code>
+
+The |qr-code| element represents a QR code.  Its content model is
+empty.
+
+To enable this element, the |qr-code.js| script must be loaded in
+addition to the main script:
+
+  <script src=js/qrcode.js async></script>
+
+The following content attribute is available:
+
+  data = text
+
+    The string encoded by the QR code.  Required.
 
 * Exportable functions
 
