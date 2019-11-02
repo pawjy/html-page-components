@@ -55,6 +55,12 @@
     document.head.appendChild (script);
   }
 
+  if (document.currentScript.hasAttribute ('data-qrcode')) {
+    var script = document.createElement ('script');
+    script.src = '../src/qrcode.js';
+    document.head.appendChild (script);
+  }
+
   qunitLoaded.then (function () {
     QUnit.config.current = {ignoreGlobalErrors: true};
     document.querySelectorAll ('test-code').forEach (function (e) {
