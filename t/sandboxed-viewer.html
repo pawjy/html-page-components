@@ -31,6 +31,32 @@
       this.assert.equal (e.message, 'abcde');
     }
   </test-code>
+  
+  <test-code name=invokeFromSandBox>
+    /*
+      <sandboxed-viewer></sandboxed-viewer>
+    */
+    var v = this.currentScript.querySelector ('sandboxed-viewer');
+    this.assert.equal (v.querySelector ('iframe').localName, 'iframe');
+
+    v.pcRegisterMethod ('foo', (args) => {
+      return Promise.resolve ().then (() => args.data);
+    });
+    var w = await v.pcInvoke ('pcEval', {code: `
+      return pcInvoke ('foo', {data: "abc foo"});
+    `});
+    this.assert.equal (w, "abc foo");
+
+    try {
+      var q = await v.pcInvoke ('pcEval', {code: `
+        throw new TypeError ("abcde");
+      `});
+      this.assert.equal (false, true);
+    } catch (e) {
+      this.assert.equal (e.name, 'TypeError');
+      this.assert.equal (e.message, 'abcde');
+    }
+  </test-code>
 
   <test-code name=sandboxedenv>
     /*

@@ -1555,10 +1555,11 @@
     name: 'sandboxed-viewer',
     props: {
       pcInit: function () {
+        this.pcMethods = {};
         this.pcIFrame = document.createElement ('iframe');
         this.pcChannelKey = '' + Math.random ();
         this.pcIFrame.src = 'data:text/html;charset=utf-8,' + encodeURIComponent ('<!DOCTYPE HTML><script>onmessage=(ev)=>{if (ev.data&&ev.data[0]==="'+this.pcChannelKey+'"){new Function(ev.data[1])(ev.ports[0])}}</script>');
-        this.pcIFrame.sandbox = 'allow-scripts';
+        this.pcIFrame.sandbox = 'allow-scripts allow-same-origin allow-forms';
         this.pcIFrame.onload = () => this.pcCreateChannel ();
         this.appendChild (this.pcIFrame);
       }, // pcInit
@@ -1566,7 +1567,7 @@
         var mp = new MessageChannel;
         this.pcIFrame.contentWindow.postMessage ([this.pcChannelKey, `
           var port = arguments[0];
-          self.pcMethods = {};
+          self.pcMethods = self.pcMethods || {};
           self.pcMethods.pcPing = (args) => {
             return args;
           };
@@ -1599,9 +1600,46 @@
               }
             }).then (() => returnPort.close ());
           }; // onmessage
+          self.pcInvoke = function (method, args) {
+            var returnChannel = new MessageChannel;
+            return new Promise ((ok, ng) => {
+              returnChannel.port1.onmessage = function (ev) {
+                if (ev.data.ok) {
+                  ok (ev.data.result);
+                } else if (ev.data.error) {
+                  var e = new Error (ev.data.result.message);
+                  e.name = ev.data.result.name;
+                  ng (e);
+                } else {
+                  ng (ev.data.result);
+                }
+                returnChannel.port1.close ();
+              };
+              port.postMessage ([method, args], [returnChannel.port2]);
+            });
+          }; // pcInvoke
         `], '*', [mp.port2]);
         this.pcChannelPort = mp.port1;
         this.pcChannelPort.onmessage = (ev) => {
+          var returnPort = ev.ports[0];
+          return Promise.resolve ().then (() => {
+            if (this.pcMethods[ev.data[0]]) {
+              return this.pcMethods[ev.data[0]] (ev.data[1]);
+            } else {
+              throw new TypeError ('Unknown method |'+ev.data[0]+'| is invoked');
+            }
+          }).then ((r) => {
+            returnPort.postMessage ({ok: true, result: r});
+          }, (e) => {
+            if (e instanceof Error) {
+              returnPort.postMessage ({result: {
+                name: e.name,
+                message: e.message,
+              }, error: true});
+            } else {
+              port.postMessage ({result: e});
+            }
+          }).then (() => returnPort.close ());
         }; // onmessage
       }, // pcCreateChannel
       pcInvoke: function (method, args) {
@@ -1622,6 +1660,9 @@
           this.pcChannelPort.postMessage ([method, args], [returnChannel.port2]);
         });
       }, // pcInvoke
+      pcRegisterMethod: function (name, code) {
+        this.pcMethods[name] = code;
+      }, // pcRegisterMethod
     }, // props
   }); // <sandboxed-viewer>
   

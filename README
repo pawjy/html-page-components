@@ -603,7 +603,7 @@ fragments that might not be secure enough.
 
 A |sandboxed-viewer| element has following methods:
 
-  pcInvoke (methodName, methodArgs) : Promise
+  pcInvoke (methodName, methodArgs)
 
     Invoke a method in the sandbox.  Two arguments must be specified:
     the first argument is the method name.  The second argument is a
@@ -631,13 +631,35 @@ A |sandboxed-viewer| element has following methods:
 
       pcRegisterMethod (methodName, methodCode)
 
-        Register a method.  Two arguments must be specified: the first
-        argument is the method name.  The second argument is a
-        Function that is the implementation of the method.  The
-        function will be invoked with (a copy of) the dictionary
-        argument sent from the outside of the sandbox.  The value
-        returned by the function (if it is a promise, the value the
-        promise is resolved with) must be transferrable.
+        Register a method in sandbox.  Two arguments must be
+        specified: the first argument is the method name.  The second
+        argument is a Function that is the implementation of the
+        method.  The function will be invoked with (a copy of) the
+        dictionary argument sent from the outside of the sandbox.  The
+        value returned by the function (if it is a promise, the value
+        the promise is resolved with) must be transferrable.
+
+      pcInvoke (methodName, methodArgs)
+
+        Invoke a method of the element (outside of the sandbox).  Two
+        arguments must be specified: the first argument is the method
+        name.  The second argument is a dictionary of named arguments.
+        The dictionary can only contain transferrable objects.
+
+        The method returns a promise, which is to be resolved with the
+        method's return value, or is to be rejected with the method's
+        exception.
+
+  pcRegisterMethod (methodName, methodCode)
+
+    Register a method to the element (outside of the sandbox), which
+    can be invoked from within the sandbox.  Two arguments must be
+    specified: the first argument is the method name.  The second
+    argument is a Function that is the implementation of the method.
+    The function will be invoked with (a copy of) the dictionary
+    argument sent from the inside of the sandbox.  The value returned
+    by the function (if it is a promise, the value the promise is
+    resolved with) must be transferrable.
 
 ** <image-editor>
 

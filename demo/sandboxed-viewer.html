@@ -4,3 +4,8 @@
 <script src=../src/page-components.js async></script>
 
 <sandboxed-viewer></sandboxed-viewer>
+<button type=button onclick="
+  document.querySelector ('sandboxed-viewer').pcInvoke ('pcEval', {code: `
+    document.body.innerHTML = '<iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/yDXVqicnWeo&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen></iframe>';
+  `});
+">YouTube</button>
