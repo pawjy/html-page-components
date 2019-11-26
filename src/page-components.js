@@ -1567,7 +1567,6 @@
           this.pcIsReady = ok;
         });
       }, // pcInit
-      // XXX reconnecting
       pcCreateChannel: function () {
         var mp = new MessageChannel;
         this.pcIFrame.contentWindow.postMessage ([this.pcChannelOutsideKey, `
@@ -1652,10 +1651,13 @@
             }).then (() => returnPort.close ());
           }; // onmessage
           this.pcChannelPort = mp.port1;
-          if (this.pcIsReady) this.pcIsReady ();
+          if (this.pcIsReady) {
+            this.pcIsReady ();
+            delete this.pcIsReady;
+          }
         }; // onmessage
       }, // pcCreateChannel
-      pcInvoke: function (method, args) {
+      pc_Invoke: function (method, args) {
         var returnChannel = new MessageChannel;
         return new Promise ((ok, ng) => {
           returnChannel.port1.onmessage = function (ev) {
@@ -1672,6 +1674,21 @@
           };
           this.pcChannelPort.postMessage ([method, args], [returnChannel.port2]);
         });
+      }, // pc_Invoke
+      pcInvoke: function (method, args) {
+        return new Promise ((ok, ng) => {
+          this.pc_Invoke ('pcPing', {}).then (ok);
+          setTimeout (ng, 1000);
+        }).catch (() => {
+          // Reconnect.  Safari can disconnect active MessageChannel
+          // when e.g. a file picker dialog is shown...
+          if (!this.pcIsReady) this.ready = new Promise ((ok, ng) => {
+            this.pcIsReady = ok;
+          });
+          if (this.pcChannelPort) this.pcChannelPort.close ();
+          this.pcCreateChannel ();
+          return this.ready;
+        }).then (() => this.pc_Invoke (method, args));
       }, // pcInvoke
       pcRegisterMethod: function (name, code) {
         this.pcMethods[name] = code;
