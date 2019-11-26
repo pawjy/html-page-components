@@ -12,6 +12,7 @@
     var v = this.currentScript.querySelector ('sandboxed-viewer');
     this.assert.equal (v.querySelector ('iframe').localName, 'iframe');
 
+    await v.ready;
     await v.pcInvoke ('pcEval', {code: `
       return pcRegisterMethod ('abc', (args) => {
         return Promise.resolve ().then (() => args.data);
@@ -37,7 +38,7 @@
       <sandboxed-viewer></sandboxed-viewer>
     */
     var v = this.currentScript.querySelector ('sandboxed-viewer');
-    this.assert.equal (v.querySelector ('iframe').localName, 'iframe');
+    await v.ready;
 
     v.pcRegisterMethod ('foo', (args) => {
       return Promise.resolve ().then (() => args.data);
@@ -47,14 +48,17 @@
     `});
     this.assert.equal (w, "abc foo");
 
+    v.pcRegisterMethod ('bar', (args) => {
+      throw new TypeError ('foo bar');
+    });
     try {
       var q = await v.pcInvoke ('pcEval', {code: `
-        throw new TypeError ("abcde");
+        return pcInvoke ('bar', {});
       `});
       this.assert.equal (false, true);
     } catch (e) {
       this.assert.equal (e.name, 'TypeError');
-      this.assert.equal (e.message, 'abcde');
+      this.assert.equal (e.message, 'foo bar');
     }
   </test-code>
 
@@ -63,7 +67,7 @@
       <sandboxed-viewer></sandboxed-viewer>
     */
     var v = this.currentScript.querySelector ('sandboxed-viewer');
-    this.assert.equal (v.querySelector ('iframe').localName, 'iframe');
+    await v.ready;
 
     var r = await v.pcInvoke ('pcEval', {code: `
       return {
@@ -99,6 +103,46 @@
       return 1234;
     `});
     this.assert.equal (r, 1234, 'top navigation blocked');
+  </test-code>
+  
+  <test-code name=reconnect>
+    /*
+      <sandboxed-viewer></sandboxed-viewer>
+    */
+    var v = this.currentScript.querySelector ('sandboxed-viewer');
+
+    await v.ready;
+    var w = await v.pcInvoke ('pcEval', {code: `
+      return 1234;
+    `});
+    this.assert.equal (w, 1234);
+
+    v.pcChannelPort = new MessageChannel ().port1;
+
+    var w = await v.pcInvoke ('pcEval', {code: `
+      return 1243;
+    `});
+    this.assert.equal (w, 1243);
+  </test-code>
+  
+  <test-code name="after iframe navigation">
+    /*
+      <sandboxed-viewer></sandboxed-viewer>
+    */
+    var v = this.currentScript.querySelector ('sandboxed-viewer');
+
+    await v.ready;
+    await v.pcInvoke ('pcEval', {code: "pcRegisterMethod ('go', (args) => location.href = args.url)"});
+    await v.pcInvoke ('go', {url: new URL (location.pathname + '/404', location.href).href});
+
+    await this.wait (1000);
+
+    var invoked = false;
+    v.pcInvoke ('pcEval', {code: `
+      return 1243;
+    `}).then (() => invoked = true, () => invoked = true);
+    await this.wait (1000);
+    this.assert.equal (invoked, false);
   </test-code>
 
   <script src=runtests.js></script>
