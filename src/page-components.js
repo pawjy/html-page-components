@@ -1557,15 +1557,19 @@
       pcInit: function () {
         this.pcMethods = {};
         this.pcIFrame = document.createElement ('iframe');
-        this.pcChannelKey = '' + Math.random ();
-        this.pcIFrame.src = 'data:text/html;charset=utf-8,' + encodeURIComponent ('<!DOCTYPE HTML><script>onmessage=(ev)=>{if (ev.data&&ev.data[0]==="'+this.pcChannelKey+'"){new Function(ev.data[1])(ev.ports[0])}}</script>');
+        this.pcChannelOutsideKey = '' + Math.random ();
+        this.pcIFrame.src = 'data:text/html;charset=utf-8,' + encodeURIComponent ('<!DOCTYPE HTML><script>onmessage=(ev)=>{if (ev.data&&ev.data[0]==="'+this.pcChannelOutsideKey+'"){new Function(ev.data[1])(ev.ports[0])}}</script>');
         this.pcIFrame.sandbox = 'allow-scripts allow-same-origin allow-forms';
         this.pcIFrame.onload = () => this.pcCreateChannel ();
         this.appendChild (this.pcIFrame);
+        this.ready = new Promise ((ok, ng) => {
+          this.pcIsReady = ok;
+        });
       }, // pcInit
+      // XXX reconnecting
       pcCreateChannel: function () {
         var mp = new MessageChannel;
-        this.pcIFrame.contentWindow.postMessage ([this.pcChannelKey, `
+        this.pcIFrame.contentWindow.postMessage ([this.pcChannelOutsideKey, `
           var port = arguments[0];
           self.pcMethods = self.pcMethods || {};
           self.pcMethods.pcPing = (args) => {
@@ -1619,8 +1623,7 @@
             });
           }; // pcInvoke
         `], '*', [mp.port2]);
-        this.pcChannelPort = mp.port1;
-        this.pcChannelPort.onmessage = (ev) => {
+        mp.port1.onmessage = (ev) => {
           var returnPort = ev.ports[0];
           return Promise.resolve ().then (() => {
             if (this.pcMethods[ev.data[0]]) {
@@ -1641,6 +1644,8 @@
             }
           }).then (() => returnPort.close ());
         }; // onmessage
+        this.pcChannelPort = mp.port1;
+        if (this.pcIsReady) this.pcIsReady ();
       }, // pcCreateChannel
       pcInvoke: function (method, args) {
         var returnChannel = new MessageChannel;

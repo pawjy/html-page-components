@@ -12,6 +12,7 @@
     var v = this.currentScript.querySelector ('sandboxed-viewer');
     this.assert.equal (v.querySelector ('iframe').localName, 'iframe');
 
+    await v.ready;
     await v.pcInvoke ('pcEval', {code: `
       return pcRegisterMethod ('abc', (args) => {
         return Promise.resolve ().then (() => args.data);
@@ -37,7 +38,7 @@
       <sandboxed-viewer></sandboxed-viewer>
     */
     var v = this.currentScript.querySelector ('sandboxed-viewer');
-    this.assert.equal (v.querySelector ('iframe').localName, 'iframe');
+    await v.ready;
 
     v.pcRegisterMethod ('foo', (args) => {
       return Promise.resolve ().then (() => args.data);
@@ -63,7 +64,7 @@
       <sandboxed-viewer></sandboxed-viewer>
     */
     var v = this.currentScript.querySelector ('sandboxed-viewer');
-    this.assert.equal (v.querySelector ('iframe').localName, 'iframe');
+    await v.ready;
 
     var r = await v.pcInvoke ('pcEval', {code: `
       return {

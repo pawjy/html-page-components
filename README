@@ -601,6 +601,12 @@ A |sandboxed-viewer| element represents a sandboxed C<iframe> viewer.
 It can be used as a basis of implementing viewer showing HTML
 fragments that might not be secure enough.
 
+A |sandboxed-viewer| element has following member:
+
+  ready
+
+    A promise, which is resolved when the element is ready.
+
 A |sandboxed-viewer| element has following methods:
 
   pcInvoke (methodName, methodArgs)
