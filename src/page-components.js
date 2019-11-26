@@ -1550,6 +1550,80 @@
     },
   }); // <input-datetime>
   defs.filltype["input-datetime"] = 'idlattribute';
+
+  defineElement ({
+    name: 'sandboxed-viewer',
+    props: {
+      pcInit: function () {
+        this.pcIFrame = document.createElement ('iframe');
+        this.pcChannelKey = '' + Math.random ();
+        this.pcIFrame.src = 'data:text/html;charset=utf-8,' + encodeURIComponent ('<!DOCTYPE HTML><script>onmessage=(ev)=>{if (ev.data&&ev.data[0]==="'+this.pcChannelKey+'"){new Function(ev.data[1])(ev.ports[0])}}</script>');
+        this.pcIFrame.sandbox = 'allow-scripts';
+        this.pcIFrame.onload = () => this.pcCreateChannel ();
+        this.appendChild (this.pcIFrame);
+      }, // pcInit
+      pcCreateChannel: function () {
+        var mp = new MessageChannel;
+        this.pcIFrame.contentWindow.postMessage ([this.pcChannelKey, `
+          var port = arguments[0];
+          self.pcMethods = {};
+          self.pcMethods.pcPing = (args) => {
+            return args;
+          };
+          self.pcMethods.pcEval = (args) => {
+            if (args.code == null) throw new TypeError ('|code| is not specified');
+            var f = Object.getPrototypeOf (async function(){}).constructor (args.code);
+            return f ();
+          };
+          self.pcRegisterMethod = (name, code) => {
+            self.pcMethods[name] = code;
+          };
+          port.onmessage = (ev) => {
+            var returnPort = ev.ports[0];
+            return Promise.resolve ().then (() => {
+              if (self.pcMethods[ev.data[0]]) {
+                return self.pcMethods[ev.data[0]] (ev.data[1]);
+              } else {
+                throw new TypeError ('Unknown method |'+ev.data[0]+'| is invoked');
+              }
+            }).then ((r) => {
+              returnPort.postMessage ({ok: true, result: r});
+            }, (e) => {
+              if (e instanceof Error) {
+                returnPort.postMessage ({result: {
+                  name: e.name,
+                  message: e.message,
+                }, error: true});
+              } else {
+                port.postMessage ({result: e});
+              }
+            }).then (() => returnPort.close ());
+          }; // onmessage
+        `], '*', [mp.port2]);
+        this.pcChannelPort = mp.port1;
+        this.pcChannelPort.onmessage = (ev) => {
+        }; // onmessage
+      }, // pcCreateChannel
+      pcInvoke: function (method, args) {
+        var returnChannel = new MessageChannel;
+        return new Promise ((ok, ng) => {
+          returnChannel.port1.onmessage = function (ev) {
+            if (ev.data.ok) {
+              ok (ev.data.result);
+            } else if (ev.data.error) {
+              var e = new Error (ev.data.result.message);
+              e.name = ev.data.result.name;
+              ng (e);
+            } else {
+              ng (ev.data.result);
+            }
+            returnChannel.port1.close ();
+          };
+          this.pcChannelPort.postMessage ([method, args], [returnChannel.port2]);
+        });
+      }, // pcInvoke
+    }, // props
+  }); // <sandboxed-viewer>
   
   defineElement ({
     name: 'image-editor',

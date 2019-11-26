@@ -38,6 +38,7 @@ loaded:
   <before-unload-check>
   <input-datetime>
   <input-tzoffset>
+  <sandboxed-viewer>
   <image-editor>
   <table-mapper>
   <template-set>
@@ -593,6 +594,50 @@ An |input-tzoffset| element may have a |name| content attribute and
 can be used as a custom form element for the purpose of <form
 is=save-data>.  The element's |name| content attribute value and the
 element's |value| property value are added to the form data set.
+
+** <sandboxed-viewer>
+
+A |sandboxed-viewer| element represents a sandboxed C<iframe> viewer.
+It can be used as a basis of implementing viewer showing HTML
+fragments that might not be secure enough.
+
+A |sandboxed-viewer| element has following methods:
+
+  pcInvoke (methodName, methodArgs) : Promise
+
+    Invoke a method in the sandbox.  Two arguments must be specified:
+    the first argument is the method name.  The second argument is a
+    dictionary of named arguments.  The dictionary can only contain
+    transferrable objects.
+
+    The method returns a promise, which is to be resolved with the
+    method's return value, or is to be rejected with the method's
+    exception.
+
+    When a sandbox is initialized, these method is available:
+
+      "pcEval", {code: String}
+
+        Evaluate the "code" value of the dictionary argument as a
+        JavaScript code in the sandbox.  The JavaScript code is
+        interpreted as if it were in the "async function" body.  The
+        value returned by the JavaScript code is returned (or thrown).
+        Note that the value the |pcInvoke| method's returned promise
+        resolved with (or rejected with) is a copy of the value
+        returned (or thrown) by the code evaluated within the sandbox.
+        It must be transferrable.
+
+    Within a sandbox, the following global function is available:
+
+      pcRegisterMethod (methodName, methodCode)
+
+        Register a method.  Two arguments must be specified: the first
+        argument is the method name.  The second argument is a
+        Function that is the implementation of the method.  The
+        function will be invoked with (a copy of) the dictionary
+        argument sent from the outside of the sandbox.  The value
+        returned by the function (if it is a promise, the value the
+        promise is resolved with) must be transferrable.
 
 ** <image-editor>
 
