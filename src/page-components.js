@@ -1558,7 +1558,8 @@
         this.pcMethods = {};
         this.pcIFrame = document.createElement ('iframe');
         this.pcChannelOutsideKey = '' + Math.random ();
-        this.pcIFrame.src = 'data:text/html;charset=utf-8,' + encodeURIComponent ('<!DOCTYPE HTML><script>onmessage=(ev)=>{if (ev.data&&ev.data[0]==="'+this.pcChannelOutsideKey+'"){new Function(ev.data[1])(ev.ports[0])}}</script>');
+        this.pcChannelInsideKey = '' + Math.random ();
+        this.pcIFrame.src = 'data:text/html;charset=utf-8,' + encodeURIComponent ('<!DOCTYPE HTML><script>onmessage=(ev)=>{if (ev.data&&ev.data[0]==="'+this.pcChannelOutsideKey+'"){new Function(ev.data[1])(ev.ports[0],"'+this.pcChannelInsideKey+'")}}</script>');
         this.pcIFrame.sandbox = 'allow-scripts allow-same-origin allow-forms';
         this.pcIFrame.onload = () => this.pcCreateChannel ();
         this.appendChild (this.pcIFrame);
@@ -1571,6 +1572,8 @@
         var mp = new MessageChannel;
         this.pcIFrame.contentWindow.postMessage ([this.pcChannelOutsideKey, `
           var port = arguments[0];
+          var insideKey = arguments[1];
+          port.postMessage (insideKey);
           self.pcMethods = self.pcMethods || {};
           self.pcMethods.pcPing = (args) => {
             return args;
@@ -1624,28 +1627,33 @@
           }; // pcInvoke
         `], '*', [mp.port2]);
         mp.port1.onmessage = (ev) => {
-          var returnPort = ev.ports[0];
-          return Promise.resolve ().then (() => {
-            if (this.pcMethods[ev.data[0]]) {
-              return this.pcMethods[ev.data[0]] (ev.data[1]);
-            } else {
-              throw new TypeError ('Unknown method |'+ev.data[0]+'| is invoked');
-            }
-          }).then ((r) => {
-            returnPort.postMessage ({ok: true, result: r});
-          }, (e) => {
-            if (e instanceof Error) {
-              returnPort.postMessage ({result: {
-                name: e.name,
-                message: e.message,
-              }, error: true});
-            } else {
-              port.postMessage ({result: e});
-            }
-          }).then (() => returnPort.close ());
+          if (ev.data !== this.pcChannelInsideKey) {
+            throw new Error ('Iframe sent back an invalid inside key |'+ev.data+'| (|'+this.pcChannelInsideKey+'| expected)');
+          }
+          mp.port1.onmessage = (ev) => {
+            var returnPort = ev.ports[0];
+            return Promise.resolve ().then (() => {
+              if (this.pcMethods[ev.data[0]]) {
+                return this.pcMethods[ev.data[0]] (ev.data[1]);
+              } else {
+                throw new TypeError ('Unknown method |'+ev.data[0]+'| is invoked');
+              }
+            }).then ((r) => {
+              returnPort.postMessage ({ok: true, result: r});
+            }, (e) => {
+              if (e instanceof Error) {
+                returnPort.postMessage ({result: {
+                  name: e.name,
+                  message: e.message,
+                }, error: true});
+              } else {
+                port.postMessage ({result: e});
+              }
+            }).then (() => returnPort.close ());
+          }; // onmessage
+          this.pcChannelPort = mp.port1;
+          if (this.pcIsReady) this.pcIsReady ();
         }; // onmessage
-        this.pcChannelPort = mp.port1;
-        if (this.pcIsReady) this.pcIsReady ();
       }, // pcCreateChannel
       pcInvoke: function (method, args) {
         var returnChannel = new MessageChannel;
