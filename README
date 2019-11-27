@@ -1437,6 +1437,12 @@ scope.  The following functions are available:
       function returns a promise which is resolved once the template
       set has been inserted into the document.
 
+  |$paco| namespace
+
+    promise = $paco.upgrade (element)
+
+      Upgrade an element, using any available element definition.
+
   |$promised| namespace
 
     promise = $promised.forEach ((item) => { return promise }, list)

@@ -1,5 +1,5 @@
 (function () {
-  var exportable = {};
+  var exportable = {$paco: {}};
 
   var $promised = exportable.$promised = {};
 
@@ -139,7 +139,7 @@
   var upgrader = {};
   
   var upgrade = function (e) {
-    if (e.pcUpgraded) return;
+    if (e.pcUpgraded) return Promise.resolve ();
     e.pcUpgraded = true;
 
     var props = (upgradedElementProps[e.localName] || {})[e.getAttribute ('is')] || {};
@@ -147,8 +147,17 @@
       e[k] = props[k];
     });
 
-    new Promise ((re) => re ((upgrader[e.localName] || {})[e.getAttribute ('is')].call (e))).catch ((err) => console.log ("Can't upgrade an element", e, err));
+    return new Promise ((re) => re ((upgrader[e.localName] || {})[e.getAttribute ('is')].call (e))).catch ((err) => {
+      console.log ("Can't upgrade an element", e, err);
+      throw err;
+    });
   }; // upgrade
+
+  exportable.$paco.upgrade = (e) => {
+    if (!upgrader[e.localName]) return Promise.resolve ();
+    if (!upgrader[e.localName][e.getAttribute ('is')]) return Promise.resolve ();
+    return upgrade (e);
+  }; // $paco.upgrade
 
   new MutationObserver (function (mutations) {
     mutations.forEach (function (m) {
