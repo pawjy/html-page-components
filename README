@@ -597,13 +597,20 @@ element's |value| property value are added to the form data set.
 
 ** <sandboxed-viewer>
 
-A |sandboxed-viewer| element represents a sandboxed C<iframe> viewer.
+A |sandboxed-viewer| element represents a sandboxed |iframe| viewer.
 It can be used as a basis of implementing viewer showing HTML
 fragments that might not be secure enough.
 
 If a |sandboxed-viewer| element has a |seamlessheight| attribute, the
 element is resized to the height of the content of the sandboxed
-C<iframe>.
+|iframe|.
+
+If a |sandboxed-viewer| element has an |allow| attribute, its value is
+set to the |iframe|'s |allow| attribute.
+
+If a |sandboxed-viewer| element has an |allowsandbox| attribute, its
+value is set to the |iframe|'s |sandbox| attribute, as well as default
+values.
 
 A |sandboxed-viewer| element has following member:
 

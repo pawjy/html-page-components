@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+  <test-code name="paco">
+    this.assert.equal ($paco.upgrade instanceof Function, true);
+  </test-code>
+
+  <script>
+    function define (def) {
+      var e = document.createElementNS ('data:,pc', 'element');
+      e.pcDef = def;
+      document.head.appendChild (e);
+    }
+  </script>
+
+  <test-code name="upgrade">
+    define ({
+      name: 'paco-upgrade-test-1',
+      props: {
+        pcInit: function () {
+          return Promise.resolve ().then (() => {
+            this.testUpgradedCount++;
+          });
+        },
+      },
+    });
+    await this.wait ();
+
+    var e = document.createElement ('paco-upgrade-test-1');
+    e.testUpgradedCount = 0;
+    await $paco.upgrade (e);
+
+    this.assert.equal (e.testUpgradedCount, 1);
+    await $paco.upgrade (e);
+
+    this.assert.equal (e.testUpgradedCount, 1);
+  </test-code>
+
+  <test-code name="upgrade not upgradable">
+    var e = document.createElement ('paco-upgrade-test-2');
+    await $paco.upgrade (e);
+
+    this.assert.equal (e.pcUpgraded, undefined);
+  </test-code>
+
+  <test-code name="upgrade thrown">
+    define ({
+      name: 'paco-upgrade-test-3',
+      props: {
+        pcInit: function () {
+          return Promise.resolve ().then (() => {
+            this.testUpgradedCount++;
+            throw new Error ('Not upgradable');
+          });
+        },
+      },
+    });
+    await this.wait ();
+
+    var e = document.createElement ('paco-upgrade-test-3');
+    e.testUpgradedCount = 0;
+    try {
+      await $paco.upgrade (e);
+      this.assert.equal (false, true);
+    } catch (err) {
+      this.assert.equal (err.message, 'Not upgradable');
+    }
+    
+    this.assert.equal (e.testUpgradedCount, 1);
+    await $paco.upgrade (e);
+
+    this.assert.equal (e.testUpgradedCount, 1);
+  </test-code>
+
+  <script src=runtests.js data-export=$paco></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->
