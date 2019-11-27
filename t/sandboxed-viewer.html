@@ -5,6 +5,22 @@
   <title>Test</title>
 </head>
 <body>
+  <test-code name=allow>
+    /*
+      <sandboxed-viewer allow=fullscreen></sandboxed-viewer>
+    */
+    var v = this.currentScript.querySelector ('sandboxed-viewer');
+    this.assert.equal (v.getAttribute ('allow'), 'fullscreen');
+  </test-code>
+  
+  <test-code name=allowsandbox>
+    /*
+      <sandboxed-viewer allowsandbox=allow-popups></sandboxed-viewer>
+    */
+    var v = this.currentScript.querySelector ('sandboxed-viewer');
+    this.assert.equal (!!v.getAttribute ('sandbox').match (/allow-popups/), true);
+  </test-code>
+  
   <test-code name=pcEval>
     /*
       <sandboxed-viewer></sandboxed-viewer>
