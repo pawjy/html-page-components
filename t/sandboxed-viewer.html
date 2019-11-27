@@ -31,6 +31,9 @@
       this.assert.equal (e.name, 'TypeError');
       this.assert.equal (e.message, 'abcde');
     }
+
+    this.assert.equal (v.offsetWidth, 300);
+    this.assert.equal (v.offsetHeight, 150);
   </test-code>
   
   <test-code name=invokeFromSandBox>
@@ -143,6 +146,31 @@
     `}).then (() => invoked = true, () => invoked = true);
     await this.wait (1000);
     this.assert.equal (invoked, false);
+  </test-code>
+  
+  <test-code name="seamlessheight">
+    /*
+      <sandboxed-viewer seamlessheight></sandboxed-viewer>
+    */
+    var v = this.currentScript.querySelector ('sandboxed-viewer');
+
+    await v.ready;
+    await v.pcInvoke ('pcEval', {code: "document.body.style='margin:0;padding:0'; pcRegisterMethod ('setHTML', (args) => document.body.innerHTML = args.value)"});
+
+    await v.pcInvoke ('setHTML', {value: '<'+'p style="margin:0;width:100px;height:4000px">'});
+    await this.wait (100);
+    this.assert.equal (v.offsetWidth, 300);
+    this.assert.equal (v.offsetHeight, 4000);
+
+    await v.pcInvoke ('setHTML', {value: '<'+'p style="margin:0;width:100px;height:400px">'});
+    await this.wait (100);
+    this.assert.equal (v.offsetWidth, 300);
+    this.assert.equal (v.offsetHeight, 400);
+
+    await v.pcInvoke ('setHTML', {value: '<'+'p style="margin:0;width:100px;height:5000px">'});
+    await this.wait (100);
+    this.assert.equal (v.offsetWidth, 300);
+    this.assert.equal (v.offsetHeight, 5000);
   </test-code>
 
   <script src=runtests.js></script>

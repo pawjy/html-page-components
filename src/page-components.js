@@ -1555,7 +1555,13 @@
     name: 'sandboxed-viewer',
     props: {
       pcInit: function () {
-        this.pcMethods = {};
+        this.pcMethods = {
+          pcSetDimension: (args) => {
+            //this.style.width = args.width + 'px';
+            this.style.height = args.height + 'px';
+            //console.log (args);
+          }, // pcSetDimension
+        };
         this.pcIFrame = document.createElement ('iframe');
         this.pcChannelOutsideKey = '' + Math.random ();
         this.pcChannelInsideKey = '' + Math.random ();
@@ -1566,6 +1572,9 @@
         this.ready = new Promise ((ok, ng) => {
           this.pcIsReady = ok;
         });
+        if (this.hasAttribute ('seamlessheight')) {
+          this.ready.then (() => this.pcSetSeamlessHeight ());
+        }
       }, // pcInit
       pcCreateChannel: function () {
         var mp = new MessageChannel;
@@ -1693,6 +1702,41 @@
       pcRegisterMethod: function (name, code) {
         this.pcMethods[name] = code;
       }, // pcRegisterMethod
+      pcSetSeamlessHeight: function () {
+        return Promise.resolve ().then (() => {
+          if (!window.ResizeObserver) {
+            return this.pcInvoke ('pcEval', {code: `
+              self.pcResizeObserver = function (cb) {
+                this.cb = cb;
+              };
+              self.pcResizeObserver.prototype.observe = function (e) {
+                new MutationObserver (() => {
+                  this.cb ();
+                }).observe (e, {childList: true, subtree: true, attributes: true});
+                document.body.addEventListener ('load', () => {
+                  this.cb ();
+                }, true);
+                window.addEventListener ('resize', () => {
+                  this.cb ();
+                }, true);
+                Promise.resolve ().then (this.cb);
+              };
+            `});
+          }
+        }).then (() => {
+          return this.pcInvoke ('pcEval', {code: `
+            var ob = self.ResizeObserver || self.pcResizeObserver;
+            var observer = new ob (() => {
+              var rect = document.documentElement.getBoundingClientRect ();
+              pcInvoke ('pcSetDimension', {
+                height: rect.height,
+                width: rect.width,
+              });
+            });
+            observer.observe (document.body);
+          `});
+        });
+      }, // pcSetSeamless
     }, // props
   }); // <sandboxed-viewer>
   
