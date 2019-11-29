@@ -1747,6 +1747,9 @@
           `});
         });
       }, // pcSetSeamless
+      focus: function () {
+        if (this.pcIFrame) this.pcIFrame.focus ();
+      }, // focus
     }, // props
   }); // <sandboxed-viewer>
   
