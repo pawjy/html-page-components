@@ -209,10 +209,40 @@ the selected section.
 ** <sub-window>
 
 A |sub-window| element represents a window shown within the viewport.
+The element has *mode*, which is either |default| or |minimized|,
+initialized to |default|.
 
-It can contain any flow content, representing the window's content.
+The element can contain any flow content, optionally preceded by a
+|sub-window-minimized| element child, which is the element's
+*minimized element*.  If there is no minimized element child, an empty
+element is created.
+
+When the mode is set to |default| (including when the element is
+initialized), the element is shown and the element's minimized element
+is not shown.
+
+When the mode is set to |minimized|, the element is hidden and the
+element's minimized element is set to the document's minimized content
+element.  If the document has a |sub-window-minimized-container|
+element, its the document's minimized content element.  Otherwise, an
+empty element is created.
+
+There is following property:
+
+  mode
+
+    On getting, it returns the element's mode.
+
+    On setting, it sets the element's mode to the new value.
+
+    If the element has |pcSetDimension| method, it is invoked whenever
+    the mode is set to new value (including when the element is
+    initialized) and is expected to modify the element's style
+    properties as appropriate.
+
 There can be HTML |button| elements with |data-sub-window-action|
-attribute set to one of following values:
+attribute set to one of following values, within the element's
+content:
 
   minimize
 
@@ -221,18 +251,6 @@ attribute set to one of following values:
   unminimize
 
     Set the element's mode to |default|.
-
-The element has *mode*, either |default| (the initial value) or
-|minimized|.  The element's mode can be retrieved by the |pcMode|
-property or the |mode| content attribute.  When the mode is |default|,
-the element is expected to be rendered in its normal styling.  When
-the mode is |minimized|, the element is expected to be rendered in its
-minimized styling.  When the mode is |minimized|, the element is put
-within the |sub-window-minimized-container| element of the document
-(which is automatically created).  The application can style these
-elements using CSS.  Additionally, if the element has |pcSetDimension|
-method, it is invoked whenever the mode is set to new value and is
-expected to modify the element's style properties as appropriate.
 
 ** <list-container>
 

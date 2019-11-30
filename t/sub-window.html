@@ -6,15 +6,13 @@
 <style>
   sub-window {
     border: blue 1px solid;
-  }
-  sub-window[mode=default] {
     position: fixed;
     top: 16px;
     left: 16px;
     bottom: 16px;
     right: 16px;
   }
-  sub-window[mode=minimized] {
+  sub-window-minimized {
     width: 15em;
     margin: .5em;
   }
@@ -24,9 +22,6 @@
   test-sub-window-main {
     display: block;
   }
-  sub-window[mode=minimized] test-sub-window-main {
-    display: none;
-  }
   sub-window-minimized-container:not([hidden]) {
     display: flex;
   }
@@ -34,6 +29,45 @@
 </head>
 <body>
   <test-code name="default">
+    /*
+      <sub-window id=test-sub-window-1>
+        <sub-window-minimized>
+          <button type=button data-sub-window-action=unminimize>↑</button>
+        </sub-window-minimized>
+        <test-sub-window-header>
+          <button type=button data-sub-window-action=minimize>↓</button>
+        </test-sub-window-header>
+        <test-sub-window-main>
+          Hi!
+        </test-sub-window-main>
+      </sub-window>    
+    */
+    var e = document.querySelector ('#test-sub-window-1');
+    await this.wait ();
+
+    this.assert.equal (e.querySelector ('sub-window-minimized'), null);
+    this.assert.equal (e.mode, 'default');
+    this.assert.equal (e.offsetWidth > 0, true);
+    this.assert.equal (e.pcMinimized.offsetWidth, 0);
+
+    e.querySelector ('button[data-sub-window-action=minimize]').click ();
+    await this.wait ();
+    
+    this.assert.equal (e.mode, 'minimized');
+    this.assert.equal (e.offsetWidth, 0);
+    this.assert.equal (e.pcMinimized.offsetWidth > 0, true);
+
+    e.pcMinimized.querySelector ('button[data-sub-window-action=unminimize]').click ();
+    await this.wait ();
+
+    this.assert.equal (e.mode, 'default');
+    this.assert.equal (e.offsetWidth > 0, true);
+    this.assert.equal (e.pcMinimized.offsetWidth, 0);
+
+    e.remove ();
+  </test-code>
+
+  <test-code name="no minimized content">
     /*
       <sub-window id=test-sub-window-1>
         <test-sub-window-header>
@@ -48,28 +82,24 @@
     var e = document.querySelector ('#test-sub-window-1');
     await this.wait ();
 
-    this.assert.equal (e.pcMode, 'default');
-    this.assert.equal (e.getAttribute ('mode'), 'default');
-    this.assert.equal (e.querySelector ('button[data-sub-window-action=unminimize]').offsetWidth, 0);
-    this.assert.equal (e.querySelector ('button[data-sub-window-action=minimize]').offsetWidth > 0, true);
+    this.assert.equal (e.querySelector ('sub-window-minimized'), null);
+    this.assert.equal (e.mode, 'default');
+    this.assert.equal (e.offsetWidth > 0, true);
+    this.assert.equal (e.pcMinimized.offsetWidth, 0);
 
     e.querySelector ('button[data-sub-window-action=minimize]').click ();
     await this.wait ();
     
-    this.assert.equal (e.pcMode, 'minimized');
-    this.assert.equal (e.getAttribute ('mode'), 'minimized');
-    this.assert.equal (e.parentNode.localName, 'sub-window-minimized-container');
-    this.assert.equal (e.querySelector ('button[data-sub-window-action=minimize]').offsetWidth, 0);
-    this.assert.equal (e.querySelector ('button[data-sub-window-action=unminimize]').offsetWidth > 0, true);
+    this.assert.equal (e.mode, 'minimized');
+    this.assert.equal (e.offsetWidth, 0);
+    this.assert.equal (e.pcMinimized.offsetWidth > 0, true);
 
     e.querySelector ('button[data-sub-window-action=unminimize]').click ();
     await this.wait ();
 
-    this.assert.equal (e.pcMode, 'default');
-    this.assert.equal (e.getAttribute ('mode'), 'default');
-    this.assert.equal (e.parentNode.localName, 'body');
-    this.assert.equal (e.querySelector ('button[data-sub-window-action=unminimize]').offsetWidth, 0);
-    this.assert.equal (e.querySelector ('button[data-sub-window-action=minimize]').offsetWidth > 0, true);
+    this.assert.equal (e.mode, 'default');
+    this.assert.equal (e.offsetWidth > 0, true);
+    this.assert.equal (e.pcMinimized.offsetWidth, 0);
 
     e.remove ();
   </test-code>
@@ -77,8 +107,10 @@
   <test-code name="pcSetDimension">
     /*
       <sub-window id=test-sub-window-2>
-        <test-sub-window-header>
+        <sub-window-minimized>
           <button type=button data-sub-window-action=unminimize>↑</button>
+        </sub-window-minimized>
+        <test-sub-window-header>
           <button type=button data-sub-window-action=minimize>↓</button>
         </test-sub-window-header>
         <test-sub-window-main>
@@ -91,7 +123,7 @@
     var lastMode;
     e.pcSetDimension = () => {
       called++;
-      lastMode = e.pcMode;
+      lastMode = e.mode;
     };
     await this.wait ();
 
@@ -102,11 +134,50 @@
     this.assert.equal (lastMode, 'minimized');
     this.assert.equal (called, 1);
 
-    e.querySelector ('button[data-sub-window-action=unminimize]').click ();
+    e.pcMinimized.querySelector ('button[data-sub-window-action=unminimize]').click ();
     await this.wait ();
 
     this.assert.equal (lastMode, 'default');
     this.assert.equal (called, 2);
+
+    e.remove ();
+  </test-code>
+
+  <test-code name="mode setter">
+    /*
+      <sub-window id=test-sub-window-3>
+        <sub-window-minimized>
+          <button type=button data-sub-window-action=unminimize>↑</button>
+        </sub-window-minimized>
+        <test-sub-window-header>
+          <button type=button data-sub-window-action=minimize>↓</button>
+        </test-sub-window-header>
+        <test-sub-window-main>
+          Hi!
+        </test-sub-window-main>
+      </sub-window>    
+    */
+    var e = document.querySelector ('#test-sub-window-3');
+    await this.wait ();
+
+    this.assert.equal (e.querySelector ('sub-window-minimized'), null);
+    this.assert.equal (e.mode, 'default');
+    this.assert.equal (e.offsetWidth > 0, true);
+    this.assert.equal (e.pcMinimized.offsetWidth, 0);
+
+    e.mode = 'minimized';
+    await this.wait ();
+    
+    this.assert.equal (e.mode, 'minimized');
+    this.assert.equal (e.offsetWidth, 0);
+    this.assert.equal (e.pcMinimized.offsetWidth > 0, true);
+
+    e.mode = 'default';
+    await this.wait ();
+
+    this.assert.equal (e.mode, 'default');
+    this.assert.equal (e.offsetWidth > 0, true);
+    this.assert.equal (e.pcMinimized.offsetWidth, 0);
 
     e.remove ();
   </test-code>
