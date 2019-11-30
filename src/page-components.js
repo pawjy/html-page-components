@@ -897,6 +897,50 @@
       }, // tsShowTab
     },
   }); // tab-set
+
+  defineElement ({
+    name: 'sub-window',
+    props: {
+      pcInit: function () {
+        this.pcSetMode ('default');
+        this.querySelectorAll ('button[data-sub-window-action]').forEach (_ => {
+          _.onclick = () => this.pcRunAction (_.getAttribute ('data-sub-window-action'));
+        });
+      }, // pcInit
+      pcRunAction: function (action) {
+        if (action === 'minimize') {
+          return this.pcSetMode ('minimized');
+        } else if (action === 'unminimize') {
+          return this.pcSetMode ('default');
+        } else {
+          throw new Error ('Unknown sub-window action type |'+action+'|');
+        }
+      }, // pcRunAction
+      pcMinimizedContainer: function () {
+        var c = document.querySelector ('sub-window-minimized-container');
+        if (!c) {
+          c = document.createElement ('sub-window-minimized-container');
+          document.body.appendChild (c);
+        }
+        return c;
+      }, // pcMinimizedContainer
+      pcSetMode: function (newMode) {
+        if (this.pcMode === newMode) return;
+        this.pcMode = newMode;
+        this.setAttribute ('mode', newMode);
+        return Promise.resolve ().then (() => {
+          if (!this.pcSetDimension) return;
+          return this.pcSetDimension (); // or throw
+        }).then (() => {
+          if (this.pcMode === 'minimized') {
+            this.pcMinimizedContainer ().appendChild (this);
+          } else { // default
+            document.body.appendChild (this);
+          }
+        });
+      }, // pcSetMode
+    },
+  }); // <sub-window>
   
   defs.loader.src = function (opts) {
     if (!this.hasAttribute ('src')) return {};

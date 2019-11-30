@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>sub-window</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js async></script>
+<style>
+  sub-window {
+    border: blue 1px solid;
+  }
+  sub-window[mode=default] {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    bottom: 16px;
+    right: 16px;
+  }
+  sub-window[mode=minimized] {
+    width: 15em;
+    margin: .5em;
+  }
+  test-sub-window-header {
+    display: block;
+  }
+  test-sub-window-main {
+    display: block;
+  }
+  sub-window[mode=minimized] test-sub-window-main {
+    display: none;
+  }
+  sub-window-minimized-container:not([hidden]) {
+    display: flex;
+  }
+</style>
+
+<p style="margin-bottom: 30em">Hello, world!
+<p>World!!
+
+<sub-window>
+  <test-sub-window-header>
+    <button type=button data-sub-window-action=unminimize>↑</button>
+    <button type=button data-sub-window-action=minimize>↓</button>
+  </test-sub-window-header>
+  <test-sub-window-main>
+    Hi!
+  </test-sub-window-main>
+</sub-window>    
+
+<sub-window>
+  <test-sub-window-header>
+    <button type=button data-sub-window-action=unminimize>↑</button>
+    <button type=button data-sub-window-action=minimize>↓</button>
+  </test-sub-window-header>
+  <test-sub-window-main>
+    Hi!
+  </test-sub-window-main>
+</sub-window>    
+
+<script>
+  document.querySelectorAll ('sub-window').forEach (sw => {
+    sw.pcSetDimension = function () {
+      if (this.pcMode === 'minimized') {
+        //
+      } else {
+
+      }
+    };
+  });
+</script>
