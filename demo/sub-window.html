@@ -6,15 +6,13 @@
 <style>
   sub-window {
     border: blue 1px solid;
-  }
-  sub-window[mode=default] {
     position: fixed;
     top: 16px;
     left: 16px;
     bottom: 16px;
     right: 16px;
   }
-  sub-window[mode=minimized] {
+  sub-window-minimized {
     width: 15em;
     margin: .5em;
   }
@@ -23,9 +21,6 @@
   }
   test-sub-window-main {
     display: block;
-  }
-  sub-window[mode=minimized] test-sub-window-main {
-    display: none;
   }
   sub-window-minimized-container:not([hidden]) {
     display: flex;
@@ -36,8 +31,10 @@
 <p>World!!
 
 <sub-window>
-  <test-sub-window-header>
+  <sub-window-minimized>
     <button type=button data-sub-window-action=unminimize>↑</button>
+  </sub-window-minimized>
+  <test-sub-window-header>
     <button type=button data-sub-window-action=minimize>↓</button>
   </test-sub-window-header>
   <test-sub-window-main>
@@ -46,8 +43,10 @@
 </sub-window>    
 
 <sub-window>
-  <test-sub-window-header>
+  <sub-window-minimized>
     <button type=button data-sub-window-action=unminimize>↑</button>
+  </sub-window-minimized>
+  <test-sub-window-header>
     <button type=button data-sub-window-action=minimize>↓</button>
   </test-sub-window-header>
   <test-sub-window-main>

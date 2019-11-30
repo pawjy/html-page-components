@@ -902,10 +902,19 @@
     name: 'sub-window',
     props: {
       pcInit: function () {
-        this.pcSetMode ('default');
+        Object.defineProperty (this, 'mode', {
+          get: () => this.pcMode,
+          set: (newValue) => this.pcSetMode (newValue),
+        });
+        
         this.querySelectorAll ('button[data-sub-window-action]').forEach (_ => {
           _.onclick = () => this.pcRunAction (_.getAttribute ('data-sub-window-action'));
         });
+        
+        this.pcMinimized = this.querySelector ('sub-window-minimized') || document.createElement ('sub-window-minimized');
+        this.pcMinimized.remove ();
+
+        this.pcSetMode ('default');
       }, // pcInit
       pcRunAction: function (action) {
         if (action === 'minimize') {
@@ -927,16 +936,15 @@
       pcSetMode: function (newMode) {
         if (this.pcMode === newMode) return;
         this.pcMode = newMode;
-        this.setAttribute ('mode', newMode);
+        this.hidden = newMode === 'minimized';
+        if (newMode === 'minimized') {
+          this.pcMinimizedContainer ().appendChild (this.pcMinimized);
+        } else {
+          this.pcMinimized.remove ();
+        }
         return Promise.resolve ().then (() => {
           if (!this.pcSetDimension) return;
           return this.pcSetDimension (); // or throw
-        }).then (() => {
-          if (this.pcMode === 'minimized') {
-            this.pcMinimizedContainer ().appendChild (this);
-          } else { // default
-            document.body.appendChild (this);
-          }
         });
       }, // pcSetMode
     },
