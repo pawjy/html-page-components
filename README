@@ -33,6 +33,7 @@ loaded:
   <a is=copy-url>
   <popup-menu>
   <tab-set>
+  <sub-window>
   <list-container>
   <form is=save-data>
   <before-unload-check>
@@ -204,6 +205,34 @@ By default the first section is selected.
 
 Whenever a section is selected, a bubbling |show| event is fired at
 the selected section.
+
+** <sub-window>
+
+A |sub-window| element represents a window shown within the viewport.
+
+It can contain any flow content, representing the window's content.
+There can be HTML |button| elements with |data-sub-window-action|
+attribute set to one of following values:
+
+  minimize
+
+    Set the element's mode to |minimized|.
+
+  unminimize
+
+    Set the element's mode to |default|.
+
+The element has *mode*, either |default| (the initial value) or
+|minimized|.  The element's mode can be retrieved by the |pcMode|
+property or the |mode| content attribute.  When the mode is |default|,
+the element is expected to be rendered in its normal styling.  When
+the mode is |minimized|, the element is expected to be rendered in its
+minimized styling.  When the mode is |minimized|, the element is put
+within the |sub-window-minimized-container| element of the document
+(which is automatically created).  The application can style these
+elements using CSS.  Additionally, if the element has |pcSetDimension|
+method, it is invoked whenever the mode is set to new value and is
+expected to modify the element's style properties as appropriate.
 
 ** <list-container>
 

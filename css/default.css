@@ -11,6 +11,34 @@ tab-set > section:not(.active) {
   display: none;
 }
 
+sub-window:not([hidden]) {
+  display: block;
+  pointer-events: auto;
+}
+
+sub-window[mode=minimized] {
+  position: static;
+}
+
+sub-window[mode=default] button[data-sub-window-action=unminimize] {
+  display: none;
+}
+
+sub-window[mode=minimized] button[data-sub-window-action=minimize] {
+  display: none;
+}
+
+sub-window-minimized-container:not([hidden]) {
+  display: block;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 50%;
+  overflow: auto;
+  pointer-events: none;
+}
+
 action-status:not([hidden]) {
   display: block;
   font-size: 90%;

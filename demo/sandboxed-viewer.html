@@ -14,3 +14,8 @@
     document.body.innerHTML = '<iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/yDXVqicnWeo&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen></iframe>';
   `});
 ">YouTube</button>
+<button type=button onclick="
+  document.querySelector ('sandboxed-viewer').pcInvoke ('pcEval', {code: `
+    document.documentElement.innerHTML = '<a href=https://www.example.com>Link</a> <a href=https://www.example.com target=_blank>Link (_blank)</a> <button type=button onclick=location.href=this.value value=https://www.example.com>button</button>';
+  `});
+">External link</button>
