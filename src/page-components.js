@@ -1013,7 +1013,7 @@
 
         var listContainer = this.lcGetListContainer ();
         if (listContainer) listContainer.textContent = '';
-        this.lcDataChanges.changed = true;
+        if (this.lcDataChanges) this.lcDataChanges.changed = true;
         this.lcRequestRender ();
       });
       this.load ({});
