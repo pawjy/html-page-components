@@ -360,6 +360,20 @@
     this.assert.equal (e.firstElementChild.getAttribute ('name'), '533');
   </test-code>
 
+  <test-code name="data-filledprops">
+    /*
+      <div>
+        <button data-filledprops="name xy align data-abc foo.abc"></button>
+      </div>
+    */
+    var e = this.currentScript.querySelector ('div');
+    $fill (e, {foo: {abc: "134 f<&>\u0022oo"}, "abc": 533, xy: [1, 4]});
+    this.assert.equal (e.firstElementChild['data-abc'], null);
+    this.assert.equal (e.firstElementChild['foo.abc'], '134 f<&>"oo');
+    this.assert.equal (e.firstElementChild.xy[0], 1);
+    this.assert.equal (e.firstElementChild.xy[1], 4);
+  </test-code>
+
   <script src=runtests.js data-export=$fill></script>
 </body>
 </html>

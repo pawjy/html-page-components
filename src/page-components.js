@@ -326,6 +326,21 @@
         }
       });
     });
+    root.querySelectorAll ('[data-filledprops]').forEach (f => {
+      f.getAttribute ('data-filledprops').split (/\s+/).forEach (propName => {
+        var name = propName.split (/\./);
+        var value = object;
+        for (var i = 0; i < name.length; i++) {
+          value = value[name[i]];
+          if (value == null) break;
+        }
+        if (value != null) {
+          f[propName] = value;
+        } else {
+          f[propName] = null;
+        }
+      });
+    });
   }; // $fill
 
   $fill.string = function (s, object) {
