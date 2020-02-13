@@ -869,6 +869,7 @@
           a.href = 'javascript:';
           a.onclick = () => this.tsShowTab (a.tsSection);
           a.textContent = header ? header.textContent : '§';
+          a.className = f.getAttribute ('data-tab-button-class') || '';
           a.tsSection = f;
           tabMenu.appendChild (a);
         });
@@ -2679,7 +2680,7 @@
 
 /*
 
-Copyright 2017-2019 Wakaba <wakaba@suikawiki.org>.
+Copyright 2017-2020 Wakaba <wakaba@suikawiki.org>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as

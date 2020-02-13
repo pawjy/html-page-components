@@ -206,6 +206,10 @@ By default the first section is selected.
 Whenever a section is selected, a bubbling |show| event is fired at
 the selected section.
 
+If a section has a |data-tab-button-class| attribute, its value is
+copied to the |class| attribute of the corresponding anchor in the
+menu when the anchor is created.
+
 ** <sub-window>
 
 A |sub-window| element represents a window shown within the viewport.
@@ -1777,7 +1781,7 @@ Wakaba <wakaba@suikawiki.org>.
 
 * License
 
-Copyright 2017-2019 Wakaba <wakaba@suikawiki.org>.
+Copyright 2017-2020 Wakaba <wakaba@suikawiki.org>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
