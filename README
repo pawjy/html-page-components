@@ -1470,6 +1470,22 @@ scope.  The following functions are available:
           feature can be used to enable the submit button and other
           controls only after other fields are filled in.
 
+        An element with |data-filledprops| attribute
+
+          The attribute value is interpreted as a space-separated list
+          of field names.  For each field, the element's property
+          whose name is equal to the field name is set to the field
+          value, if specified, or null.
+
+          For example, when an element |element| has its
+          |data-filledprops| attribute set to |a b c| and the object
+          {a: [1, 2], b: "xyz"} is given, |element|'s properties are
+          set as following:
+
+            element.a = [1, 2]
+            element.b = "xyz"
+            element.c = null
+
     resultString = $fill.string (templateString, object)
 
       Return the result of processing the *value template*
