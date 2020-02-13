@@ -63,7 +63,7 @@
       <tab-set>
         <tab-menu></tab-menu>
         <section><h1>A</h1>a</section>
-        <section><h1>B</h1>b</section>
+        <section data-tab-button-class="ab yX"><h1>B</h1>b</section>
       </tab-set>
     */
       
@@ -78,7 +78,7 @@
     this.assert.equal (menu.children[0].textContent, 'A');
     this.assert.equal (menu.children[1].localName, 'a');
     this.assert.equal (menu.children[1].href, 'javascript:');
-    this.assert.equal (menu.children[1].className, '');
+    this.assert.equal (menu.children[1].className, 'ab yX');
     this.assert.equal (menu.children[1].textContent, 'B');
     this.assert.equal (getComputedStyle (s1).display, 'block', 'browser default style');
     this.assert.equal (s1.className, 'active');
@@ -93,7 +93,7 @@
     this.assert.equal (menu.children[0].className, '');
     this.assert.equal (menu.children[1].localName, 'a');
     this.assert.equal (menu.children[1].href, 'javascript:');
-    this.assert.equal (menu.children[1].className, 'active');
+    this.assert.equal (menu.children[1].className, 'ab yX active');
     this.assert.equal (getComputedStyle (s1).display, 'none', 'default style');
     this.assert.equal (s1.className, '');
     this.assert.equal (getComputedStyle (s2).display, 'block', 'browser default style');
