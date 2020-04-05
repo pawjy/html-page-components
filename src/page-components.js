@@ -465,6 +465,23 @@
     });
   }; // $getTemplateSet
 
+  exportable.$paco.catchFetchError = function (e, requestInfo) {
+    throw new PACOFetchError (e, requestInfo);
+  }; // $paco.catchFetchError
+  
+ class PACOFetchError extends Error {
+   constructor (e, requestInfo) {
+     var m = e;
+     if (e instanceof Response) {
+       m = e.status + ' ' + e.statusText
+     }
+     super (m+' <'+requestInfo.url+'>');
+     this.name = 'PACOFetchError';
+     this.pcError = e; // Error, Response, or other exception
+     this.pcRequestInfo = requestInfo;
+   };
+ }; // PACOFetchError
+ 
   var ActionStatus = function (elements) {
     this.stages = {};
     this.elements = elements;
@@ -548,13 +565,8 @@
           msg = e.getAttribute ('ok');
         } else { // not ok
           if (opts.error) {
-            if (opts.error instanceof Response) {
-              msg = opts.error.status + ' ' + opts.error.statusText;
-              console.log (opts.error); // for debugging
-            } else {
-              msg = opts.error;
-              console.log (opts.error.stack); // for debugging
-            }
+            msg = opts.error;
+            console.log (opts.error.stack); // for debugging
           } else {
             msg = e.getAttribute ('ng') || 'Failed';
           }
@@ -987,7 +999,9 @@
         prev: {ref: json.prev_ref, has: json.has_prev, limit: opts.limit},
         next: {ref: json.next_ref, has: json.has_next, limit: opts.limit},
       };
-    });
+    }).catch (e => exportable.$paco.catchFetchError (e, {
+      url: url,
+    }));
   }; // loader=src
 
   defs.filter["default"] = function (data) {
@@ -1405,7 +1419,10 @@
     }).then ((res) => {
       if (res.status !== 200) throw res;
       return res;
-    });
+    }).catch (e => exportable.$paco.catchFetchError (e, {
+      url: this.action,
+      method: 'POST',
+    }));
   }; // form
 
   defs.formsaved.reset = function (args) {

@@ -71,7 +71,7 @@
           currentScript: e,
           wait: (n) => new Promise ((ok) => setTimeout (ok, n || 0)),
           assertEqualError: function (actual, expected, name) {
-            this.assert.throws (() => { throw actual }, expected, name);
+            this.assert.throws (() => { throw actual.pcError || actual }, expected, name);
           }, // assertEqualError
           assertWindowError: function (code, expected, name) {
             var onerror = window.onerror;
