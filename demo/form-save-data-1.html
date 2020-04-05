@@ -2,8 +2,24 @@
 <title>form</title>
 
 <form action=/submit/200.json method=post is=save-data>
+  <p>Action: 200 OK
   <p><input name=text1>
   <p><button type=submit>Submit</button>
+  <action-status ok=OK></action-status>
+</form>
+
+<form action=/submit/404.json method=post is=save-data>
+  <p>Action: 404 Not Found
+  <p><input name=text1>
+  <p><button type=submit>Submit</button>
+  <action-status ok=OK></action-status>
+</form>
+
+<form action=https://bad.invalid method=post is=save-data>
+  <p>Action: Host resolution failure
+  <p><input name=text1>
+  <p><button type=submit>Submit</button>
+  <action-status ok=OK></action-status>
 </form>
 
 <script src=../src/page-components.js></script>
