@@ -558,19 +558,21 @@
   ActionStatus.prototype.end = function (opts) {
     this.elements.forEach ((e) => {
       var shown = false;
-      e.querySelectorAll ('action-status-message').forEach ((f) => {
-        var msg;
-        var status;
-        if (opts.ok) {
-          msg = e.getAttribute ('ok');
-        } else { // not ok
-          if (opts.error) {
-            msg = opts.error;
-            console.log (opts.error.stack); // for debugging
-          } else {
-            msg = e.getAttribute ('ng') || 'Failed';
-          }
+      var msg;
+      var status;
+      var err = null;
+      if (opts.ok) {
+        msg = e.getAttribute ('ok');
+      } else { // not ok
+        if (opts.error) {
+          err = msg = opts.error;
+          console.log (opts.error.stack); // for debugging
+        } else {
+          msg = e.getAttribute ('ng') || 'Failed';
+          err = new Error (msg);
         }
+      }
+      e.querySelectorAll ('action-status-message').forEach ((f) => {
         if (msg) {
           f.textContent = msg;
           f.hidden = false;
@@ -583,6 +585,11 @@
       e.querySelectorAll ('progress').forEach ((f) => f.hidden = true);
       e.hidden = !shown;
       e.setAttribute ('status', opts.ok ? 'ok' : 'ng');
+      if (err) {
+        var ev = new Event ('error');
+        ev.pcError = err;
+        e.dispatchEvent (ev);
+      }
     });
     if (!opts.ok) setTimeout (() => { throw opts.error }, 0); // invoke onerror
   }; // end

@@ -108,7 +108,7 @@
     this.assert.equal (as.getAttribute ('status'), 'ng');
     var msg = as.querySelector ('action-status-message');
     this.assert.equal (msg.hidden, false);
-    this.assert.equal (msg.textContent, '400 Bad Request');
+    this.assert.equal (!!msg.textContent.match (/^PACOFetchError: 400 Bad Request/), true, msg.textContent);
     var progress = as.querySelector ('progress');
     this.assert.equal (progress.hidden, true);
   </test-code>
