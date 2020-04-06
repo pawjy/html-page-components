@@ -115,6 +115,38 @@
     this.assert.equal (progress.hidden, false);
   </test-code>
   
+  <test-code name="action status error event" ignoreerrors>
+    /*
+      <list-container loader=errorLoader>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+        <action-status ok=abcde></action-status>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    
+    await this.wait;
+    await e.loaded.catch ((e) => e);
+      
+    var as = e.querySelector ('action-status');
+    var p = new Promise (ok => {
+      this.currentScript.addEventListener ('error', ev => {
+        ok (ev);
+      }, {capture: true});
+    });
+    var bubbled = false;
+    this.currentScript.addEventListener ('error', ev => {
+      bubbled = true;
+    }, {capture: false});
+    e.load ({});
+    var ev = await p;
+
+    this.assert.equal (ev.type, 'error');
+    this.assert.equal (ev.target, as);
+    this.assert.equal (ev.pcError, "abc Error xyyy");
+    this.assert.equal (bubbled, false);
+  </test-code>
+  
   <script src=runtests.js></script>
 </body>
 </html>

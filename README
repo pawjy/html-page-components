@@ -1699,7 +1699,9 @@ If an action has successfully completed, the |ok| content attribute
 value of the element is set to the current status message, if any.
 
 If an action has failed with an exception, the stringification of the
-exception is set to the current status message.
+exception is set to the current status message.  In addition, a
+non-bubbling |error| event whose |pcError| property is set to the
+exception is fired at the |action-status| element.
 
 If an action has entered in a stage, the |status-/stage/| content
 attribute value, where /stage/ is the stage's name, is set to the
