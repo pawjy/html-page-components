@@ -1329,15 +1329,20 @@ initialized, the map's center has been moved (when |engine| is
 relocate map overlay objects or to recalculate any associated data
 outside of the map.
 
-A |map-area| element can contain zero or more |map-controllers| child
-elements.  A |map-controllers| element is a set of custom controller
+A |map-area| element can contain zero or more |map-controls| child
+elements.  A |map-controls| element is a set of custom control
 elements, which are placed over the map.  This element is supported
 only when the |engine| is |googlemaps|.
 
-A |map-controller| element can have a |position| element, which
+A |map-controls| element can have a |position| element, which
 indicates the desired placement of the element within the box of the
-map.  The value must be one of: |top-left|, |top-right|,
-|bottom-left|, or |bottom-right| (default).
+map.  The value must be one of: |left-top|, |left-center|,
+|left-bottom|, |right-top|, |right-center|, |right-bottom|,
+|top-left|, |top-center|, |top-right|, |bottom-left|, |bottom-center|,
+or |bottom-right| (default).
+
+Note that |map-controls| elements might be reparented whenever
+necessary.
 
 ** <qr-code>
 

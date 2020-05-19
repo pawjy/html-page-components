@@ -61,11 +61,10 @@
         });
 
         loadGoogleMaps ().then (() => {
-          var controllers = [];
-          console.log (Array.prototype.slice.call (this.children));
+          var controls = [];
           Array.prototype.slice.call (this.children).forEach (e => {
-            if (e.localName === 'map-controllers') {
-              controllers.push (e);
+            if (e.localName === 'map-controls') {
+              controls.push (e);
             }
           });
           
@@ -89,7 +88,7 @@
             this.maEnableGoogleMapGSI ();
           }
 
-          var applyControllers = () => {
+          var applyControls = () => {
             var opts = {};
             var value = this.getAttribute ('controls');
             if (value === null) {
@@ -113,10 +112,10 @@
               });
             }
             this.maGoogleMap.setOptions (opts);
-          }; // applyControllers
-          new MutationObserver (applyControllers)
+          }; // applyControls
+          new MutationObserver (applyControls)
               .observe (this, {attributeFilter: ['controls']});
-          applyControllers ();
+          applyControls ();
           
           this.maGoogleMap.addListener ('bounds_changed', () => {
             var v = this.maGoogleMap.getCenter ();
@@ -139,9 +138,9 @@
           };
           
           var moc = new MutationObserver ((mutations) => {
-            this.maRedraw ({controllers: true});
+            this.maRedraw ({controls: true});
           }).observe (this, {childList: true});
-          controllers.forEach (e => this.appendChild (e));
+          controls.forEach (e => this.appendChild (e));
           
           this.maRedraw ({all: true});
           return isOb;
@@ -221,24 +220,29 @@
             }
           }
 
-          if (updates.controllers || updates.all) {
+          if (updates.controls || updates.all) {
             if (this.maEngine === 'googlemaps') {
               Array.prototype.slice.call (this.children).forEach (e => {
-                if (e.localName === 'map-controllers') {
-                  var pos = 'BOTTOM_RIGHT';
-                  var value = e.getAttribute ('position');
-                  if (value === 'top-left') {
-                    pos = 'TOP_LEFT';
-                  } else if (value === 'top-right') {
-                    pos = 'TOP_RIGHT';
-                  } else if (value === 'bottom-left') {
-                    pos = 'BOTTOM_LEFT';
-                  }
+                if (e.localName === 'map-controls') {
+                  // <https://developers.google.com/maps/documentation/javascript/controls>
+                  var pos = {
+                    'top-left': 'TOP_LEFT',
+                    'top-center': 'TOP_CENTER',
+                    'top-right': 'TOP_RIGHT',
+                    'bottom-left': 'BOTTOM_LEFT',
+                    'bottom-center': 'BOTTOM_CENTER',
+                    'left-top': 'LEFT_TOP',
+                    'left-center': 'LEFT_CENTER',
+                    'left-bottom': 'LEFT_BOTTOM',
+                    'right-top': 'RIGHT_TOP',
+                    'right-center': 'RIGHT_CENTER',
+                    'right-bottom': 'RIGHT_BOTTOM',
+                  }[e.getAttribute ('position')] || 'BOTTOM_RIGHT';
                   this.maGoogleMap.controls[google.maps.ControlPosition[pos]].push (e);
                 }
               });
             }
-          } // controllers
+          } // controls
         } // isShown
         
         if (updates.onready) {

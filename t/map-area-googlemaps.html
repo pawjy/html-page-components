@@ -275,14 +275,22 @@
     this.assert.equal (center.lon < 0, true, center.lon);
   </test-code>
 
-  <test-code name="map-controllers">
+  <test-code name="map-controls">
     /*
-      <map-area engine=googlemaps>
-        <map-controllers>0</map-controllers>
-        <map-controllers position=top-left>1</map-controllers>
-        <map-controllers position=top-right>2</map-controllers>
-        <map-controllers position=bottom-left>3</map-controllers>
-        <map-controllers position=bottom-right>4</map-controllers>
+      <map-area engine=googlemaps controls>
+        <map-controls>0</map-controls>
+        <map-controls position=top-left>1</map-controls>
+        <map-controls position=top-center>2</map-controls>
+        <map-controls position=top-right>3</map-controls>
+        <map-controls position=bottom-left>4</map-controls>
+        <map-controls position=bottom-center>5</map-controls>
+        <map-controls position=bottom-right>6</map-controls>
+        <map-controls position=left-top>7</map-controls>
+        <map-controls position=left-center>8</map-controls>
+        <map-controls position=left-bottom>9</map-controls>
+        <map-controls position=right-top>10</map-controls>
+        <map-controls position=right-center>11</map-controls>
+        <map-controls position=right-bottom>12</map-controls>
       </map-area>
     */
     var e = this.currentScript.querySelector ('map-area');
@@ -291,26 +299,44 @@
 
     await this.wait (500);
     
-    var controllers = Array.prototype.slice.call (e.querySelectorAll ('map-controllers')).sort ((a, b) => parseInt (a.textContent) - parseInt (b.textContent));
-    this.assert.equal (controllers.length, 5);
-    this.assert.equal (controllers[1].offsetLeft < controllers[2].offsetLeft, true, 'left 1<2');
-    this.assert.equal (controllers[3].offsetLeft < controllers[4].offsetLeft, true, 'left 3<4');
-    this.assert.equal (controllers[3].offsetLeft < controllers[0].offsetLeft, true, 'left 3<0');
-    this.assert.equal (controllers[1].offsetTop < controllers[3].offsetTop, true, 'top 1<3');
-    this.assert.equal (controllers[2].offsetTop < controllers[4].offsetTop, true);
-    this.assert.equal (controllers[2].offsetTop < controllers[0].offsetTop, true);
+    var controls = Array.prototype.slice.call (e.querySelectorAll ('map-controls')).sort ((a, b) => parseInt (a.textContent) - parseInt (b.textContent));
+    this.assert.equal (controls.length, 13);
+    this.assert.equal (controls[1].offsetLeft < controls[2].offsetLeft, true, 'left 1<2');
+    this.assert.equal (controls[2].offsetLeft < controls[3].offsetLeft, true, 'left 2<3');
+    this.assert.equal (controls[4].offsetLeft < controls[5].offsetLeft, true, 'left 4<5');
+    this.assert.equal (controls[5].offsetLeft < controls[6].offsetLeft, true, 'left 5<6');
+    this.assert.equal (controls[5].offsetLeft < controls[0].offsetLeft, true, 'left 5<0');
+    this.assert.equal (controls[7].offsetLeft < controls[10].offsetLeft, true, 'left 7<10');
+    this.assert.equal (controls[8].offsetLeft < controls[11].offsetLeft, true, 'left 8<11');
+    this.assert.equal (controls[9].offsetLeft < controls[12].offsetLeft, true, 'left 9<12');
+    this.assert.equal (controls[1].offsetTop < controls[4].offsetTop, true, 'top 1<4');
+    this.assert.equal (controls[2].offsetTop < controls[5].offsetTop, true, 'top 2<5');
+    this.assert.equal (controls[3].offsetTop < controls[6].offsetTop, true, 'top 3<6');
+    this.assert.equal (controls[3].offsetTop < controls[0].offsetTop, true, 'top 3<0');
+    this.assert.equal (controls[7].offsetTop < controls[8].offsetTop, true, 'top 7<8');
+    this.assert.equal (controls[8].offsetTop < controls[9].offsetTop, true, 'top 8<9');
+    this.assert.equal (controls[10].offsetTop < controls[11].offsetTop, true, 'top 10<11');
+    this.assert.equal (controls[11].offsetTop < controls[12].offsetTop, true, 'top 11<12');
   </test-code>
 
-  <test-code name="map-controllers dynamic">
+  <test-code name="map-controls dynamic">
     /*
-      <map-area engine=googlemaps>
+      <map-area engine=googlemaps controls>
       </map-area>
       <template>
-        <map-controllers>0</map-controllers>
-        <map-controllers position=top-left>1</map-controllers>
-        <map-controllers position=top-right>2</map-controllers>
-        <map-controllers position=bottom-left>3</map-controllers>
-        <map-controllers position=bottom-right>4</map-controllers>
+        <map-controls>0</map-controls>
+        <map-controls position=top-left>1</map-controls>
+        <map-controls position=top-center>2</map-controls>
+        <map-controls position=top-right>3</map-controls>
+        <map-controls position=bottom-left>4</map-controls>
+        <map-controls position=bottom-center>5</map-controls>
+        <map-controls position=bottom-right>6</map-controls>
+        <map-controls position=left-top>7</map-controls>
+        <map-controls position=left-center>8</map-controls>
+        <map-controls position=left-bottom>9</map-controls>
+        <map-controls position=right-top>10</map-controls>
+        <map-controls position=right-center>11</map-controls>
+        <map-controls position=right-bottom>12</map-controls>
       </template>
     */
     var e = this.currentScript.querySelector ('map-area');
@@ -321,14 +347,24 @@
     
     await this.wait (500);
     
-    var controllers = Array.prototype.slice.call (e.querySelectorAll ('map-controllers')).sort ((a, b) => parseInt (a.textContent) - parseInt (b.textContent));
-    this.assert.equal (controllers.length, 5);
-    this.assert.equal (controllers[1].offsetLeft < controllers[2].offsetLeft, true, 'left 1<2');
-    this.assert.equal (controllers[3].offsetLeft < controllers[4].offsetLeft, true, 'left 3<4');
-    this.assert.equal (controllers[3].offsetLeft < controllers[0].offsetLeft, true, 'left 3<0');
-    this.assert.equal (controllers[1].offsetTop < controllers[3].offsetTop, true, 'top 1<3');
-    this.assert.equal (controllers[2].offsetTop < controllers[4].offsetTop, true);
-    this.assert.equal (controllers[2].offsetTop < controllers[0].offsetTop, true);
+    var controls = Array.prototype.slice.call (e.querySelectorAll ('map-controls')).sort ((a, b) => parseInt (a.textContent) - parseInt (b.textContent));
+    this.assert.equal (controls.length, 13);
+    this.assert.equal (controls[1].offsetLeft < controls[2].offsetLeft, true, 'left 1<2');
+    this.assert.equal (controls[2].offsetLeft < controls[3].offsetLeft, true, 'left 2<3');
+    this.assert.equal (controls[4].offsetLeft < controls[5].offsetLeft, true, 'left 4<5');
+    this.assert.equal (controls[5].offsetLeft < controls[6].offsetLeft, true, 'left 5<6');
+    this.assert.equal (controls[5].offsetLeft < controls[0].offsetLeft, true, 'left 5<0');
+    this.assert.equal (controls[7].offsetLeft < controls[10].offsetLeft, true, 'left 7<10');
+    this.assert.equal (controls[8].offsetLeft < controls[11].offsetLeft, true, 'left 8<11');
+    this.assert.equal (controls[9].offsetLeft < controls[12].offsetLeft, true, 'left 9<12');
+    this.assert.equal (controls[1].offsetTop < controls[4].offsetTop, true, 'top 1<4');
+    this.assert.equal (controls[2].offsetTop < controls[5].offsetTop, true, 'top 2<5');
+    this.assert.equal (controls[3].offsetTop < controls[6].offsetTop, true, 'top 3<6');
+    this.assert.equal (controls[3].offsetTop < controls[0].offsetTop, true, 'top 3<0');
+    this.assert.equal (controls[7].offsetTop < controls[8].offsetTop, true, 'top 7<8');
+    this.assert.equal (controls[8].offsetTop < controls[9].offsetTop, true, 'top 8<9');
+    this.assert.equal (controls[10].offsetTop < controls[11].offsetTop, true, 'top 10<11');
+    this.assert.equal (controls[11].offsetTop < controls[12].offsetTop, true, 'top 11<12');
   </test-code>
   
   <script src=runtests.js data-maps></script>
