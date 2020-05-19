@@ -88,6 +88,35 @@
             });
             this.maEnableGoogleMapGSI ();
           }
+
+          var applyControllers = () => {
+            var opts = {};
+            var value = this.getAttribute ('controls');
+            if (value === null) {
+              opts.scaleControl = opts.fullscreenControl =
+              opts.zoomControl = opts.streetViewControl =
+              opts.mapTypeControl = true;
+            } else {
+              opts.scaleControl = opts.fullscreenControl =
+              opts.zoomControl = opts.streetViewControl =
+              opts.mapTypeControl = false;
+              var values = value.split (/\s+/);
+              values.forEach (v => {
+                var key = {
+                  scale: 'scaleControl',
+                  fullscreen: 'fullscreenControl',
+                  streetview: 'streetViewControl',
+                  zoom: 'zoomControl',
+                  type: 'mapTypeControl',
+                }[v];
+                if (key) opts[key] = true;
+              });
+            }
+            this.maGoogleMap.setOptions (opts);
+          }; // applyControllers
+          new MutationObserver (applyControllers)
+              .observe (this, {attributeFilter: ['controls']});
+          applyControllers ();
           
           this.maGoogleMap.addListener ('bounds_changed', () => {
             var v = this.maGoogleMap.getCenter ();

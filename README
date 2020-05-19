@@ -1252,6 +1252,28 @@ The following content attributes are available:
     image data is available.  If not specified, the default image is
     used.  This is applied to GSI maps.
 
+  controls
+
+    How builtin map controls are shown.  This attribute is supported
+    only when the |engine| is |googlemaps|.
+
+    If the attribute is not specified, the map engine's default is
+    applied.  (This behavior is different from the |controls|
+    attribute of media elements.)
+
+    If the attribute is specified with the empty value, no control is
+    shown.  (This behavior is different from the |controls| attribute
+    of media elements.)
+
+    If the attribute value is a space-separated list of following
+    keywords, the respective controls only are shown:
+
+      |fullscreen|   Fullscreen view mode
+      |scale|        Scale
+      |streetview|   Street view mode
+      |type|         Map type switches
+      |zoom|         Zoom in and out buttons
+
 The following properties are available:
 
   ready (promise)
