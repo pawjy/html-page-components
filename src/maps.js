@@ -61,6 +61,14 @@
         });
 
         loadGoogleMaps ().then (() => {
+          var controllers = [];
+          console.log (Array.prototype.slice.call (this.children));
+          Array.prototype.slice.call (this.children).forEach (e => {
+            if (e.localName === 'map-controllers') {
+              controllers.push (e);
+            }
+          });
+          
           this.maGoogleMap = new google.maps.Map (this, {
             center: {lat: this.maAttrFloat ('lat', 0),
                      lng: this.maAttrFloat ('lon', 0)},
@@ -100,6 +108,12 @@
             lat: this.maAttrFloat ('lat', 0),
             lon: this.maAttrFloat ('lon', 0),
           };
+          
+          var moc = new MutationObserver ((mutations) => {
+            this.maRedraw ({controllers: true});
+          }).observe (this, {childList: true});
+          controllers.forEach (e => this.appendChild (e));
+          
           this.maRedraw ({all: true});
           return isOb;
         }).then (() => {
@@ -155,7 +169,7 @@
       }, // maRedraw
       ma_Redraw: function () {
         var isShown = this.offsetWidth > 0 && this.offsetHeight > 0;
-        
+
         var updates = this.maRedrawNeedUpdated;
         if (isShown) {
           this.maShown = true;
@@ -177,6 +191,25 @@
               // &maptype=satellite
             }
           }
+
+          if (updates.controllers || updates.all) {
+            if (this.maEngine === 'googlemaps') {
+              Array.prototype.slice.call (this.children).forEach (e => {
+                if (e.localName === 'map-controllers') {
+                  var pos = 'BOTTOM_RIGHT';
+                  var value = e.getAttribute ('position');
+                  if (value === 'top-left') {
+                    pos = 'TOP_LEFT';
+                  } else if (value === 'top-right') {
+                    pos = 'TOP_RIGHT';
+                  } else if (value === 'bottom-left') {
+                    pos = 'BOTTOM_LEFT';
+                  }
+                  this.maGoogleMap.controls[google.maps.ControlPosition[pos]].push (e);
+                }
+              });
+            }
+          } // controllers
         } // isShown
         
         if (updates.onready) {
