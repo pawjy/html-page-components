@@ -896,7 +896,14 @@
       
         if (!tabMenu) return;
 
-        tabMenu.textContent = '';
+        var x = null;
+        Array.prototype.slice.call (tabMenu.childNodes).forEach (e => {
+          if (e.localName === 'tab-menu-extras') {
+            x = x || e;
+          } else {
+            e.remove ();
+          }
+        });
         tabSections.forEach ((f) => {
           var header = f.querySelector ('h1');
           var a = document.createElement ('a');
@@ -905,7 +912,7 @@
           a.textContent = header ? header.textContent : '§';
           a.className = f.getAttribute ('data-tab-button-class') || '';
           a.tsSection = f;
-          tabMenu.appendChild (a);
+          tabMenu.insertBefore (a, x);
         });
 
         if (tabSections.length) this.tsShowTab (tabSections[0]);
