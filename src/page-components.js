@@ -1035,8 +1035,7 @@
           Array.prototype.forEach.call (m.addedNodes, (e) => {
             if (e.nodeType === e.ELEMENT_NODE) {
               if (e.matches (selector) || e.querySelector (selector)) {
-                var listContainer = this.lcGetListContainer ();
-                if (listContainer) listContainer.textContent = '';
+                this.pcClearListContainer ();
                 this.lcDataChanges.changed = true;
                 this.lcRequestRender ();
               }
@@ -1047,9 +1046,7 @@
 
       this.addEventListener ('pctemplatesetupdated', (ev) => {
         this.lcTemplateSet = ev.pcTemplateSet;
-
-        var listContainer = this.lcGetListContainer ();
-        if (listContainer) listContainer.textContent = '';
+        this.pcClearListContainer ();
         if (this.lcDataChanges) this.lcDataChanges.changed = true;
         this.lcRequestRender ();
       });
@@ -1098,27 +1095,38 @@
         Object.keys (opts2 || {}).forEach (_ => opts[_] = opts2[_]);
         return this.load (opts);
       }, // loadNext
-    lcClearList: function () {
-      this.lcData = [];
-      this.lcDataChanges = {append: [], prepend: [], changed: false};
-      this.lcPrev = {};
-      this.lcNext = {};
+      lcClearList: function () {
+        this.lcData = [];
+        this.lcDataChanges = {append: [], prepend: [], changed: false};
+        this.lcPrev = {};
+        this.lcNext = {};
+        this.pcClearListContainer ();
+      }, // lcClearList
+      pcClearListContainer: function () {
+        var listContainer = this.lcGetListContainer ();
+        if (!listContainer) return;
+        if (listContainer.localName === 'tab-set') {
+          Array.prototype.slice.call (listContainer.childNodes).forEach (n => {
+            if (n.localName !== 'tab-menu') n.remove ();
+          });
+        } else {
+          listContainer.textContent = '';
+        }
+      }, // pcClearListContainer
+      lcGetListContainerSelector: function () {
+        var type = this.getAttribute ('type');
+        if (type === 'table') {
+          return 'tbody';
+        } else if (type === 'tab-set') {
+          return 'tab-set';
+        } else {
+          return 'list-main';
+        }
+      }, // lcGetListContainerSelector
+      lcGetListContainer: function () {
+        return this.querySelector (this.lcGetListContainerSelector ());
+      }, // lcGetListContainer
       
-      var listContainer = this.lcGetListContainer ();
-      if (listContainer) listContainer.textContent = '';
-    }, // lcClearList
-    lcGetListContainerSelector: function () {
-      var type = this.getAttribute ('type');
-      if (type === 'table') {
-        return 'tbody';
-      } else {
-        return 'list-main';
-      }
-    }, // lcGetListContainerSelector
-    lcGetListContainer: function () {
-      return this.querySelector (this.lcGetListContainerSelector ());
-    }, // lcGetListContainer
-    
       lcLoad: function (opts) {
         var resolve;
         var reject;
@@ -1247,9 +1255,10 @@
       var tm = this.lcTemplateSet;
       var changes = this.lcDataChanges;
       this.lcDataChanges = {changed: false, prepend: [], append: []};
-      var itemLN = {
-        tbody: 'tr',
-      }[listContainer.localName] || 'list-item';
+        var itemLN = {
+          tbody: 'tr',
+          'tab-set': 'section',
+        }[listContainer.localName] || 'list-item';
       return Promise.resolve ().then (() => {
         if (changes.changed) {
           return $promised.forEach ((object) => {

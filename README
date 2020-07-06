@@ -324,18 +324,41 @@ objects.  The list is constructed by the following steps:
 
 
 A |list-container| element has at most one *list item insertion
-point*.  If the |list-container| element's |type| attribute value, if
-specified, is |table|, the first |tbody| element descendant of the
-|list-container| element is the list item insertion point.  Otherwise,
-the first |list-main| element descendant of the |list-container|
-element is the list item insertion point.  When the |list-container|
-element is *rendered*, any child of the list item insertion point is
-discarded and the item elements created from the items of the list of
-the element using the selected template of the |list-container|
-element are inserted into the list item insertion point.  The
-|list-container| elements support templates.  An item element is a
-|tr| element if the list item insertion point is a |tbody| element, or
-the |list-item| element otherwise.
+point*.  When the |list-container| element is *rendered*, any child of
+the list item insertion point except for fixed content is discarded
+and the list item elements created from the items of the list of the
+element using the selected template of the |list-container| element
+are inserted into the list item insertion point.  The |list-container|
+elements support templates.  List item insertion point, fixed content,
+and list item element depend on the |type| attribute value of the
+|list-container| element:
+
+  type=table
+
+    List item insertion point: The first |tbody| element descendant of
+    the |list-container| element.
+
+    Fixed content: None.
+
+    List item element: A |tr| element.
+
+  type=tab-set
+
+    List item insertion point: The first |tab-set| element descendant
+    of the |list-container| element.
+
+    Fixed content: Any |tab-menu| element child.
+
+    List item element: A |section| element.
+
+  Otherwise
+
+    List item insertion point: The first |list-main| element
+    descendant of the |list-container| element.
+
+    Fixed content: None.
+
+    List item element: A |list-item| element.
 
 A |list-container| element is rendered when the element is inserted
 and has list item insertion point and selected template, or when a
