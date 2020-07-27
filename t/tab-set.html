@@ -66,6 +66,8 @@
         <section data-tab-button-class="ab yX"><h1>B</h1>b</section>
       </tab-set>
     */
+
+    var url0 = location.href;
       
     var e = this.currentScript.querySelector ('tab-set');
     var menu = e.querySelector ('tab-menu');
@@ -98,6 +100,8 @@
     this.assert.equal (s1.className, '');
     this.assert.equal (getComputedStyle (s2).display, 'block', 'browser default style');
     this.assert.equal (s2.className, 'active');
+    
+    this.assert.equal (location.href, url0);
   </test-code>
   
   <test-code name="sections with extras">
@@ -197,6 +201,134 @@
     
     this.assert.equal (shown.length, 3);
     this.assert.equal (shown[2], s1);
+  </test-code>
+  
+  <test-code name="sections in srcdoc">
+    /*
+      <iframe srcdoc='
+        <tab-set>
+          <tab-menu></tab-menu>
+          <section><h1>A</h1>a</section>
+          <section data-tab-button-class="ab yX"><h1>B</h1>b</section>
+        </tab-set>
+        <script src=runtests.js></script>
+      '></iframe>
+    */
+
+    var url0 = this.currentScript.querySelector ('iframe').contentWindow.location.href;
+      
+    var e = this.currentScript.querySelector ('iframe').contentDocument.querySelector ('tab-set');
+    var menu = e.querySelector ('tab-menu');
+    var s1 = e.querySelector ('section:nth-of-type(1)');
+    var s2 = e.querySelector ('section:nth-of-type(2)');
+    this.assert.equal (menu.children.length, 2);
+    this.assert.equal (menu.children[0].localName, 'a');
+    this.assert.equal (menu.children[0].href, 'javascript:');
+    this.assert.equal (menu.children[0].className, 'active');
+    this.assert.equal (menu.children[0].textContent, 'A');
+    this.assert.equal (menu.children[1].localName, 'a');
+    this.assert.equal (menu.children[1].href, 'javascript:');
+    this.assert.equal (menu.children[1].className, 'ab yX');
+    this.assert.equal (menu.children[1].textContent, 'B');
+    this.assert.equal (getComputedStyle (s1).display, 'block', 'browser default style');
+    this.assert.equal (s1.className, 'active');
+    this.assert.equal (getComputedStyle (s2).display, 'none', 'default style');
+    this.assert.equal (s2.className, '');
+
+    menu.children[1].click ();
+    await this.wait ();
+    this.assert.equal (menu.children.length, 2);
+    this.assert.equal (menu.children[0].localName, 'a');
+    this.assert.equal (menu.children[0].href, 'javascript:');
+    this.assert.equal (menu.children[0].className, '');
+    this.assert.equal (menu.children[1].localName, 'a');
+    this.assert.equal (menu.children[1].href, 'javascript:');
+    this.assert.equal (menu.children[1].className, 'ab yX active');
+    this.assert.equal (getComputedStyle (s1).display, 'none', 'default style');
+    this.assert.equal (s1.className, '');
+    this.assert.equal (getComputedStyle (s2).display, 'block', 'browser default style');
+    this.assert.equal (s2.className, 'active');
+    
+    this.assert.equal (this.currentScript.querySelector ('iframe').contentWindow.location.href, url0);
+  </test-code>
+  
+  <test-code name="sections in srcdoc with fragments">
+    /*
+      <iframe srcdoc='
+        <tab-set>
+          <tab-menu></tab-menu>
+          <section data-pjax=#abc><h1>A</h1>a</section>
+          <section data-pjax=#xyz><h1>B</h1>b</section>
+        </tab-set>
+        <script src=runtests.js></script>
+      '></iframe>
+    */
+      
+    var e = this.currentScript.querySelector ('iframe').contentDocument.querySelector ('tab-set');
+    var menu = e.querySelector ('tab-menu');
+    var s1 = e.querySelector ('section:nth-of-type(1)');
+    var s2 = e.querySelector ('section:nth-of-type(2)');
+    this.assert.equal (menu.children.length, 2);
+    this.assert.equal (menu.children[0].href, 'about:srcdoc#abc');
+    this.assert.equal (menu.children[1].href, 'about:srcdoc#xyz');
+    //this.assert.equal (this.currentScript.querySelector ('iframe').contentWindow.location.href, 'about:srcdoc#abc');
+    this.assert.equal (s1.className, 'active');
+    this.assert.equal (s2.className, '');
+
+    menu.children[1].click ();
+    await this.wait ();
+    //this.assert.equal (this.currentScript.querySelector ('iframe').contentWindow.location.href, 'about:srcdoc#xyz');
+    this.assert.equal (s1.className, '');
+    this.assert.equal (s2.className, 'active');
+
+    menu.children[1].click ();
+    await this.wait ();
+    //this.assert.equal (this.currentScript.querySelector ('iframe').contentWindow.location.href, 'about:srcdoc#xyz');
+    this.assert.equal (s1.className, '');
+    this.assert.equal (s2.className, 'active');
+
+    menu.children[0].click ();
+    await this.wait ();
+    //this.assert.equal (this.currentScript.querySelector ('iframe').contentWindow.location.href, 'about:srcdoc#abc');
+    this.assert.equal (s1.className, 'active');
+    this.assert.equal (s2.className, '');
+  </test-code>
+  
+  <test-code name="sections in srcdoc with fragments, default">
+    /*
+      <iframe src='tab-set--inner-1.html#xyz' onload=" this.loaded = true; if (this.resolve) this.resolve () "></iframe>
+    */
+
+    var iframe = this.currentScript.querySelector ('iframe');
+    await new Promise (ok => {
+      if (iframe.loaded) ok ();
+      iframe.resolve = ok;
+    });
+
+    var e = iframe.contentDocument.querySelector ('tab-set');
+    var menu = e.querySelector ('tab-menu');
+    var s1 = e.querySelector ('section:nth-of-type(1)');
+    var s2 = e.querySelector ('section:nth-of-type(2)');
+    var s3 = e.querySelector ('section:nth-of-type(3)');
+    this.assert.equal (menu.children.length, 3);
+    this.assert.equal (menu.children[0].href, new URL ('tab-set--inner-1.html#abc', location.href));
+    this.assert.equal (menu.children[1].href, new URL ('tab-set--inner-1.html#xyz', location.href));
+    this.assert.equal (menu.children[2].href, new URL ('tab-set--inner-1.html#ccc', location.href));
+    this.assert.equal (s1.className, '');
+    this.assert.equal (s2.className, 'active');
+    this.assert.equal (s3.className, '');
+
+    menu.children[0].click ();
+    await this.wait ();
+    this.assert.equal (s1.className, 'active');
+    this.assert.equal (s2.className, '');
+    this.assert.equal (s3.className, '');
+
+    iframe.contentWindow.location.href = 'tab-set--inner-1.html#ccc';
+    await this.wait ();
+    this.assert.equal (s1.className, '');
+    this.assert.equal (s2.className, '');
+    this.assert.equal (s3.className, 'active');
   </test-code>
 
   <script src=runtests.js></script>

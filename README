@@ -213,6 +213,15 @@ If a section has a |data-tab-button-class| attribute, its value is
 copied to the |class| attribute of the corresponding anchor in the
 menu when the anchor is created.
 
+If a section has a |data-pjax| attribute, its value, resolved relative
+to the document URL at the time of the initialization of the element,
+represents the URL of the state the section is shown.  The document
+URL is changed to that URL when a section is selected (using
+|history.replaceState|).  When the element is initialized, when the
+|hashchange| event is fired, and when the |pcLocationChange| event is
+fired, the document URL is compared with sections' URLs.  If there is
+a section with the same URL, that section is selected by default.
+
 ** <sub-window>
 
 A |sub-window| element represents a window shown within the viewport.
