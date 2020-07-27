@@ -11,8 +11,61 @@
     <p>Hello!
   </section>
 
-  <section>
+  <section data-pjax=tab2>
     <h1>File #2</h1>
     <p>World!
   </section>
+
+  <section data-pjax=#tab3>
+    <h1>File #3</h1>
+    <p>World!!
+  </section>
+
+  <section data-pjax>
+    <h1>File #4</h1>
+    <p>World!!!
+  </section>
+
+  <section data-pjax=#tab5>
+    <h1>File #5</h1>
+    <p>World!!!!
+  </section>
 </tab-set>
+
+<iframe srcdoc='
+  <link rel=stylesheet href=../css/default.css>
+  <script src=../src/page-components.js async></script>
+
+  <tab-set>
+    <tab-menu></tab-menu>
+
+    <section>
+      <h1>A</h1>
+      <p>A
+    </section>
+
+    <section>
+      <h1>B</h1>
+      <p>B
+    </section>
+  </tab-set>
+'></iframe>
+
+<iframe srcdoc='
+  <link rel=stylesheet href=../css/default.css>
+  <script src=../src/page-components.js async></script>
+
+  <tab-set>
+    <tab-menu></tab-menu>
+
+    <section data-pjax=x>
+      <h1>A</h1>
+      <p>A
+    </section>
+
+    <section data-pjax=y>
+      <h1>B</h1>
+      <p>B
+    </section>
+  </tab-set>
+'></iframe>

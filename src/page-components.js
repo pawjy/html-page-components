@@ -880,10 +880,21 @@
     name: 'tab-set',
     props: {
       pcInit: function () {
-        new MutationObserver (() => this.tsInit ()).observe (this, {childList: true});
-        Promise.resolve ().then (() => this.tsInit ());
+        this.pcInitialURL = location.href;
+        Promise.resolve ().then (() => this.tsInit ({default: true}));
+        new MutationObserver (() => this.tsInit ({})).observe (this, {childList: true});
+
+        if (!window.pcTSListenersInstalled) {
+          window.pcTSListenersInstalled = true;
+          window.addEventListener ('hashchange', () => {
+            Promise.resolve ().then (() => this.tsShowTabByURL ({}));
+          });
+          window.addEventListener ('pcLocationChange', (ev) => {
+            Promise.resolve ().then (() => this.tsShowTabByURL ({initiator: ev.pcInitiator}));
+          });
+        }
       }, // pcInit
-      tsInit: function () {
+      tsInit: function (opts) {
         var tabMenu = null;
         var tabSections = [];
         Array.prototype.forEach.call (this.children, function (f) {
@@ -907,15 +918,47 @@
         tabSections.forEach ((f) => {
           var header = f.querySelector ('h1');
           var a = document.createElement ('a');
+          var path = f.getAttribute ('data-pjax');
           a.href = 'javascript:';
-          a.onclick = () => this.tsShowTab (a.tsSection);
+          if (path !== null) {
+            try {
+              a.href = new URL (path, this.pcInitialURL);
+            } catch (e) { } // e.g. <about:srcdoc>
+          }
+          a.onclick = () => {
+            this.tsShowTab (a.tsSection);
+            return false;
+          };
           a.textContent = header ? header.textContent : '§';
           a.className = f.getAttribute ('data-tab-button-class') || '';
           a.tsSection = f;
           tabMenu.insertBefore (a, x);
         });
 
-        if (tabSections.length) this.tsShowTab (tabSections[0]);
+        this.tsShowTabByURL ({default: opts.default});
+      }, // tsShowTabByURL
+      tsShowTabByURL: function (opts) {
+        if (opts.initiator === this) return;
+        var tabSections = [];
+        Array.prototype.forEach.call (this.children, function (f) {
+          if (f.localName === 'section') {
+            tabSections.push (f);
+          }
+        });
+        var currentURL = location.href;
+        var initial = opts.default ? tabSections[0] : null;
+        tabSections.forEach (f => {
+          var path = f.getAttribute ('data-pjax');
+          if (path !== null) {
+            try {
+              var url = new URL (path, this.pcInitialURL);
+              if (url.href === currentURL) {
+                initial = f;
+              }
+            } catch (e) { } // e.g. <about:srcdoc>
+          }
+        });
+        if (initial) this.tsShowTab (initial);
       }, // tsInit
       tsShowTab: function (f) {
         var tabMenu = null;
@@ -934,6 +977,19 @@
         tabSections.forEach ((g) => {
           g.classList.toggle ('active', f === g);
         });
+        var path = f.getAttribute ('data-pjax');
+        if (path !== null) {
+          try {
+            var x = location.href;
+            var y = new URL (path, this.pcInitialURL);
+            if (x != y) {
+              history.replaceState (null, null, y);
+              var evc = new Event ('pcLocationChange', {bubbles: true});
+              evc.pcInitiator = this;
+              Promise.resolve ().then (() => window.dispatchEvent (evc));
+            }
+          } catch (e) { } // e.g. <about:srcdoc>
+        }
         var ev = new Event ('show', {bubbles: true});
         Promise.resolve ().then (() => f.dispatchEvent (ev));
       }, // tsShowTab

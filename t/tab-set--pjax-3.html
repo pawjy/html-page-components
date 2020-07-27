@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+  
+  <test-code name="sections">
+    /*
+      <tab-set>
+        <tab-menu></tab-menu>
+        <section data-pjax=xyz><h1>A</h1>a</section>
+        <section data-pjax=#foo><h1>B1</h1>b</section>
+        <section data-pjax=abc><h1>B2</h1>b</section>
+      </tab-set>
+    */
+
+    var url0 = new URL ('tab-set--pjax-3.html', location.href);
+      
+    var e = this.currentScript.querySelector ('tab-set');
+    var s1 = e.querySelector ('section:nth-of-type(1)');
+    var s2 = e.querySelector ('section:nth-of-type(2)');
+    var s3 = e.querySelector ('section:nth-of-type(3)');
+    var menu = e.querySelector ('tab-menu');
+    this.assert.equal (menu.children.length, 3);
+    this.assert.equal (menu.children[0].href, new URL ('xyz', url0));
+    this.assert.equal (menu.children[1].href, new URL ('#foo', url0));
+    this.assert.equal (menu.children[2].href, new URL ('abc', url0));
+    this.assert.equal (location.href, new URL ('xyz', url0));
+    this.assert.equal (s1.className, 'active', 'initial state');
+    this.assert.equal (s2.className, '');
+    this.assert.equal (s3.className, '');
+
+    history.replaceState (null, null, new URL ('#foo', url0));
+    window.dispatchEvent (new Event ('pcLocationChange'));
+    await this.wait ();
+    this.assert.equal (location.href, new URL ('#foo', url0));
+    this.assert.equal (s1.className, '');
+    this.assert.equal (s2.className, 'active');
+    this.assert.equal (s3.className, '');
+
+    history.replaceState (null, null, 'abc');
+    window.dispatchEvent (new Event ('pcLocationChange'));
+    await this.wait ();
+    this.assert.equal (location.href, new URL ('abc', url0));
+    this.assert.equal (s1.className, '');
+    this.assert.equal (s2.className, '');
+    this.assert.equal (s3.className, 'active');
+
+    window.dispatchEvent (new Event ('pcLocationChange'));
+    await this.wait ();
+    this.assert.equal (s1.className, '');
+    this.assert.equal (s2.className, '');
+    this.assert.equal (s3.className, 'active');
+  </test-code>
+
+  <script src=runtests.js></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->
