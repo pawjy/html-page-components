@@ -953,7 +953,8 @@
           }
         });
         var currentURL = location.href;
-        var initial = opts.default ? tabSections[0] : null;
+        var currentPageURL = currentURL.replace (/#.+$/, '');
+        var initial = null;
         tabSections.forEach (f => {
           var path = f.getAttribute ('data-pjax');
           if (path !== null) {
@@ -961,10 +962,13 @@
               var url = new URL (path, this.pcInitialURL);
               if (url.href === currentURL) {
                 initial = f;
+              } else if (url.href === currentPageURL) {
+                initial = initial || f;
               }
             } catch (e) { } // e.g. <about:srcdoc>
           }
         });
+        if (!initial && opts.default) initial = tabSections[0];
         if (initial) this.tsShowTab (initial);
       }, // tsInit
       tsShowTab: function (f) {
@@ -987,8 +991,9 @@
         var path = f.getAttribute ('data-pjax');
         if (path !== null) {
           try {
-            var x = location.href;
+            var x = location;
             var y = new URL (path, this.pcInitialURL);
+            if (x.hash && y.hash === '') y += x.hash;
             if (x != y) {
               history.replaceState (null, null, y);
               var evc = new Event ('pcLocationChange', {bubbles: true});
