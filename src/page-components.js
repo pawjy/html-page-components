@@ -881,7 +881,10 @@
     props: {
       pcInit: function () {
         this.pcInitialURL = location.href;
-        Promise.resolve ().then (() => this.tsInit ({default: true}));
+        Promise.resolve ().then (() => {
+          this.tsInit ({default: true});
+          this.setAttribute ('ready', '');
+        });
         new MutationObserver (() => this.tsInit ({})).observe (this, {childList: true});
 
         if (!window.pcTSListenersInstalled) {
