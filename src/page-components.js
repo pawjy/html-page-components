@@ -881,16 +881,23 @@
     props: {
       pcInit: function () {
         this.pcInitialURL = location.href;
-        Promise.resolve ().then (() => this.tsInit ({default: true}));
+        Promise.resolve ().then (() => {
+          this.tsInit ({default: true});
+          this.setAttribute ('ready', '');
+        });
         new MutationObserver (() => this.tsInit ({})).observe (this, {childList: true});
 
         if (!window.pcTSListenersInstalled) {
           window.pcTSListenersInstalled = true;
           window.addEventListener ('hashchange', () => {
-            Promise.resolve ().then (() => this.tsShowTabByURL ({}));
+            document.querySelectorAll ('tab-set').forEach (e => {
+              Promise.resolve ().then (() => e.tsShowTabByURL ({}));
+            });
           });
           window.addEventListener ('pcLocationChange', (ev) => {
-            Promise.resolve ().then (() => this.tsShowTabByURL ({initiator: ev.pcInitiator}));
+            document.querySelectorAll ('tab-set').forEach (e => {
+              Promise.resolve ().then (() => e.tsShowTabByURL ({initiator: ev.pcInitiator}));
+            });
           });
         }
       }, // pcInit

@@ -7,7 +7,7 @@ popup-menu[open] > menu-main:not([hidden]) {
   position: absolute;
 }
 
-tab-set > section:not(.active) {
+tab-set[ready] > section:not(.active) {
   display: none;
 }
 
