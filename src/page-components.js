@@ -887,10 +887,14 @@
         if (!window.pcTSListenersInstalled) {
           window.pcTSListenersInstalled = true;
           window.addEventListener ('hashchange', () => {
-            Promise.resolve ().then (() => this.tsShowTabByURL ({}));
+            document.querySelectorAll ('tab-set').forEach (e => {
+              Promise.resolve ().then (() => e.tsShowTabByURL ({}));
+            });
           });
           window.addEventListener ('pcLocationChange', (ev) => {
-            Promise.resolve ().then (() => this.tsShowTabByURL ({initiator: ev.pcInitiator}));
+            document.querySelectorAll ('tab-set').forEach (e => {
+              Promise.resolve ().then (() => e.tsShowTabByURL ({initiator: ev.pcInitiator}));
+            });
           });
         }
       }, // pcInit
