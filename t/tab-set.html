@@ -371,6 +371,52 @@
     this.assert.equal (iframe.contentWindow.location.href, new URL ('xyz#aaa', location.href));
   </test-code>
 
+  <test-code name="data-pjax-selecting">
+    /*
+      <iframe src='tab-set--inner-3.html#abc' onload=" this.loaded = true; if (this.resolve) this.resolve () "></iframe>
+    */
+
+    var iframe = this.currentScript.querySelector ('iframe');
+    await new Promise (ok => {
+      if (iframe.loaded) ok ();
+      iframe.resolve = ok;
+    });
+
+    var e = iframe.contentDocument.querySelector ('tab-set');
+    var menu = e.querySelector ('tab-menu');
+    var s1 = e.querySelector ('section:nth-of-type(1)');
+    var s2 = e.querySelector ('section:nth-of-type(2)');
+    var s3 = e.querySelector ('section:nth-of-type(3)');
+    this.assert.equal (menu.children.length, 3);
+    this.assert.equal (s1.className, '');
+    this.assert.equal (s2.className, 'active');
+    this.assert.equal (s3.className, '');
+    this.assert.equal (iframe.contentWindow.location.href, new URL ('tab-set--inner-3.html#abc', location.href));
+  </test-code>
+
+  <test-code name="data-pjax-selecting path">
+    /*
+      <iframe src='tab-set--inner-4.html#zzz' onload=" this.loaded = true; if (this.resolve) this.resolve () "></iframe>
+    */
+
+    var iframe = this.currentScript.querySelector ('iframe');
+    await new Promise (ok => {
+      if (iframe.loaded) ok ();
+      iframe.resolve = ok;
+    });
+
+    var e = iframe.contentDocument.querySelector ('tab-set');
+    var menu = e.querySelector ('tab-menu');
+    var s1 = e.querySelector ('section:nth-of-type(1)');
+    var s2 = e.querySelector ('section:nth-of-type(2)');
+    var s3 = e.querySelector ('section:nth-of-type(3)');
+    this.assert.equal (menu.children.length, 3);
+    this.assert.equal (s1.className, '');
+    this.assert.equal (s2.className, 'active');
+    this.assert.equal (s3.className, '');
+    this.assert.equal (iframe.contentWindow.location.href, new URL ('xyz', location.href));
+  </test-code>
+
   <script src=runtests.js></script>
 </body>
 </html>
