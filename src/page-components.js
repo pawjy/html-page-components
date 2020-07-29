@@ -967,6 +967,17 @@
               }
             } catch (e) { } // e.g. <about:srcdoc>
           }
+          var paths = (f.getAttribute ('data-pjax-selecting') || "").split (/\s+/).filter (_ => _.length);
+          paths.forEach (path => {
+            try {
+              var url = new URL (path, this.pcInitialURL);
+              if (url.href === currentURL) {
+                initial = initial || f;
+              } else if (url.href === currentPageURL) {
+                initial = initial || f;
+              }
+            } catch (e) { } // e.g. <about:srcdoc>
+          });
         });
         if (!initial && opts.default) initial = tabSections[0];
         if (initial) this.tsShowTab (initial);
