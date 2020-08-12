@@ -417,6 +417,59 @@
     this.assert.equal (iframe.contentWindow.location.href, new URL ('xyz', location.href));
   </test-code>
 
+  <test-code name="dynamic">
+    /*
+      <tab-set>
+        <tab-menu></tab-menu>
+      </tab-set>
+    */
+
+    var e = this.currentScript.querySelector ('tab-set');
+    var menu = e.querySelector ('tab-menu');
+    this.assert.equal (menu.children.length, 0);
+
+    var s1 = document.createElement ('section');
+    s1.innerHTML = '<'+'h1>A<'+'/h1>';
+    var s2 = document.createElement ('section');
+    s2.innerHTML = '<'+'h1>B<'+'/h1>';
+    e.appendChild (s1);
+    e.appendChild (s2);
+    await this.wait ();
+    
+    this.assert.equal (menu.children.length, 2);
+    this.assert.equal (menu.children[0].textContent, 'A');
+    this.assert.equal (menu.children[0].className, 'active');
+    this.assert.equal (menu.children[1].textContent, 'B');
+    this.assert.equal (menu.children[1].className, '');
+    this.assert.equal (s1.className, 'active');
+    this.assert.equal (s2.className, '');
+
+    menu.children[1].click ();
+    await this.wait ();
+    this.assert.equal (menu.children.length, 2);
+    this.assert.equal (menu.children[0].textContent, 'A');
+    this.assert.equal (menu.children[0].className, '');
+    this.assert.equal (menu.children[1].textContent, 'B');
+    this.assert.equal (menu.children[1].className, 'active');
+    this.assert.equal (s1.className, '');
+    this.assert.equal (s2.className, 'active');
+    
+    var s3 = document.createElement ('section');
+    s3.innerHTML = '<'+'h1>C<'+'/h1>';
+    e.insertBefore (s3, s1);
+    await this.wait ();
+    this.assert.equal (menu.children.length, 3);
+    this.assert.equal (menu.children[0].textContent, 'C');
+    this.assert.equal (menu.children[0].className, '');
+    this.assert.equal (menu.children[1].textContent, 'A');
+    this.assert.equal (menu.children[1].className, '');
+    this.assert.equal (menu.children[2].textContent, 'B');
+    this.assert.equal (menu.children[2].className, 'active');
+    this.assert.equal (s3.className, '', 's3');
+    this.assert.equal (s1.className, '');
+    // XXX this.assert.equal (s2.className, 'active');
+  </test-code>
+  
   <script src=runtests.js></script>
 </body>
 </html>
