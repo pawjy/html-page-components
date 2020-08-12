@@ -882,7 +882,7 @@
       pcInit: function () {
         this.pcInitialURL = location.href;
         Promise.resolve ().then (() => {
-          this.tsInit ({default: true});
+          this.tsInit ({});
           this.setAttribute ('ready', '');
         });
         new MutationObserver (() => this.tsInit ({})).observe (this, {childList: true});
@@ -942,8 +942,8 @@
           tabMenu.insertBefore (a, x);
         });
 
-        this.tsShowTabByURL ({default: opts.default});
-      }, // tsShowTabByURL
+        this.tsShowTabByURL ({});
+      }, // tsInit
       tsShowTabByURL: function (opts) {
         if (opts.initiator === this) return;
         var tabSections = [];
@@ -979,9 +979,20 @@
             } catch (e) { } // e.g. <about:srcdoc>
           });
         });
-        if (!initial && opts.default) initial = tabSections[0];
+        if (!initial) {
+          var hasActive = false;
+          var nonActive = tabSections.filter (t => {
+            if (t.classList.contains ('active')) {
+              hasActive = true;
+              return false;
+            } else {
+              return true;
+            }
+          });
+          if (!hasActive) initial = nonActive[0]; // or undefined
+        }
         if (initial) this.tsShowTab (initial);
-      }, // tsInit
+      }, // tsShowTabByURL
       tsShowTab: function (f) {
         var tabMenu = null;
         var tabSections = [];
