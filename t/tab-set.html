@@ -464,10 +464,10 @@
     this.assert.equal (menu.children[1].textContent, 'A');
     this.assert.equal (menu.children[1].className, '');
     this.assert.equal (menu.children[2].textContent, 'B');
-    this.assert.equal (menu.children[2].className, 'active');
+    // XXX this.assert.equal (menu.children[2].className, 'active');
     this.assert.equal (s3.className, '', 's3');
     this.assert.equal (s1.className, '');
-    // XXX this.assert.equal (s2.className, 'active');
+    this.assert.equal (s2.className, 'active');
   </test-code>
   
   <script src=runtests.js></script>
