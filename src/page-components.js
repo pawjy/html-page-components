@@ -938,6 +938,7 @@
           };
           a.textContent = header ? header.textContent : '§';
           a.className = f.getAttribute ('data-tab-button-class') || '';
+          if (f.classList.contains ('active')) a.classList.add ('active');
           a.tsSection = f;
           tabMenu.insertBefore (a, x);
         });
