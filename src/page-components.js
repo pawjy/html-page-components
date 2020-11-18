@@ -1461,6 +1461,8 @@
               });
 
           var as = this.pcActionStatus ();
+          as.start ({stages: ['formdata', 'formvalidator', 'saver', 'formsaved']});
+          as.stageStart ('formdata');
           
           $promised.forEach ((_) => {
             if (_.pcModifyFormData) {
@@ -1470,6 +1472,7 @@
               throw "A form control is not initialized";
             }
           }, customControls).then (() => {
+            as.stageStart ('formvalidator');
             return $promised.forEach ((_) => {
               return getDef ("formvalidator", _).then ((handler) => {
                 return handler.call (this, {
@@ -1478,13 +1481,13 @@
               });
             }, validators);
           }).then (() => {
-            as.start ({stages: ['saver']});
             as.stageStart ('saver');
             return getDef ("saver", this.getAttribute ('data-saver') || 'form').then ((saver) => {
               return saver.call (this, fd);
             });
           }).then ((res) => {
             this.removeAttribute ('data-pc-modified');
+            as.stageStart ('formsaved');
             var p;
             var getJSON = function () {
               return p = p || res.json ();
