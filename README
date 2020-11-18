@@ -475,6 +475,9 @@ member:
     A |FormData| that is to be submitted.  This object can be examined
     by the custom form validator.
 
+While a validator is running, the action status stage is set to
+|formvalidator|.
+
 Once the response to the submission is received, instead of navigation
 to the response as in usual forms, any formsaved handler for the
 element is invoked.  A *formsaved handler* is a definition of type
@@ -505,6 +508,9 @@ members:
     result is cached in this method such that multiple invocations
     would not reject.
 
+While formsaved handlers are running, the action status stage is set
+to |formsaved|.
+
 During the form submission (since just before the start of the custom
 validations and fetch, until the completion of any formsaved
 handlers), any form control is disabled.
@@ -519,7 +525,9 @@ pair(s) to the object before the method is returned (or the promise
 returned by the method is fulfilled).  The method can throw (or return
 a promise which is rejected) when the custom form control is
 considered as invalid.  The custom form control element is expected to
-be disabled by setting the |disabled| content attribute.
+be disabled by setting the |disabled| content attribute.  While custom
+form control form data are collected, the action status stage is set
+to |formdata|.
 
 The |form| content attribute of form controls are not supported.
 

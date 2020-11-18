@@ -832,6 +832,86 @@
     this.assert.equal (hasModified, false);
   </test-code>
   
+  <test-code name="action-status">
+    /*
+      <form action method=post is=save-data
+          data-validator=validator26
+          data-saver=saver26
+          data-next=next26>
+        <p><action-status
+               stage-formdata="Collecting form data..."
+               stage-formvalidator=Validating...
+               stage-saver=Saving...
+               stage-formsaved=Postprocessing...
+               ok=Saved></action-status>
+        <p><button type=submit>Submit</button>
+        <input-26 formcontrol></input-26>
+      </form>
+    */
+
+    var formDataDone;
+    var handler = document.createElementNS ('data:,pc', 'element');
+    handler.pcDef = {
+      name: 'input-26',
+      props: {
+        pcInit: function () { },
+        pcModifyFormData: function (fd) {
+          return new Promise (ok => formDataDone = ok);
+        },
+      },
+    };
+    document.head.appendChild (handler);
+
+    var formValidationDone;
+    var handler = document.createElementNS ('data:,pc', 'formvalidator');
+    handler.setAttribute ('name', 'validator26');
+    handler.pcHandler = function (args) {
+      return new Promise (ok => formValidationDone = ok);
+    };
+    document.head.appendChild (handler);
+
+    var formSaverDone;
+    var handler = document.createElementNS ('data:,pc', 'saver');
+    handler.setAttribute ('name', 'saver26');
+    handler.pcHandler = function (args) {
+      return new Promise (ok => formSaverDone = ok);
+    };
+    document.head.appendChild (handler);
+
+    var formSavedDone;
+    var handler = document.createElementNS ('data:,pc', 'formsaved');
+    handler.setAttribute ('name', 'next26');
+    handler.pcHandler = function (args) {
+      return new Promise (ok => formSavedDone = ok);
+    };
+    document.head.appendChild (handler);
+
+    await this.wait ();
+    
+    var form = this.currentScript.querySelector ('form');
+    form.querySelector ('button[type=submit]').click ();
+
+    await this.wait ();
+
+    this.assert.equal (form.querySelector ('action-status-message').textContent, 'Collecting form data...');
+    formDataDone ();
+
+    await this.wait ();
+    this.assert.equal (form.querySelector ('action-status-message').textContent, 'Validating...');
+    formValidationDone ();
+
+    await this.wait ();
+    this.assert.equal (form.querySelector ('action-status-message').textContent, 'Saving...');
+    formSaverDone ();
+
+    await this.wait ();
+    this.assert.equal (form.querySelector ('action-status-message').textContent, 'Postprocessing...');
+    formSavedDone ();
+
+    await this.wait ();
+    this.assert.equal (form.querySelector ('action-status-message').textContent, 'Saved');
+  </test-code>
+  
   <!-- XXX data-confirm -->
 
   <script src=runtests.js></script>
