@@ -2,6 +2,11 @@
 <title>list-container</title>
 <link rel=stylesheet href=../css/default.css>
 <script src=../src/page-components.js async></script>
+<style>
+  body {
+    margin-bottom: 10em;
+  }
+</style>
 
 <section>
   <h1>Simple list</h1>
@@ -10,7 +15,17 @@
     var handler = document.createElementNS ('data:,pc', 'loader');
     handler.setAttribute ('name', 'localLoader');
     handler.pcHandler = function (opts) {
-      return JSON.parse (this.querySelector ('loader-data').textContent);
+      return Promise.resolve ().then (() => {
+        var wait = this.getAttribute ('loader-delay');
+        if (wait) {
+        console.log(wait);
+          return new Promise (ok => {
+            setTimeout (ok, parseFloat (wait) * 1000);
+          });
+        }
+      }).then (() => {
+        return JSON.parse (this.querySelector ('loader-data').textContent);
+      });
     };
     document.head.appendChild (handler);
   </script>
@@ -106,4 +121,19 @@
     <p><list-main></list-main>
     <p><button type=button class=list-next data-list-scroll=preserve>Next page</button>
   </list-container>
+
+  <section>
+    <h1>Auto-reload</h1>
+    
+    <list-container loader=localLoader autoreload loader-delay=5>
+      <template><p>[<span data-field=name></span>] </template>
+
+      <p><list-main></list-main>
+      <p><action-status></action-status>
+      
+      <p><loader-data>
+        {"data": {"A": {"name": "a"}, "B": {"name": "b"}, "C": {"name": "c"}}}
+      </loader-data>
+    </list-container>
+  </section>
 </section>
