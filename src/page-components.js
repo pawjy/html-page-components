@@ -1148,8 +1148,8 @@
         if (this.lcDataChanges) this.lcDataChanges.changed = true;
         this.lcRequestRender ();
       });
-      this.load ({});
-    }, // pcInit
+        this.load ({});
+      }, // pcInit
 
       lcGetNextInterval: function (currentInterval) {
         if (!currentInterval) return 10 * 1000;
@@ -1158,7 +1158,10 @@
         return interval;
       }, // lcGetNextInterval
       load: function (opts) {
-        if (!opts.page || opts.replace) this.lcClearList ();
+        if (!opts.page || opts.replace) {
+          this.lcClearList ();
+          this.pcNeedClearListContainer = true;
+        }
         return this.lcLoad (opts).then ((done) => {
           if (done) {
             this.lcDataChanges.scroll = opts.scroll;
@@ -1198,7 +1201,6 @@
         this.lcDataChanges = {append: [], prepend: [], changed: false};
         this.lcPrev = {};
         this.lcNext = {};
-        this.pcClearListContainer ();
       }, // lcClearList
       pcClearListContainer: function () {
         var listContainer = this.lcGetListContainer ();
@@ -1325,6 +1327,11 @@
 
         var listContainer = this.lcGetListContainer ();
         if (!listContainer) return;
+
+        if (this.pcNeedClearListContainer) {
+          this.pcClearListContainer ();
+          delete this.pcNeedClearListContainer;
+        }
 
         this.querySelectorAll ('a.list-prev, button.list-prev').forEach ((e) => {
           e.hidden = ! this.lcPrev.has;
@@ -1672,6 +1679,7 @@
         if (!Number.isFinite (this.pcValueTZ)) {
           this.pcValueTZ = -(new Date).getTimezoneOffset () * 60;
         }
+        this.pcMinStep = 1;
         var setValue = (newValue) => {
           var d = new Date ((newValue + this.pcValueTZ) * 1000);
           this.pcValueDate = Math.floor (d.valueOf () / (24 * 60 * 60 * 1000)) * 24 * 60 * 60;
