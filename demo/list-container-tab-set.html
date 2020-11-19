@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<title>list-container</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js async></script>
+<style>
+  body {
+    margin-bottom: 10em;
+  }
+  .active {
+    font-weight: bolder;
+  }
+</style>
+
+  <script>
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'localLoader');
+    handler.pcHandler = function (opts) {
+      return new Promise (ok => setTimeout (ok, 3000)).then (() => {
+        return JSON.parse (this.querySelector ('loader-data').textContent);
+      });    
+    };
+    document.head.appendChild (handler);
+  </script>
+
+  <list-container loader=localLoader type=tab-set>
+    <loader-data>
+      {"data": {"A": {"name": "Aa", "desc": "aaa"},
+                "B": {"name": "Bb", "desc": "bbb"}}}
+    </loader-data>
+
+    <template>
+      <h1 data-field=name></h1>
+      <p data-field=desc>
+    </template>
+
+    <p>
+    <tab-set>
+      <tab-menu></tab-menu>
+    </tab-set>
+    <action-status></action-status>
+
+    <p><button type=button class=list-reload>Reload</button>
+  </list-container>

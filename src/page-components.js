@@ -1343,6 +1343,9 @@
             replace: e.hasAttribute ('data-list-replace'),
           }); return false };
         });
+        this.querySelectorAll ('button.list-reload').forEach (e => {
+          e.onclick = () => this.load ({});
+        });
         this.querySelectorAll ('a.list-next, button.list-next').forEach ((e) => {
           e.hidden = ! this.lcNext.has;
           if (e.localName === 'a') {

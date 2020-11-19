@@ -398,6 +398,10 @@ appropriately and the |list-container| element is rendered.  A pager
 button may have |data-list-scroll| attribute, whose value is set to
 the |scroll| dictionary option in the equivalent |load| method call.
 
+When a |button| element which has a |list-reload| class, the list is
+reloaded, which is equivalent to invoking the |load| method with no
+explicit option.
+
 A |list-container| element can contain |list-is-empty| element
 descendants.  The content model of a |list-is-empty| element is
 transparent.  Whenever the |list-container| element is rendered, the
