@@ -926,6 +926,9 @@
           var header = f.querySelector ('h1');
           var a = document.createElement ('a');
           var path = f.getAttribute ('data-pjax');
+          if (!path && f.id) {
+            path = '#' + encodeURIComponent (f.id);
+          }
           a.href = 'javascript:';
           if (path !== null) {
             try {
@@ -958,6 +961,9 @@
         var initial = null;
         tabSections.forEach (f => {
           var path = f.getAttribute ('data-pjax');
+          if (!path && f.id) {
+            path = '#' + encodeURIComponent (f.id);
+          }
           if (path !== null) {
             try {
               var url = new URL (path, this.pcInitialURL);
@@ -1012,6 +1018,9 @@
           g.classList.toggle ('active', f === g);
         });
         var path = f.getAttribute ('data-pjax');
+        if (!path && f.id) {
+          path = '#' + encodeURIComponent (f.id);
+        }
         if (path !== null) {
           try {
             var x = location;

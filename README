@@ -220,7 +220,10 @@ URL is changed to that URL when a section is selected (using
 |history.replaceState|).  When the element is initialized, when the
 |hashchange| event is fired, and when the |pcLocationChange| event is
 fired, the document URL is compared with sections' URLs.  If there is
-a section with the same URL, that section is selected by default.
+a section with the same URL, that section is selected by default.  If
+a section has no |data-pjax| attribute but has a |id| attribute, a |#|
+character followed by the |id| attribute value is considered as the
+relative URL instead.
 
 Likewise, if a section has a |data-pjax-selecting| attribute, it is
 interpreted as a list of space-separated list of URLs resolved
