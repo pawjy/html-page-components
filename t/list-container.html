@@ -987,6 +987,30 @@
     this.assert.equal (list.querySelector ('.list-next').offsetWidth, 0);
   </test-code>
 
+  <test-code name="reload-button">
+    /*
+      <list-container loader=localLoader>
+        <loader-data>
+          {"data": [{"name": "x"}, {"name": "y"}]}
+        </loader-data>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+        <button type=button class=list-reload>Reload</button>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    var list = e.querySelector ('list-main');
+    this.assert.equal (list.children.length, 2);
+    list.textContent = '';
+
+    e.querySelector ('.list-reload').click ();
+    await this.wait (100);
+
+    this.assert.equal (list.children.length, 2);
+    this.assert.equal (list.children[0].textContent, 'x');
+    this.assert.equal (list.children[1].textContent, 'y');
+  </test-code>
+
   <script src=runtests.js></script>
 </body>
 </html>
