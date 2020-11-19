@@ -294,9 +294,9 @@
     button.click ();
     await this.wait ();
     this.assert.equal (
-      menu.offsetLeft + menu.offsetWidth
+      (menu.offsetLeft + menu.offsetWidth)
       -
-      button.offsetLeft + button.offsetWidth
+      (button.offsetLeft + button.offsetWidth)
       < 100,
       true,
       [

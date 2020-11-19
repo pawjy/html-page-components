@@ -15,7 +15,7 @@
     var handler = document.createElementNS ('data:,pc', 'loader');
     handler.setAttribute ('name', 'localLoader');
     handler.pcHandler = function (opts) {
-      return new Promise (ok => setTimeout (ok, 3000)).then (() => {
+      return new Promise (ok => setTimeout (ok, 1000)).then (() => {
         return JSON.parse (this.querySelector ('loader-data').textContent);
       });    
     };
