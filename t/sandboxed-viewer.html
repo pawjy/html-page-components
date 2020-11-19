@@ -18,7 +18,7 @@
       <sandboxed-viewer allowsandbox=allow-popups></sandboxed-viewer>
     */
     var v = this.currentScript.querySelector ('sandboxed-viewer');
-    this.assert.equal (!!v.getAttribute ('sandbox').match (/allow-popups/), true);
+    this.assert.equal (!!v.querySelector ('iframe').getAttribute ('sandbox').match (/allow-popups/), true);
   </test-code>
   
   <test-code name=pcEval>
