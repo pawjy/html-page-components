@@ -1026,7 +1026,8 @@
             var x = location;
             var y = new URL (path, this.pcInitialURL);
             if (x.hash && y.hash === '') y += x.hash;
-            if (x != y) {
+            
+            if (x.href !== y.href) {
               history.replaceState (null, null, y);
               var evc = new Event ('pcLocationChange', {bubbles: true});
               evc.pcInitiator = this;

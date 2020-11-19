@@ -50,7 +50,7 @@
     
     menu.children[2].click ();
     await this.wait ();
-    this.assert.equal (location.href, new URL ('abc', url0).href, "[2].click href");
+    this.assert.equal (location.href, new URL ('abc#foo', url0).href, "[2].click href");
     this.assert.equal (lcs.length, 2, "lcs inserted");
     this.assert.equal (lcs[1].url, location.href);
     this.assert.equal (lcs[1].initiator, e);
