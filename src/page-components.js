@@ -891,12 +891,12 @@
           window.pcTSListenersInstalled = true;
           window.addEventListener ('hashchange', () => {
             document.querySelectorAll ('tab-set').forEach (e => {
-              Promise.resolve ().then (() => e.tsShowTabByURL ({}));
+              Promise.resolve ().then (() => e.tsShowTabByURL ({initiatorType: 'url'}));
             });
           });
           window.addEventListener ('pcLocationChange', (ev) => {
             document.querySelectorAll ('tab-set').forEach (e => {
-              Promise.resolve ().then (() => e.tsShowTabByURL ({initiator: ev.pcInitiator}));
+              Promise.resolve ().then (() => e.tsShowTabByURL ({initiator: ev.pcInitiator, initiatorType: 'url'}));
             });
           });
         }
@@ -936,7 +936,7 @@
             } catch (e) { } // e.g. <about:srcdoc>
           }
           a.onclick = () => {
-            this.tsShowTab (a.tsSection);
+            this.tsShowTab (a.tsSection, {initiatorType: 'tab'});
             return false;
           };
           a.textContent = header ? header.textContent : '§';
@@ -946,7 +946,7 @@
           tabMenu.insertBefore (a, x);
         });
 
-        this.tsShowTabByURL ({});
+        this.tsShowTabByURL ({initiatorType: null});
       }, // tsInit
       tsShowTabByURL: function (opts) {
         if (opts.initiator === this) return;
@@ -959,6 +959,7 @@
         var currentURL = location.href;
         var currentPageURL = currentURL.replace (/#.+$/, '');
         var initial = null;
+        var matchedTabSections = [];
         tabSections.forEach (f => {
           var path = f.getAttribute ('data-pjax');
           if (!path && f.id) {
@@ -971,6 +972,10 @@
                 initial = f;
               } else if (url.href === currentPageURL) {
                 initial = initial || f;
+              }
+              if (this.pcLastSelectedTabURL &&
+                  this.pcLastSelectedTabURL === url.href) {
+                matchedTabSections.push (f);                
               }
             } catch (e) { } // e.g. <about:srcdoc>
           }
@@ -986,6 +991,10 @@
             } catch (e) { } // e.g. <about:srcdoc>
           });
         });
+        console.log(tabSections.length, initial, this.pcLastSelectedTabURL, matchedTabSections);
+        if ((!initial || !opts.initiatorType) && matchedTabSections.length) {
+          initial = matchedTabSections[0];
+        }
         if (!initial) {
           var hasActive = false;
           var nonActive = tabSections.filter (t => {
@@ -998,9 +1007,9 @@
           });
           if (!hasActive) initial = nonActive[0]; // or undefined
         }
-        if (initial) this.tsShowTab (initial);
+        if (initial) this.tsShowTab (initial, {initiatorType: opts.initiatorType});
       }, // tsShowTabByURL
-      tsShowTab: function (f) {
+      tsShowTab: function (f, opts) {
         var tabMenu = null;
         var tabSections = [];
         Array.prototype.forEach.call (this.children, function (f) {
@@ -1032,6 +1041,9 @@
               var evc = new Event ('pcLocationChange', {bubbles: true});
               evc.pcInitiator = this;
               Promise.resolve ().then (() => window.dispatchEvent (evc));
+              if (opts.initiatorType === 'tab') {
+                this.pcLastSelectedTabURL = y.href;
+              }
             }
           } catch (e) { } // e.g. <about:srcdoc>
         }
