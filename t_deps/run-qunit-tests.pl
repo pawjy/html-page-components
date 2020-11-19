@@ -58,7 +58,6 @@ sub run_tests {
   my $exit_code = 0;
   my @failed;
   for my $path (sort { $a cmp $b } $root_path->child ('t')->children (qr/\.html\z/)) {
-    next unless $path =~ /input-datetime/;
     my $url = "http://$BrowserHTTPHost:$HTTPPort/${path}${query_string}";
     my $result_path = $test_results_path->child ($path->basename);
     next if $path =~ m{/data[^/]*\.html\z};
