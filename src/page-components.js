@@ -991,7 +991,6 @@
             } catch (e) { } // e.g. <about:srcdoc>
           });
         });
-        console.log(tabSections.length, initial, this.pcLastSelectedTabURL, matchedTabSections);
         if ((!initial || !opts.initiatorType) && matchedTabSections.length) {
           initial = matchedTabSections[0];
         }
