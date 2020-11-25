@@ -192,11 +192,12 @@
         return init.call (e);
       }
       return new Promise (function (ok) {
-        setInterval (function () {
+        var timer = setInterval (function () {
           if (e.nextSibling ||
               document.readyState === 'interactive' ||
               document.readyState === 'complete') {
             ok ();
+            clearInterval (timer);
           }
         }, 100);
       }).then (function () {
