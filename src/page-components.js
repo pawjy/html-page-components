@@ -2461,91 +2461,16 @@
 
     // ieGooglePickerAPI
     ieLoadGooglePickerAPI: function () {
-      return this.ieGooglePickerAPI = this.ieGooglePickerAPI || new Promise ((ok, ng) => {
-        var name = 'pacoCB' + Math.random ().toString ().replace (/\./, '');
-        var script = document.createElement ('script');
-        script.src = 'https://apis.google.com/js/api.js?onload=' + name;
-        script.onerror = ng;
-        document.head.appendChild (script);
-        window[name] = function () {
-          delete window[name];
-          ok ();
-        };
-      }).then (() => {
-        return Promise.all ([
-          new Promise (ok => {
-            gapi.load ('auth2', ok);
-          }),
-          new Promise (ok => {
-            gapi.load ('picker', ok);
-          }),
-        ]);
-      });
+      return Promise.resolve ();
     }, // ieLoadGooglePickerAPI
     //ieGoogleOAuthToken
     iePrepareGoogleOAuth: function () {
-      if (this.ieGoogleOAuthToken) return Promise.resolve ();
-      return this.ieLoadGooglePickerAPI ().then (() => {
-        return new Promise ((ok, ng) => {
-          var scope = 'https://www.googleapis.com/auth/photos';
-          var clientId = document.documentElement.getAttribute ('data-google-picker-client-id');
-          if (!clientId) throw new DOMException ('<html data-google-picker-client-id> is not specified', 'InvalidStateError');
-          gapi.auth2.init ({client_id: clientId}).then ((ga) => {
-            ga.signIn ({scope: scope}).then ((result) => {
-              var auth = result.getAuthResponse ();
-              if (auth && !auth.error) {
-                this.ieGoogleOAuthToken = auth.access_token;
-                ok ();
-              } else {
-                ng (auth);
-              }
-            });
-          });
-        });
-      });
+      return Promise.resolve ();
     }, // iePrepareGoogleOAuth
     // XXX not tested :-<
     selectImageFromGooglePhotos: function () {
-      var key = document.documentElement.getAttribute ('data-google-picker-key');
-      var proxyTemplate = document.documentElement.getAttribute ('data-paco-image-proxy');
-      return Promise.resolve ().then (() => {
-        if (!key) throw new DOMException ('<html data-google-picker-key> is not specified', 'InvalidStateError');
-        if (!proxyTemplate) throw new DOMException ('<html data-paco-image-proxy> is not specified', 'InvalidStateError');
-        return this.ieLoadGooglePickerAPI ();
-      }).then (() => {
-        return this.iePrepareGoogleOAuth ();
-      }).then (() => {
-        return new Promise ((ok, ng) => {
-          var picker = new google.picker.PickerBuilder()
-              .addView (google.picker.ViewId.PHOTOS)
-              .addView ((new google.picker.PhotosView).setType ("camerasync"))
-              .addView (google.picker.ViewId.PHOTO_UPLOAD)
-              .setOAuthToken (this.ieGoogleOAuthToken)
-              .setDeveloperKey (key)
-              .setLocale (navigator.language)
-              .setCallback ((data) => {
-                //console.log (data);
-                if (data[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
-                  ok (data);
-                } else if (data[google.picker.Response.ACTION] == google.picker.Action.CANCEL) {
-                  ng (new DOMException ('User canceled', 'AbortError'));
-                }
-                // LOADED, ...
-              })
-              .build ();
-          picker.setVisible (true);
-        });
-      }).then (data => {
-        var doc = data[google.picker.Response.DOCUMENTS][0];
-        var url = doc[google.picker.Document.URL];
-        var imageURL = doc.thumbnails[doc.thumbnails.length-1].url;
-        if (!imageURL) throw new Error ('Google Picker API response is broken');
-        imageURL = imageURL.replace (/\/s[0-9]+[-a-z]*\/([^\/]+)$/, '/s1200/$1');
-        if (!/\/s1200\/[^\/]+$/.test (imageURL)) {
-          imageURL = imageURL.replace (/(?=[^\/]+$)/, 's1200/');
-        }
-        return this.selectImageByURL ($fill.string (proxyTemplate, {url: imageURL}));
-      });
+      if (!this.hasAttribute ('data-test')) alert ('Google no longer supports this feature.');
+      return Promise.reject (new DOMException ('Google Picker API no longer supports Google Photos.', 'AbortError'));
     }, // selectImageFromGooglePhotos
 
     ieRotateByDegree: function (degree) {
