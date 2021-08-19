@@ -837,6 +837,22 @@
     this.assert.equal (events[0].element.naturalWidth, 183);
   </test-code>
 
+  <test-code name="selectImageFromGooglePhotos">
+    /*
+      <image-editor width=523 height=120><image-layer data-test></image-layer></image-editor>
+    */
+    var e = this.currentScript.querySelector ("image-editor");
+    var f = e.querySelector ('image-layer');
+
+    try {
+      await f.selectImageFromGooglePhotos ();
+      this.assert.equal (false, true);
+    } catch (x) {
+      this.assert.equal (x.name, 'AbortError');
+      this.assert.equal (x.message, 'Google Picker API no longer supports Google Photos.');
+    }
+  </test-code>
+
   <script src=runtests.js></script>
 </body>
 </html>
