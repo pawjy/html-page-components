@@ -228,9 +228,11 @@ relative URL instead.
 Likewise, if a section has a |data-pjax-selecting| attribute, it is
 interpreted as a list of space-separated list of URLs resolved
 relative to the document URL at the time of the initialization of the
-element.  If one of them is equal to the document URL, the section is
-selected by default.  However, unlike |data-pjax|, the document URL is
-unchanged.
+element.  If one of them is equal to the document URL or one of them
+is a URL and fragment identifier whose non-fragment parts are equal to
+the document URL's and the fragment part is the prefix of the document
+URL's prefix, the section is selected by default.  However, unlike
+|data-pjax|, the document URL is unchanged.
 
 ** <sub-window>
 
