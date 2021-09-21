@@ -988,6 +988,9 @@
                 initial = initial || f;
               } else if (url.href === currentPageURL) {
                 initial = initial || f;
+              } else if (/#/.test (currentURL) &&
+                         currentURL.substring (0, url.href.length) === url.href) {
+                initial = initial || f;
               }
             } catch (e) { } // e.g. <about:srcdoc>
           });
