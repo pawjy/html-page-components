@@ -26,17 +26,6 @@
       document.head.appendChild (script);
     });
   }; // loadGoogleMaps
-
-  var isOb = new Promise ((resolve, reject) => {
-    if (window.IntersectionObserver) return resolve ();
-
-    // Safari does not support IntersectionObserver yet.
-    var script = document.createElement ('script');
-    script.src = 'https://rawgit.com/w3c/IntersectionObserver/master/polyfill/intersection-observer.js';
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.appendChild (script);
-  });
   
   define ({
     name: 'map-area',
@@ -145,7 +134,6 @@
           controls.forEach (e => this.appendChild (e));
           
           this.maRedraw ({all: true});
-          return isOb;
         }).then (() => {
           this.maISObserver = new IntersectionObserver (() => {
             setTimeout (() => {
