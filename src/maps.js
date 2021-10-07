@@ -67,12 +67,14 @@
               controls.push (e);
             }
           });
-          
-          this.maGoogleMap = new google.maps.Map (this, {
-            center: {lat: this.maAttrFloat ('lat', 0),
-                     lng: this.maAttrFloat ('lon', 0)},
+
+          var mapOpts = {
             zoom: 8,
-          });
+          };
+          var center = {lat: this.maAttrFloat ('lat', 0),
+                        lng: this.maAttrFloat ('lon', 0)};
+          if (center.lat || center.lng) mapOpts.center = center;
+          this.maGoogleMap = new google.maps.Map (this, mapOpts);
 
           if (this.hasAttribute ('gsi')) {
             this.maGoogleMap.setOptions ({
