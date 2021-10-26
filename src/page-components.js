@@ -1486,6 +1486,7 @@
             this.sdClickedButton = null;
           }
 
+          this.pc_cantSendFocus = true;
           var disabledControls = this.querySelectorAll
               ('input:enabled, select:enabled, textarea:enabled, button:enabled');
           var customControls = this.querySelectorAll ('[formcontrol]:not([disabled])');
@@ -1547,16 +1548,25 @@
             disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
             customControls.forEach ((_) => _.removeAttribute ('disabled'));
             as.end ({ok: true});
+
+            var e = this.pc_focusToBeSent;
+            if (e) Promise.resolve ().then (() => e.focus ());
+            this.pc_cantSendFocus = false;
+            this.pc_focusToBeSent = null;
           }).catch ((e) => {
             disabledControls.forEach ((_) => _.removeAttribute ('disabled'));
             customControls.forEach ((_) => _.removeAttribute ('disabled'));
             as.end ({error: e});
+            
+            this.pc_cantSendFocus = false;
+            this.pc_focusToBeSent = null; // discard
           });
           return false;
         }; // onsubmit
       }, // sdInit
       sdCheck: function () {
-        if (!this.hasAttribute ('action')) {
+        if (!this.hasAttribute ('action') &&
+            !this.hasAttribute ('data-saver')) {
           console.log (this, 'Warning: form[is=save-data] does not have |action| attribute');
         }
         if (this.method !== 'post') {
@@ -1573,6 +1583,14 @@
           console.log (this, 'Warning: form[is=save-data] have an |onsubmit| attribute');
         }
       }, // sdCheck
+
+      pcSendFocus: function (e) {
+        if (this.pc_cantSendFocus) {
+          this.pc_focusToBeSent = e;
+        } else {
+          Promise.resolve ().then (() => e.focus ());
+        }
+      }, // pcSendFocus
     }, // props
   }); // <form is=save-data>
 
@@ -1601,6 +1619,11 @@
       return new Promise (() => {});
     });
   }; // go
+
+  defs.formsaved.focus = function (args) {
+    var e = this.querySelector (args.args[1]);
+    this.pcSendFocus (e);
+  }; // focus
 
   defineElement ({
     name: 'before-unload-check',

@@ -479,9 +479,8 @@ specified, the loader is repeatedly invoked with some intervals.
 
 ** <form is=save-data>
 
-A |form| element whose |is| attribute is |save-data| represents a form
-used to submit data using HTTP |POST| method and |multipart/form-data|
-MIME type.
+A |<form is=save-data>| element represents a form used to submit data
+using HTTP |POST| method and |multipart/form-data| MIME type.
 
 As usual, the data is submitted to the |form| element's |action|
 attribute's URL.  It must be same origin as the current document,
@@ -578,14 +577,27 @@ an object.  If it cannot be saved the data, it is expected to throw
 (or return a promise which is rejected).  While a saver is running,
 the action status stage is set to |saver|.
 
-The |form| element whose |is| attribute is |save-data| supports action
-statuses.
+The |<form is=save-data>| supports action statuses.
 
-The |form| element whose |is| attribute is |save-data| can be combined
-with the |before-unload-check| element.  When the |form| element (or
-its descendant) is dispatched a |change| event, the |data-pc-modified|
+The |<form is=save-data>| element can be combined with the
+|before-unload-check| element.  When the |form| element (or its
+descendant) is dispatched a |change| event, the |data-pc-modified|
 attribute is set to the element.  The |data-pc-modified| attribute, if
 any, is removed when the element's saver has concluded successfully.
+
+A |<form is=save-data>| element has the following method:
+
+  /element/.pcSendFocus (/e/)
+
+    Focus the element /e/.  During the form submission, form controls
+    are disabled such that they cannot be focused.  If this method is
+    invoked during the form submission, the focus is sent after the
+    submission is done.
+
+    If the method is invoked multiple times during a single form
+    submission, earlier focus requests are discarded.  If the form
+    submission fails, any focus requests during the form submission is
+    discarded.
 
 ** <before-unload-check>
 
@@ -1767,6 +1779,12 @@ There is a predefined filter: |default|.  It replaces the input's
 |data| is not a JavaScript |Array|.
 
 There are predefined formsaved handlers:
+
+  focus:{selector}
+
+    Focus the first descendant element identified by the selector
+    specified as the first argument /selector/, using the
+    |pcSendFocus| method.
 
   go:{templateOfURL}
 

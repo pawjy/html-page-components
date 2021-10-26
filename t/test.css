@@ -9,6 +9,13 @@ test-code {
   visibility: hidden;
 }
 
+test-code[visible] {
+  visibility: visible;
+  left: -100vw;
+  width: 100vw;
+  overflow: auto;
+}
+
 /*
 
 Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
