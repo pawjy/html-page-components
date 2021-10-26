@@ -600,6 +600,8 @@
             <tr>
               <th>Name
         </table>
+        <ul></ul>
+        <ol></ol>
       </list-container>
     */
     var e = this.currentScript.querySelector ('list-container');
@@ -608,6 +610,80 @@
     await this.wait (300);
     this.assert.equal (e.querySelector ('list-main').children.length, 0);
     this.assert.equal (e.querySelector ('tbody').children.length, 2);
+  </test-code>
+
+  <test-code name="type=ul">
+    /*
+      <list-container loader=localLoader type=ul>
+        <loader-data>
+          {"data": [{"name": "a"}, {"name": "b"}]}
+        </loader-data>
+        <template><span data-field=name></span></template>
+        <list-main></list-main>
+        <table>
+          <thead>
+            <tr>
+              <th>Name
+          <tbody>
+          <tbody>
+        </table>
+        <ul></ul>
+        <ol></ol>
+        <ul></ul>
+        <ol></ol>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    this.assert.equal (e.querySelector ('list-main').children.length, 0);
+    this.assert.equal (e.querySelector ('tbody:nth-of-type(1)').children.length, 0);
+    this.assert.equal (e.querySelector ('tbody:nth-of-type(2)').children.length, 0);
+    this.assert.equal (e.querySelector ('ul:nth-of-type(1)').children.length, 2);
+    this.assert.equal (e.querySelector ('ol:nth-of-type(1)').children.length, 0);
+    this.assert.equal (e.querySelector ('ul:nth-of-type(2)').children.length, 0);
+    this.assert.equal (e.querySelector ('ol:nth-of-type(2)').children.length, 0);
+    var row1 = e.querySelector ('ul > :nth-child(1)');
+    this.assert.equal (row1.localName, 'li');
+    this.assert.equal (row1.innerHTML, '&lt;span data-field="name">a&lt;/span>');
+    var row2 = e.querySelector ('ul > :nth-child(2)');
+    this.assert.equal (row2.localName, 'li');
+    this.assert.equal (row2.innerHTML, '&lt;span data-field="name">b&lt;/span>');
+  </test-code>
+
+  <test-code name="type=ol">
+    /*
+      <list-container loader=localLoader type=ol>
+        <loader-data>
+          {"data": [{"name": "a"}, {"name": "b"}]}
+        </loader-data>
+        <template><span data-field=name></span></template>
+        <list-main></list-main>
+        <table>
+          <thead>
+            <tr>
+              <th>Name
+          <tbody>
+          <tbody>
+        </table>
+        <ul></ul>
+        <ol></ol>
+        <ul></ul>
+        <ol></ol>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    this.assert.equal (e.querySelector ('list-main').children.length, 0);
+    this.assert.equal (e.querySelector ('tbody:nth-of-type(1)').children.length, 0);
+    this.assert.equal (e.querySelector ('tbody:nth-of-type(2)').children.length, 0);
+    this.assert.equal (e.querySelector ('ul').children.length, 0);
+    this.assert.equal (e.querySelector ('ol').children.length, 2);
+    this.assert.equal (e.querySelector ('ul:nth-of-type(2)').children.length, 0);
+    this.assert.equal (e.querySelector ('ol:nth-of-type(2)').children.length, 0);
+    var row1 = e.querySelector ('ol > :nth-child(1)');
+    this.assert.equal (row1.localName, 'li');
+    this.assert.equal (row1.innerHTML, '&lt;span data-field="name">a&lt;/span>');
+    var row2 = e.querySelector ('ol > :nth-child(2)');
+    this.assert.equal (row2.localName, 'li');
+    this.assert.equal (row2.innerHTML, '&lt;span data-field="name">b&lt;/span>');
   </test-code>
 
   <test-code name="type=tab-set">

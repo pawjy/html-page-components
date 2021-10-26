@@ -1244,6 +1244,8 @@
           return 'tbody';
         } else if (type === 'tab-set') {
           return 'tab-set';
+        } else if (type === 'ul' || type === 'ol') {
+          return type;
         } else {
           return 'list-main';
         }
@@ -1401,6 +1403,8 @@
         var itemLN = {
           tbody: 'tr',
           'tab-set': 'section',
+          ul: 'li',
+          ol: 'li',
         }[listContainer.localName] || 'list-item';
       return Promise.resolve ().then (() => {
         if (changes.changed) {
