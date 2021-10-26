@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+<title>form</title>
+
+<form action method=post is=save-data
+    data-validator=validator data-saver=saver
+    data-next="focus:[name=focused] next">
+  <p><label>Input1: <input></label>
+  <p><label>To be focused: <input name=focused></label>
+  <p><action-status
+         stage-formdata="Collecting form data..."
+         stage-formvalidator=Validating...
+         stage-saver=Saver...
+         stage-formsaved=Postprocessing...
+         ok=Saved></action-status>
+  <p><button type=submit>Submit</button>
+  <input-control formcontrol></input-control>
+</form>
+
+<script>
+  var handler = document.createElementNS ('data:,pc', 'formvalidator');
+  handler.setAttribute ('name', 'validator');
+  handler.pcHandler = function (args) {
+  };
+  document.head.appendChild (handler);
+  
+  var handler = document.createElementNS ('data:,pc', 'formsaved');
+  handler.setAttribute ('name', 'next');
+  handler.pcHandler = function (args) {
+  };
+  document.head.appendChild (handler);
+  
+  var handler = document.createElementNS ('data:,pc', 'saver');
+  handler.setAttribute ('name', 'saver');
+  handler.pcHandler = function (args) {
+    return {data: []};
+  };
+  document.head.appendChild (handler);
+  
+  var handler = document.createElementNS ('data:,pc', 'element');
+  handler.pcDef = {
+    name: 'input-control',
+    props: {
+      pcInit: function () { },
+      pcModifyFormData: function (fd) {
+      },
+    },
+  };
+  document.head.appendChild (handler);
+</script>
+
+<script src=../src/page-components.js async></script>

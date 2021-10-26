@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+  <script>
+    var handler = document.createElementNS ('data:,pc', 'saver');
+    handler.setAttribute ('name', 'emptysaver');
+    handler.pcHandler = function (args) {
+      return {};
+    };
+    document.head.appendChild (handler);
+  </script>
+  
+  <test-code name="focus" visible>
+    /*
+      <input name=text1>
+      <form method=post is=save-data data-saver=emptysaver data-next="focus:[name=text1] test1">
+        <input name=text1 id=text12>
+        <input name=text3 id=text3>
+        <button type=submit>OK</button>
+      </form>
+    */
+
+    var e = this.currentScript.querySelector ('form');
+
+    var focused = 0;
+    e.querySelector ('input[name=text1]').onfocus = () => {
+      focused++;
+    };
+    e.querySelector ('button').click ();
+
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'test1');
+      handler.pcHandler = function (args) {
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+    await promise;
+    await this.wait (10);
+
+    this.assert.equal (focused, 1);
+    this.assert.equal (document.activeElement.id, 'text12');
+
+    var g = document.querySelector ('#text3');
+    e.pcSendFocus (g);
+    await this.wait (10);
+
+    this.assert.equal (document.activeElement.id, 'text3');
+  </test-code>
+
+  <script src=runtests.js></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->
