@@ -366,6 +366,24 @@ and list item element depend on the |type| attribute value of the
 
     List item element: A |tr| element.
 
+  type=ul
+
+    List item insertion point: The first |ul| element descendant of
+    the |list-container| element.
+
+    Fixed content: None.
+
+    List item element: An |li| element.
+
+  type=ol
+
+    List item insertion point: The first |ol| element descendant of
+    the |list-container| element.
+
+    Fixed content: None.
+
+    List item element: An |li| element.
+
   type=tab-set
 
     List item insertion point: The first |tab-set| element descendant
