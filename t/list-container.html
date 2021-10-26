@@ -703,6 +703,7 @@
 
   <test-code name="list-is-empty">
     /*
+      <section hidden>
       <list-container loader=localLoader>
         <loader-data>
           {"data": [{"name": "a"}, {"name": "b"}, {"name": "c"}]}
@@ -712,14 +713,18 @@
         <list-main></list-main>
         <list-is-empty>B</list-is-empty>
       </list-container>
+      </section>
     */
     var e = this.currentScript.querySelector ('list-container');
     this.assert.equal (e.querySelectorAll ('list-is-empty')[0].hidden, true);
     this.assert.equal (e.querySelectorAll ('list-is-empty')[1].hidden, true);
+    this.assert.equal (e.hidden, false);
+    this.assert.equal (e.parentNode.hidden, true);
   </test-code>
 
   <test-code name="list-is-empty empty">
     /*
+      <section>
       <list-container loader=localLoader>
         <loader-data>
           {"data": []}
@@ -729,10 +734,56 @@
         <list-main></list-main>
         <list-is-empty>B</list-is-empty>
       </list-container>
+      </section>
     */
     var e = this.currentScript.querySelector ('list-container');
     this.assert.equal (e.querySelectorAll ('list-is-empty')[0].hidden, false);
     this.assert.equal (e.querySelectorAll ('list-is-empty')[1].hidden, false);
+    this.assert.equal (e.hidden, false);
+    this.assert.equal (e.parentNode.hidden, false);
+  </test-code>
+
+  <test-code name="parent section">
+    /*
+      <section hidden>
+      <list-container loader=localLoader hascontainer>
+        <loader-data>
+          {"data": [{"name": "a"}, {"name": "b"}, {"name": "c"}]}
+        </loader-data>
+        <template><p data-field=name></template>
+        <list-is-empty>A</list-is-empty>
+        <list-main></list-main>
+        <list-is-empty>B</list-is-empty>
+      </list-container>
+      </section>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    this.assert.equal (e.querySelectorAll ('list-is-empty')[0].hidden, true);
+    this.assert.equal (e.querySelectorAll ('list-is-empty')[1].hidden, true);
+    this.assert.equal (e.hidden, false);
+    this.assert.equal (e.parentNode.hidden, false, e.parentNode.localName);
+  </test-code>
+
+  <test-code name="parent section empty">
+    /*
+      <section><div>
+      <list-container loader=localLoader hascontainer>
+        <loader-data>
+          {"data": []}
+        </loader-data>
+        <template><p data-field=name></template>
+        <list-is-empty>A</list-is-empty>
+        <list-main></list-main>
+        <list-is-empty>B</list-is-empty>
+      </list-container>
+      </div></section>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    this.assert.equal (e.querySelectorAll ('list-is-empty')[0].hidden, false);
+    this.assert.equal (e.querySelectorAll ('list-is-empty')[1].hidden, false);
+    this.assert.equal (e.hidden, false);
+    this.assert.equal (e.parentNode.hidden, false);
+    this.assert.equal (e.parentNode.parentNode.hidden, true);
   </test-code>
 
   <test-code name="template-set">
