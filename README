@@ -392,27 +392,37 @@ descendant is inserted.
 After a |list-container| element is rendered, a |pcRendered| event,
 which bubbles, is fired at the |list-container| element.
 
-A *pager button* is a next page button or a previous page button.  A
-*next page button* is an |a| or |button| element which has a
-|list-next| class.  A *previous page button* is an |a| or |button|
-element which has a |list-prev| class.  A page button's |hidden|
-attribute is set or removed appropriately, according to whether there
-is the next or previous page or not.  When a page button is clicked,
-the list is updated to inculude the previous or next page
-appropriately and the |list-container| element is rendered.  A pager
-button may have |data-list-scroll| attribute, whose value is set to
-the |scroll| dictionary option in the equivalent |load| method call.
-
 When a |button| element which has a |list-reload| class, the list is
 reloaded, which is equivalent to invoking the |load| method with no
 explicit option.
 
-A |list-container| element can contain |list-is-empty| element
-descendants.  The content model of a |list-is-empty| element is
-transparent.  Whenever the |list-container| element is rendered, the
-|list-is-empty| element descendants' |hidden| attributes are updated
-such that they are hidden if the |list-container| element's list has
-one or more list items.
+There are features that control the element, or its ancestor or
+descendants, depending on the number of items rendered by the
+|list-container| element:
+
+  A *pager button* is a next page button or a previous page button.  A
+  *next page button* is an |a| or |button| element which has a
+  |list-next| class.  A *previous page button* is an |a| or |button|
+  element which has a |list-prev| class.  A page button's |hidden|
+  attribute is set or removed appropriately, according to whether
+  there is the next or previous page or not.  When a page button is
+  clicked, the list is updated to inculude the previous or next page
+  appropriately and the |list-container| element is rendered.  A pager
+  button may have |data-list-scroll| attribute, whose value is set to
+  the |scroll| dictionary option in the equivalent |load| method call.
+
+  A |list-container| element can have a |hascontainer| attribute
+  specified.  If specified, whenever the |list-container| element is
+  rendered, the nearest |section| element ancestor's |hidden|
+  attribute is updated such that it is hidden if the |list-container|
+  element's list has no item.
+
+  A |list-container| element can contain |list-is-empty| element
+  descendants.  The content model of a |list-is-empty| element is
+  transparent.  Whenever the |list-container| element is rendered, the
+  |list-is-empty| element descendants' |hidden| attributes are updated
+  such that they are hidden if the |list-container| element's list has
+  one or more list items.
 
 A |list-container| element has following members:
 
@@ -1879,7 +1889,7 @@ Wakaba <wakaba@suikawiki.org>.
 
 * License
 
-Copyright 2017-2020 Wakaba <wakaba@suikawiki.org>.
+Copyright 2017-2021 Wakaba <wakaba@suikawiki.org>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as

@@ -1381,9 +1381,19 @@
             replace: e.hasAttribute ('data-list-replace'),
           }); return false };
         });
+        var hasListItem = this.lcData.length > 0;
         this.querySelectorAll ('list-is-empty').forEach ((e) => {
-          e.hidden = this.lcData.length > 0;
+          e.hidden = hasListItem;
         });
+        if (this.hasAttribute ('hascontainer')) {
+          var e = this.parentNode;
+          while (e && e.localName !== 'section') {
+            e = e.parentNode;
+          }
+          if (e && e.localName === 'section') {
+            e.hidden = !hasListItem;
+          }
+        }
 
       var tm = this.lcTemplateSet;
       var changes = this.lcDataChanges;
@@ -2790,7 +2800,7 @@
 
 /*
 
-Copyright 2017-2020 Wakaba <wakaba@suikawiki.org>.
+Copyright 2017-2021 Wakaba <wakaba@suikawiki.org>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
