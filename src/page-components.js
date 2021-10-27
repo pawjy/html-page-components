@@ -719,6 +719,20 @@
     },
   }); // button[is=mode-button]
 
+  function parseCSSString (cssText, defaultText) {
+    var m = (cssText || 'auto').match (/^\s*"([^"\\]*)"\s*$/); // XXX escape
+    if (m) {
+      return m[1];
+    }
+
+    var m = (cssText || 'auto').match (/^\s*'([^'\\]*)'\s*$/); // XXX escape
+    if (m) {
+      return m[1];
+    }
+
+    return defaultText;
+  } // parseCSSString
+  
   var copyText = navigator.clipboard ? s => {
     return navigator.clipboard.writeText (s);
   } : function (s) { // for insecure context
@@ -772,7 +786,44 @@
       }, // pcClick
     },
   }); // <button is=copy-text-content>
-  
+
+  defineElement ({
+    name: 'can-copy',
+    props: {
+      pcInit: function () {
+        // recompute!
+        var m = parseCSSString (getComputedStyle (this).getPropertyValue ('--paco-copy-button-label'), 'Copy');
+
+        var b = document.createElement ('button');
+        b.type = 'button';
+        b.textContent = m;
+        b.onclick = () => this.pcCopy ();
+        this.appendChild (b);
+      }, // pcInit
+      pcCopy: function () {
+        var e = this.querySelector ('code, data, time');
+        if (!e) throw new Error ('No copied data element');
+
+        var text;
+
+        // recompute!
+        var t = getComputedStyle (e).getPropertyValue ('--paco-copy-format') || 'auto';
+        if (/^\s*unix-tz-json\s*$/.test (t)) {
+          var d = {};
+          var dt = new Date (e.getAttribute ('datetime') || e.textContent);
+          d.unix = dt.valueOf () / 1000; // or NaN
+          var tz = parseFloat (e.getAttribute ('data-tzoffset'));
+          if (Number.isFinite (tz)) d.tzOffset = tz;
+          text = JSON.stringify (d);
+        } else {
+          text = e.textContent;
+        }
+
+        copyTextWithToast (this, text);
+      }, // pcCopy
+    }, // props
+  }); // <can-copy>
+
   defineElement ({
     name: 'popup-menu',
     props: {
@@ -1119,20 +1170,6 @@
       }, // pcSetMode
     },
   }); // <sub-window>
-
-  function parseCSSString (cssText, defaultText) {
-    var m = (cssText || 'auto').match (/^\s*"([^"\\]*)"\s*$/); // XXX escape
-    if (m) {
-      return m[1];
-    }
-
-    var m = (cssText || 'auto').match (/^\s*'([^'\\]*)'\s*$/); // XXX escape
-    if (m) {
-      return m[1];
-    }
-
-    return defaultText;
-  } // parseCSSString
 
   // <toast-group>
   exportable.$paco.showToast = function (opts) {

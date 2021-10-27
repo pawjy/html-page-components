@@ -31,6 +31,7 @@ loaded:
   <button is=mode-button>
   <button is=copy-text-content>
   <a is=copy-url>
+  <can-copy>
   <popup-menu>
   <tab-set>
   <sub-window>
@@ -63,10 +64,10 @@ The element's |hidden| content attribute is set when the element's
 value is |null|.  Otherwise the attribute is not set.
 
 When the element's value is not |null|, the element's |textContent|
-IDL attribute is set to the element's label text.  The element's label
-text is the element's |label-/value/| content attribute value, where
-/value/ is the element's value.  If there is no such attribute, the
-element's label text is the element's value.
+property value is set to the element's label text.  The element's
+label text is the element's |label-/value/| content attribute value,
+where /value/ is the element's value.  If there is no such attribute,
+the element's label text is the element's value.
 
 ** <button is=command-button>
 
@@ -126,7 +127,7 @@ A |<button is=copy-text-content>| element represents a copy button.
 When the button is clicked, a text is copied to the clipboard.
 
 The element must have a |data-selector| attribute, whose value is a
-selector.  The copied text is the |textContent| attribute value of the
+selector.  The copied text is the |textContent| property value of the
 selected element.
 
 Once copied, a toast whose message is the CSS '--paco-copied-message'
@@ -138,6 +139,37 @@ property value, which is a CSS string, is shown.  The toast is a
 An |<a is=copy-url>| element represnts a button used to copy a URL.
 
 When the link is clicked, the linked URL is copied to the clipboard.
+
+Once copied, a toast whose message is the CSS '--paco-copied-message'
+property value, which is a CSS string, is shown.  The toast is a
+|toast-box| element with a class |paco-copied|.
+
+** <can-copy>
+
+A |can-copy| element represents a data that can be copied to the
+clipboard.
+
+A |can-copy| element is expected to have a *copied data element*,
+which is a |code|, |data|, or |time| element.  The data contained by
+that element is to be copied.
+
+When initialized, a copy button is appended to the |can-copy| element.
+The copy button's text content is set to the CSS
+'--paco-copy-button-label' property value, which is a CSS string.
+
+The copied text is chosen by the CSS '--paco-copy-format' property
+value of the copied data element:
+
+  'auto' (The initial value)
+
+    The copied text is the |textContent| property value of the copied
+    data element.
+
+  'unix-tz-json'
+
+    The copied data element must be a |time| element.  The copied text
+    is the JSON serialization of the Unix time and time zone offset
+    (if specified) of the element.
 
 Once copied, a toast whose message is the CSS '--paco-copied-message'
 property value, which is a CSS string, is shown.  The toast is a
@@ -1525,8 +1557,8 @@ scope.  The following functions are available:
               The value of /element/ is the |datetime| attribute value
               and is set to the result of the |new Date (/field value/
               * 1000).toISOString ()|.  If it throws, the |datetime|
-              attribute is removed and the |textContent| is set to the
-              exception.
+              attribute is removed and the |textContent| property
+              value is set to the exception.
 
               In other words, the field value is expected to be a Unix
               time number and the |datetime| attribute is set to its
@@ -1538,10 +1570,11 @@ scope.  The following functions are available:
               value.  If the field value is |null| or |undefined|, any
               |data-tzoffset| attribute is removed instead.
 
-              Note that the |textContent| of /element/ is *not*
-              updated when the |datetime| attribute value is changed.
-              It should be handled by another JavaScript codes, such
-              as time.js <https://github.com/wakaba/timejs>.
+              Note that the |textContent| property value of /element/
+              is *not* updated when the |datetime| attribute value is
+              changed.  It should be handled by another JavaScript
+              codes, such as time.js
+              <https://github.com/wakaba/timejs>.
 
               HTML |time| element is set to this mode.
 
@@ -1558,13 +1591,13 @@ scope.  The following functions are available:
 
             Any other value
 
-              The |textContent| IDL attribute value of /element/.
+              The |textContent| property value of /element/.
 
-              When the |textContent| IDL attribute value of /element/
-              is updated, if the new value is the empty string,
-              |null|, or |undefined| and there is the |data-empty|
-              attribute for /element/, the |textContent| IDL attribute
-              value is set to the |data-empty| attribute value.
+              When the |textContent| property value of /element/ is
+              updated, if the new value is the empty string, |null|,
+              or |undefined| and there is the |data-empty| attribute
+              for /element/, the |textContent| property value is set
+              to the |data-empty| attribute value.
 
           If the element has a |data-filling| attribute, it is
           removed.  This can be used to style the element in an
