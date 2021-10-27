@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<meta charset=utf-8>
 <title>copy</title>
 <link rel=stylesheet href=../css/default.css>
 <script src=../src/page-components.js async></script>
@@ -16,5 +17,13 @@
 ~~~~~~~~~~~~~~~</pre>
 
 <button type=button is=copy-text-content data-selector=pre>Copy text</button>
+<button type=button is=copy-text-content data-selector=pre lang=ja>テキストをコピー</button>
+
+<span class=empty></span>
+<button type=button is=copy-text-content data-selector=.empty>Copy empty text</button>
+
+<p><can-copy><code>alert ("Hello, world!");</code></can-copy>
+<p><can-copy><time>2021-02-03</time></can-copy>
+<p><can-copy style="--paco-copy-button-label: 'Copy JSON';"><time style=" --paco-copy-format: unix-tz-json">2021-02-03</time></can-copy>
 
 <p><textarea></textarea>

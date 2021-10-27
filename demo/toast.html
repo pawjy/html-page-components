@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>toast</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js async data-export=$paco></script>
+<style>
+  toast-box {
+    border: blue 1px solid;
+    --paco-toast-autoclose: none;
+  }
+  toast-box.autoclose {
+    --paco-toast-autoclose: 2500ms;
+  }
+  toast-box:nth-child(2n) {
+    --paco-close-button-label: "[close]";
+  }
+
+  test-toast-header {
+    display: block;
+  }
+  test-toast-main {
+    display: block;
+  }
+</style>
+
+<section>
+<p style="margin-bottom: 30em">Hello, world!
+  <button onclick="
+    $paco.showToast ({text: Math.random ()});
+  ">Add text</button>
+  <button onclick="
+    var f = document.createDocumentFragment ();
+    f.appendChild (document.createElement ('hr'));
+    $paco.showToast ({fragment: f, className: 'autoclose'});
+  ">Add HTML</button>
+<p>World!!
+</section>
+
+<toast-group>
+  <toast-box class=autoclose>
+    <test-toast-header>
+      <button is=toast-close-button>Close</button>
+    </test-toast-header>
+    <toast-main>
+      Hello!! 1
+    </toast-main>
+  </toast-box>
+  <toast-box>
+    <test-toast-header>
+      <button is=toast-close-button>Close</button>
+    </test-toast-header>
+    <toast-main>
+      Hello!! 2
+    </toast-main>
+  </toast-box>
+  <toast-box>
+    <test-toast-header>
+      <button onclick="
+        this.dispatchEvent (new Event ('pcDone', {bubbles: true}));
+      ">Close by event</button>
+    </test-toast-header>
+    <toast-main>
+      Hello!! 3
+    </toast-main>
+  </toast-box>
+</toast-group>

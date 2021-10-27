@@ -31,9 +31,12 @@ loaded:
   <button is=mode-button>
   <button is=copy-text-content>
   <a is=copy-url>
+  <can-copy>
   <popup-menu>
   <tab-set>
   <sub-window>
+  <toast-group>
+  <toast-box>
   <list-container>
   <form is=save-data>
   <before-unload-check>
@@ -61,10 +64,10 @@ The element's |hidden| content attribute is set when the element's
 value is |null|.  Otherwise the attribute is not set.
 
 When the element's value is not |null|, the element's |textContent|
-IDL attribute is set to the element's label text.  The element's label
-text is the element's |label-/value/| content attribute value, where
-/value/ is the element's value.  If there is no such attribute, the
-element's label text is the element's value.
+property value is set to the element's label text.  The element's
+label text is the element's |label-/value/| content attribute value,
+where /value/ is the element's value.  If there is no such attribute,
+the element's label text is the element's value.
 
 ** <button is=command-button>
 
@@ -73,8 +76,8 @@ represents a command button.  (Be aware that this implementation does
 not support mutation of |is| attribute; it must be set to a value
 before the element's insertion into the document.)
 
-The element must have a |data-selector| attribute.  Its value is a
-group of selectors that selects an element in the document.
+The element must have a |data-selector| attribute, whose value is a
+selector.
 
 The element must have a |data-command| attribute whose value is the
 name of the command.
@@ -97,8 +100,8 @@ represents one of buttons used to select modes of another element.
 attribute; it must be set to a value before the element's insertion
 into the document.)
 
-The element must have a |data-selector| attribute.  Its value is a
-group of selectors that selects an element in the document.
+The element must have a |data-selector| attribute, whose value is a
+selector.
 
 The element must have a |name| attribute.  Its value is the name of
 the mode (i.e. one of the property names for the element selected by
@@ -119,21 +122,58 @@ is set.
 
 ** <button is=copy-text-content>
 
-A |button| element whose |is| attribute value is |copy-text-content|
-represents a button used to copy the text content of another element.
-(Be aware that this implementation does not support mutation of |is|
-attribute; it must be set to a value before the element's insertion
-into the document.)
+A |<button is=copy-text-content>| element represents a copy button.
 
-The element must have a |data-selector| attribute.  Its value is a
-group of selectors that selects an element in the document.
+When the button is clicked, a text is copied to the clipboard.
+
+The element must have a |data-selector| attribute, whose value is a
+selector.  The copied text is the |textContent| property value of the
+selected element.
+
+Once copied, a toast whose message is the CSS '--paco-copied-message'
+property value, which is a CSS string, is shown.  The toast is a
+|toast-box| element with a class |paco-copied|.
 
 ** <a is=copy-url>
 
-An |a| element whose |is| attribute value is |copy-url| represents a
-button used to copy the linked URL.  (Be aware that this
-implementation does not support mutation of |is| attribute; it must be
-set to a value before the element's insertion into the document.)
+An |<a is=copy-url>| element represnts a button used to copy a URL.
+
+When the link is clicked, the linked URL is copied to the clipboard.
+
+Once copied, a toast whose message is the CSS '--paco-copied-message'
+property value, which is a CSS string, is shown.  The toast is a
+|toast-box| element with a class |paco-copied|.
+
+** <can-copy>
+
+A |can-copy| element represents a data that can be copied to the
+clipboard.
+
+A |can-copy| element is expected to have a *copied data element*,
+which is a |code|, |data|, or |time| element.  The data contained by
+that element is to be copied.
+
+When initialized, a copy button is appended to the |can-copy| element.
+The copy button's text content is set to the CSS
+'--paco-copy-button-label' property value, which is a CSS string.
+
+The copied text is chosen by the CSS '--paco-copy-format' property
+value of the copied data element:
+
+  'auto' (The initial value)
+
+    The copied text is the |textContent| property value of the copied
+    data element.
+
+  'unix-tz-json'
+
+    The copied data element must be a |time| element.  The copied text
+    is the JSON serialization of the Unix time and time zone offset
+    (if specified) of the element.
+
+Once copied, a toast whose message is the CSS '--paco-copied-message'
+property value, which is a CSS string, is shown.  The toast is a
+|toast-box| element with a class |paco-copied|.
 
 ** <popup-menu>
 
@@ -279,6 +319,37 @@ content:
   unminimize
 
     Set the element's mode to |default|.
+
+** <toast-group> and <toast-box>
+
+A |toast-box| element represents a toast, i.e. a small notification
+dialog.
+
+A |toast-group| element can be used to group zero or more |toast-box|
+elements such that toasts shown at the same time are rendered in an
+appropriate fashion (as controlled by normal CSS rules).  In the
+simplest case there is only a |toast-group| element within a document
+and any |toast-box| element for that document is appended as a child
+of it.
+
+A toast can be closed, i.e. hidden from the viewport, in several ways:
+
+  By default, the toast is closed after 5s has elapsed.  This timeout
+  value can be controlled by CSS '--paco-toast-auto-close' property,
+  whose value is <time> (such as '10s' or '1500ms').
+
+  A |toast-box| element has a |pcClose| method.  When invoked, the
+  toast is closed.
+
+  A |toast-box| element is closed when a |pcDone| event is fired at
+  the element (or its descendant and the event bubbles).
+
+  If there is a |button| element whose |is| attribute is
+  |toast-close-button| in the |toast-box| element and the button is
+  clicked, the toast is closed.
+
+There is the |$paco.showToast| method, which can be used to insert a
+|toast-box| element.
 
 ** <list-container>
 
@@ -1486,8 +1557,8 @@ scope.  The following functions are available:
               The value of /element/ is the |datetime| attribute value
               and is set to the result of the |new Date (/field value/
               * 1000).toISOString ()|.  If it throws, the |datetime|
-              attribute is removed and the |textContent| is set to the
-              exception.
+              attribute is removed and the |textContent| property
+              value is set to the exception.
 
               In other words, the field value is expected to be a Unix
               time number and the |datetime| attribute is set to its
@@ -1499,10 +1570,11 @@ scope.  The following functions are available:
               value.  If the field value is |null| or |undefined|, any
               |data-tzoffset| attribute is removed instead.
 
-              Note that the |textContent| of /element/ is *not*
-              updated when the |datetime| attribute value is changed.
-              It should be handled by another JavaScript codes, such
-              as time.js <https://github.com/wakaba/timejs>.
+              Note that the |textContent| property value of /element/
+              is *not* updated when the |datetime| attribute value is
+              changed.  It should be handled by another JavaScript
+              codes, such as time.js
+              <https://github.com/wakaba/timejs>.
 
               HTML |time| element is set to this mode.
 
@@ -1519,13 +1591,13 @@ scope.  The following functions are available:
 
             Any other value
 
-              The |textContent| IDL attribute value of /element/.
+              The |textContent| property value of /element/.
 
-              When the |textContent| IDL attribute value of /element/
-              is updated, if the new value is the empty string,
-              |null|, or |undefined| and there is the |data-empty|
-              attribute for /element/, the |textContent| IDL attribute
-              value is set to the |data-empty| attribute value.
+              When the |textContent| property value of /element/ is
+              updated, if the new value is the empty string, |null|,
+              or |undefined| and there is the |data-empty| attribute
+              for /element/, the |textContent| property value is set
+              to the |data-empty| attribute value.
 
           If the element has a |data-filling| attribute, it is
           removed.  This can be used to style the element in an
@@ -1632,6 +1704,47 @@ scope.  The following functions are available:
       set has been inserted into the document.
 
   |$paco| namespace
+
+    $paco.showToast ({...})
+
+      Show a toast, i.e. inserting a |toast-box| element into the
+      first |toast-group| element in the document.  If there is no
+      |toast-group| element in the document, a new |toast-group|
+      element is inserted first.
+
+      The arguemnt is a dictionary of following options:
+
+        className : String?
+
+          A string that is used as the |class| attribute value of the
+          |toast-box| element.
+
+        fragment : DocumentFragment?
+
+          A |DocumentFragment| node whose content is used as the
+          content of the |toast-box| element.
+
+          Note that any |text| option is ignored and no close button
+          is inserted by the method.
+
+        text : String?
+
+          A string that is shown as the message of the |toast-box|
+          element.
+
+          When specified, the |toast-box| element will have two
+          elements: |toast-box-header| and |toast-box-main|.  The
+          former has a |<button is=toast-close-button>| element and
+          the latter has the text specified by the |text| option.
+
+          The close button's text content is set to the CSS
+          '--paco-close-button-label' property value, which is a CSS
+          string.
+
+          Note that this option is ignored when the |fragment| option
+          is specified.
+
+      Either |text| or |fragment| option is required.
 
     promise = $paco.upgrade (element)
 

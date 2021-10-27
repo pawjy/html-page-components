@@ -94,6 +94,7 @@
         }).then (assert.async (), function (e) {
           assert.equal (true, false, "Should not be rejected");
           assert.equal (e, null, "Exception");
+          console.log (e);
         }).then (() => window.onerror = originalOnError);
       });
     });
