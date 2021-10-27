@@ -1107,6 +1107,81 @@
       }, // pcSetMode
     },
   }); // <sub-window>
+
+  function parseCSSText (cssText, defaultText) {
+    var m = (cssText || 'auto').match (/^\s*"([^"\\]*)"\s*$/); // XXX escape
+    if (m) {
+      return m[1];
+    }
+
+    return defaultText;
+  } // parseCSSText
+
+  // <toast-group>
+  exportable.$paco.showToast = function (opts) {
+    var g = document.querySelector ('toast-group');
+    if (!g) {
+      g = document.createElement ('toast-group');
+      (document.body || document.head || document.documentElement).appendChild (g);
+    }
+
+    var b = document.createElement ('toast-box');
+    if (opts.className != null) b.className = opts.className;
+
+    g.appendChild (b);
+
+    if (opts.fragment) {
+      b.appendChild (opts.fragment);
+    } else { // no opts.fragment
+      // recompute!
+      var t = parseCSSText (getComputedStyle (b).getPropertyValue ('--paco-close-button-label'), '×');
+      
+      var h = document.createElement ('toast-box-header');
+      var button = document.createElement ('button');
+      button.type = 'button';
+      button.setAttribute ('is', 'toast-close-button');
+      button.textContent = t;
+      h.appendChild (button);
+      b.appendChild (h);
+
+      var m = document.createElement ('toast-box-main');
+      m.textContent = opts.text;
+      b.appendChild (m);
+    } // no opts.fragment
+
+    return b;
+  }; // showToast
+
+  defineElement ({
+    name: 'toast-box',
+    props: {
+      pcInit: function () {
+        this.querySelectorAll ('button[is=toast-close-button]').forEach (_ => {
+          _.onclick = () => this.pcClose ();
+        });
+
+        // recompute!
+        var v = getComputedStyle (this).getPropertyValue ('--paco-toast-autoclose') || 'auto';
+        if (/^\s*none\s*$/.test (v)) {
+          //
+        } else {
+          var s = NaN;
+          if (/^\s*[0-9.+-]+s\s*$/.test (v)) {
+            s = parseFloat (v) * 1000;
+          } else if (/^\s*[0-9.+-]+ms\s*$/.test (v)) {
+            s = parseFloat (v);
+          }
+          if (!Number.isFinite (s) || s <= 0) s = 5*1000;
+          setTimeout (() => this.pcClose (), s);
+        }
+
+        this.addEventListener ('pcDone', () => this.pcClose (), {once: true});
+      }, // pcInit
+      pcClose: function () {
+        this.remove ();
+      }, // pcClose
+    },
+  }); // <toast-box>
   
   defs.loader.src = function (opts) {
     if (!this.hasAttribute ('src')) return {};

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+  <style>
+    .close1 {
+      --paco-close-button-label:'あいうえ[お]';
+    }
+    .close2 {
+      --paco-close-button-label:"あいうえ[お]";
+    }
+  </style>
+</head>
+<body>
+
+  <test-code name="showToast text">
+    var text = '' + Math.random ();
+    var b = $paco.showToast ({text});
+    var b2 = $paco.showToast ({text: ''});
+
+    await this.wait (100);
+
+    var p = b.parentNode;
+    this.assert.equal (p.localName, 'toast-group');
+    var p2 = b2.parentNode;
+    this.assert.equal (p2, p);
+    
+    this.assert.equal (b.localName, 'toast-box');
+    this.assert.equal (!!b.textContent.match (new RegExp (text)), true, 'text is shown');
+
+    var c = b.querySelector ('button');
+    this.assert.equal (c.getAttribute ('is'), 'toast-close-button');
+    this.assert.equal (b2.innerHTML, '&lt;toast-box-header>&lt;button type="button" is="toast-close-button">×&lt;/button>&lt;/toast-box-header>&lt;toast-box-main>&lt;/toast-box-main>');
+
+    c.click ();
+
+    await this.wait (100);
+    this.assert.equal (b.parentNode, null);
+  </test-code>
+
+  <test-code name="showToast fragment">
+    var fragment = document.createDocumentFragment ();
+    var c = document.createElement ('button');
+    c.setAttribute ('is', 'toast-close-button');
+    var div = document.createElement ('div');
+    div.innerHTML = '&lt;p>abc&lt;/p>&lt;p>x';
+    div.firstChild.appendChild (c);
+    fragment.appendChild (div);
+    
+    var b = $paco.showToast ({fragment});
+
+    await this.wait (100);
+    
+    this.assert.equal (b.localName, 'toast-box');
+    this.assert.equal (b.firstChild, div);
+
+    var c = b.querySelector ('button');
+    c.click ();
+
+    await this.wait (100);
+    this.assert.equal (b.parentNode, null);
+  </test-code>
+  
+  <test-code name="close button label">
+    var b = $paco.showToast ({text: '', className: 'close1'});
+
+    await this.wait (100);
+
+    var c = b.querySelector ('button');
+    this.assert.equal (b.innerHTML, '&lt;toast-box-header>&lt;button type="button" is="toast-close-button">あいうえ[お]&lt;/button>&lt;/toast-box-header>&lt;toast-box-main>&lt;/toast-box-main>');
+  </test-code>
+  
+  <test-code name="close button label 2">
+    var b = $paco.showToast ({text: '', className: 'close2 class1'});
+    this.assert.equal (b.className, 'close2 class1');
+
+    await this.wait (100);
+
+    var c = b.querySelector ('button');
+    this.assert.equal (b.innerHTML, '&lt;toast-box-header>&lt;button type="button" is="toast-close-button">あいうえ[お]&lt;/button>&lt;/toast-box-header>&lt;toast-box-main>&lt;/toast-box-main>');
+  </test-code>
+
+  <script src=runtests.js data-export=$paco></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->

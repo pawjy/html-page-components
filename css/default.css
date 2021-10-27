@@ -31,6 +31,39 @@ sub-window-minimized-container:not([hidden]) {
   pointer-events: none;
 }
 
+toast-group:not([hidden]) {
+  display: flex;
+}
+toast-group {
+  flex-direction: column-reverse;
+  flex-wrap: wrap;
+  position: fixed;
+  bottom: 0;
+  max-height: 100vh;
+  overflow: auto;
+  pointer-events: none; /* XXX but need scrollability */
+}
+
+toast-box:not([hidden]) {
+  display: flex;
+}
+toast-box {
+  flex-direction: row-reverse;
+  margin: .5em;
+  width: fit-content;
+  pointer-events: all;
+  --paco-close-button-label: "×";
+}
+
+toast-box-header:not([hidden]) {
+  display: block;
+}
+
+toast-box-main:not([hidden]) {
+  display: block;
+  flex: 1;
+}
+
 action-status:not([hidden]) {
   display: block;
   font-size: 90%;

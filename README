@@ -34,6 +34,8 @@ loaded:
   <popup-menu>
   <tab-set>
   <sub-window>
+  <toast-group>
+  <toast-box>
   <list-container>
   <form is=save-data>
   <before-unload-check>
@@ -279,6 +281,37 @@ content:
   unminimize
 
     Set the element's mode to |default|.
+
+** <toast-group> and <toast-box>
+
+A |toast-box| element represents a toast, i.e. a small notification
+dialog.
+
+A |toast-group| element can be used to group zero or more |toast-box|
+elements such that toasts shown at the same time are rendered in an
+appropriate fashion (as controlled by normal CSS rules).  In the
+simplest case there is only a |toast-group| element within a document
+and any |toast-box| element for that document is appended as a child
+of it.
+
+A toast can be closed, i.e. hidden from the viewport, in several ways:
+
+  By default, the toast is closed after 5s has elapsed.  This timeout
+  value can be controlled by CSS '--paco-toast-auto-close' property,
+  whose value is <time> (such as '10s' or '1500ms').
+
+  A |toast-box| element has a |pcClose| method.  When invoked, the
+  toast is closed.
+
+  A |toast-box| element is closed when a |pcDone| event is fired at
+  the element (or its descendant and the event bubbles).
+
+  If there is a |button| element whose |is| attribute is
+  |toast-close-button| in the |toast-box| element and the button is
+  clicked, the toast is closed.
+
+There is the |$paco.showToast| method, which can be used to insert a
+|toast-box| element.
 
 ** <list-container>
 
@@ -1632,6 +1665,47 @@ scope.  The following functions are available:
       set has been inserted into the document.
 
   |$paco| namespace
+
+    $paco.showToast ({...})
+
+      Show a toast, i.e. inserting a |toast-box| element into the
+      first |toast-group| element in the document.  If there is no
+      |toast-group| element in the document, a new |toast-group|
+      element is inserted first.
+
+      The arguemnt is a dictionary of following options:
+
+        className : String?
+
+          A string that is used as the |class| attribute value of the
+          |toast-box| element.
+
+        fragment : DocumentFragment?
+
+          A |DocumentFragment| node whose content is used as the
+          content of the |toast-box| element.
+
+          Note that any |text| option is ignored and no close button
+          is inserted by the method.
+
+        text : String?
+
+          A string that is shown as the message of the |toast-box|
+          element.
+
+          When specified, the |toast-box| element will have two
+          elements: |toast-box-header| and |toast-box-main|.  The
+          former has a |<button is=toast-close-button>| element and
+          the latter has the text specified by the |text| option.
+
+          The close button's text content is set to the CSS
+          '--paco-close-button-label' property value, which is a CSS
+          string.
+
+          Note that this option is ignored when the |fragment| option
+          is specified.
+
+      Either |text| or |fragment| option is required.
 
     promise = $paco.upgrade (element)
 
