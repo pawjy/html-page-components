@@ -169,7 +169,8 @@ value of the copied data element:
 
     The copied data element must be a |time| element.  The copied text
     is the JSON serialization of the Unix time and time zone offset
-    (if specified) of the element.
+    (if specified) of the element in the |unix-tz-json| format
+    <https://wiki.suikawiki.org/n/JSON%20Timestamps>.
 
 Once copied, a toast whose message is the CSS '--paco-copied-message'
 property value, which is a CSS string, is shown.  The toast is a
