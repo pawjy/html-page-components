@@ -52,7 +52,7 @@ toast-box {
   margin: .5em;
   width: fit-content;
   pointer-events: all;
-  --paco-close-button-label: "×";
+  --paco-close-button-label: "\00D7";
 }
 
 toast-box-header:not([hidden]) {
@@ -204,6 +204,15 @@ map-area map-credit a {
 
 template-set {
   display: none ! important;
+}
+
+a[is=copy-url],
+button[is=copy-text-content] {
+  --paco-copied-message: "Copied to the clipboard!";
+}
+a[is=copy-url]:lang(ja),
+button[is=copy-text-content]:lang(ja) {
+  --paco-copied-message: "\30AF\30EA\30C3\30D7\30DC\30FC\30C9\306B\30B3\30D4\30FC\3057\307E\3057\305F\3002";
 }
 
 /*

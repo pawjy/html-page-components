@@ -75,8 +75,8 @@ represents a command button.  (Be aware that this implementation does
 not support mutation of |is| attribute; it must be set to a value
 before the element's insertion into the document.)
 
-The element must have a |data-selector| attribute.  Its value is a
-group of selectors that selects an element in the document.
+The element must have a |data-selector| attribute, whose value is a
+selector.
 
 The element must have a |data-command| attribute whose value is the
 name of the command.
@@ -99,8 +99,8 @@ represents one of buttons used to select modes of another element.
 attribute; it must be set to a value before the element's insertion
 into the document.)
 
-The element must have a |data-selector| attribute.  Its value is a
-group of selectors that selects an element in the document.
+The element must have a |data-selector| attribute, whose value is a
+selector.
 
 The element must have a |name| attribute.  Its value is the name of
 the mode (i.e. one of the property names for the element selected by
@@ -121,21 +121,27 @@ is set.
 
 ** <button is=copy-text-content>
 
-A |button| element whose |is| attribute value is |copy-text-content|
-represents a button used to copy the text content of another element.
-(Be aware that this implementation does not support mutation of |is|
-attribute; it must be set to a value before the element's insertion
-into the document.)
+A |<button is=copy-text-content>| element represents a copy button.
 
-The element must have a |data-selector| attribute.  Its value is a
-group of selectors that selects an element in the document.
+When the button is clicked, a text is copied to the clipboard.
+
+The element must have a |data-selector| attribute, whose value is a
+selector.  The copied text is the |textContent| attribute value of the
+selected element.
+
+Once copied, a toast whose message is the CSS '--paco-copied-message'
+property value, which is a CSS string, is shown.  The toast is a
+|toast-box| element with a class |paco-copied|.
 
 ** <a is=copy-url>
 
-An |a| element whose |is| attribute value is |copy-url| represents a
-button used to copy the linked URL.  (Be aware that this
-implementation does not support mutation of |is| attribute; it must be
-set to a value before the element's insertion into the document.)
+An |<a is=copy-url>| element represnts a button used to copy a URL.
+
+When the link is clicked, the linked URL is copied to the clipboard.
+
+Once copied, a toast whose message is the CSS '--paco-copied-message'
+property value, which is a CSS string, is shown.  The toast is a
+|toast-box| element with a class |paco-copied|.
 
 ** <popup-menu>
 

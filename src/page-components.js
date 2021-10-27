@@ -719,7 +719,9 @@
     },
   }); // button[is=mode-button]
 
-  function copyText (s) {
+  var copyText = navigator.clipboard ? s => {
+    return navigator.clipboard.writeText (s);
+  } : function (s) { // for insecure context
     var e = document.createElement ('temp-text');
     e.style.whiteSpace = "pre";
     e.textContent = s;
@@ -728,16 +730,26 @@
     range.selectNode (e);
     getSelection ().empty ();
     getSelection ().addRange (range);
-    document.execCommand ('copy')
+    document.execCommand ('copy');
+    // empty string cannot be copied
     e.parentNode.removeChild (e);
-  } // copyText
+    // return undefined
+  }; // copyText
+
+  async function copyTextWithToast (e, s) {
+    await copyText (s);
+
+    // recompute!
+    var m = parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-copied-message'), 'Copied!');
+    exportable.$paco.showToast ({text: m, className: 'paco-copied'});
+  } // copyTextWithToast
 
   defineElement ({
     name: 'a',
     is: 'copy-url',
     props: {
       pcInit: function () {
-        this.onclick = () => { copyText (this.href); return false };
+        this.onclick = () => { copyTextWithToast (this, this.href); return false };
       }, // pcInit
     },
   }); // <a is=copy-url>
@@ -756,7 +768,7 @@
           throw new Error ("Selector |"+selector+"| does not match any element in the document");
         }
 
-        copyText (selected.textContent);
+        copyTextWithToast (this, selected.textContent);
       }, // pcClick
     },
   }); // <button is=copy-text-content>
@@ -1108,14 +1120,19 @@
     },
   }); // <sub-window>
 
-  function parseCSSText (cssText, defaultText) {
+  function parseCSSString (cssText, defaultText) {
     var m = (cssText || 'auto').match (/^\s*"([^"\\]*)"\s*$/); // XXX escape
     if (m) {
       return m[1];
     }
 
+    var m = (cssText || 'auto').match (/^\s*'([^'\\]*)'\s*$/); // XXX escape
+    if (m) {
+      return m[1];
+    }
+
     return defaultText;
-  } // parseCSSText
+  } // parseCSSString
 
   // <toast-group>
   exportable.$paco.showToast = function (opts) {
@@ -1134,7 +1151,7 @@
       b.appendChild (opts.fragment);
     } else { // no opts.fragment
       // recompute!
-      var t = parseCSSText (getComputedStyle (b).getPropertyValue ('--paco-close-button-label'), '×');
+      var t = parseCSSString (getComputedStyle (b).getPropertyValue ('--paco-close-button-label'), '×');
       
       var h = document.createElement ('toast-box-header');
       var button = document.createElement ('button');
