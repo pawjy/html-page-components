@@ -47,7 +47,7 @@ intermediate/leaflet/leaflet.js: intermediate-leaflet
 intermediate/leaflet/leaflet.css: intermediate-leaflet
 intermediate/leaflet/LICENSE: intermediate-leaflet
 src/maps.js: src/maps-src.js intermediate/leaflet/leaflet.js
-	cat $< | perl -n -e 's{/\*\@\@\@leaflet.js\@\@\@\*/}{open $$f, "<", "intermediate/leaflet/leaflet.js"; join "", <$$f>}ge; print' > $@
+	cat $< | perl -n -e 's{/\*\@\@\@leaflet.js\@\@\@\*/}{open $$f, "<", "intermediate/leaflet/leaflet.js"; join "", <$$f>}ge; s{^//# sourceMappingURL=}{//}gm; print' > $@
 
 css/default.css: css/default-src.css \
     intermediate/leaflet/leaflet.css intermediate/leaflet/LICENSE

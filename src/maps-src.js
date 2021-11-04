@@ -2,7 +2,9 @@
   console.pcMaps = {};
   (function () {
     /*@@@leaflet.js@@@*/
-  }).apply (console.pcMaps);
+  }).apply ({});
+  var L = console.pcMaps.L = window.L;
+  L.noConflict ();
   
   var define = function (def) {
     var e = document.createElementNS ('data:,pc', 'element');
@@ -166,7 +168,34 @@
         return Promise.resolve ().then (() => this.maRedraw ({all: true}));
       }, // maInitGoogleMapsEmbed
       pcInitLeaflet: function () {
-        // XXX
+        var mo = new MutationObserver ((mutations) => {
+          this.pcLMap.panTo ({
+            lat: this.maAttrFloat ('lat', 0),
+            lng: this.maAttrFloat ('lon', 0),
+          });
+        });
+        mo.observe (this, {attributeFilter: ['lat', 'lon']});
+        this.maCenter = {
+          lat: this.maAttrFloat ('lat', 0),
+          lon: this.maAttrFloat ('lon', 0),
+        };
+
+        var map = this.pcLMap = L.map (this, {
+        });
+
+        // Map need to be recomputed if it is initialized when not
+        // shown.
+        this.maISObserver = new IntersectionObserver (() => {
+          this.maRedraw ({relocate: true});
+        });
+        this.maISObserver.observe (this);
+
+        map.on ('load viewreset zoomend moveend', ev => {
+          var c = map.getCenter ();
+          this.maCenter = {lat: c.lat, lon: c.lng};
+          this.maRedrawEvent ();
+        });
+        map.setView (this.maCenter, 8);
       }, // pcInitLeaflet
       
       maRedrawEvent: function () {
@@ -184,7 +213,9 @@
           if (opts[n]) this.maRedrawNeedUpdated[n] = true;
         }
         if (this.maRedrawNeedUpdated.relocate) {
-          if (this.maEngine === 'googlemaps') {
+          if (this.maEngine === 'leaflet') {
+            this.pcLMap.invalidateSize ();
+          } else if (this.maEngine === 'googlemaps') {
             if (this.maCenter) this.maGoogleMap.setCenter ({
               lat: this.maCenter.lat,
               lng: this.maCenter.lon,
@@ -264,14 +295,27 @@
         return this.maCenter; // or null
       }, // getMapCenter
       getMapBounds: function () {
-        if (!this.maGoogleMap) throw new DOMException ('The map engine does not support this operation', 'NotSupportedError');
-        var bounds = this.maGoogleMap.getBounds ();
-        return {
-          north: bounds.getNorthEast ().lat (),
-          east: bounds.getNorthEast ().lng (),
-          south: bounds.getSouthWest ().lat (),
-          west: bounds.getSouthWest ().lng (),
-        };
+        if (this.pcLMap) {
+          var bounds = this.pcLMap.getBounds ();
+          return {
+            north: bounds.getNorthEast ().lat,
+            east: bounds.getNorthEast ().lng,
+            south: bounds.getSouthWest ().lat,
+            west: bounds.getSouthWest ().lng,
+          };
+        }
+        
+        if (this.maGoogleMap) {
+          var bounds = this.maGoogleMap.getBounds ();
+          return {
+            north: bounds.getNorthEast ().lat (),
+            east: bounds.getNorthEast ().lng (),
+            south: bounds.getSouthWest ().lat (),
+            west: bounds.getSouthWest ().lng (),
+          };
+        }
+
+        throw new DOMException ('The map engine does not support this operation', 'NotSupportedError');
       }, // getMapBounds
 
       maGoogleMapTypeGSI: 'GSI',

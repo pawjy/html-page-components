@@ -1330,23 +1330,34 @@ For example, a template:
 
 ** <map-area>
 
-The |map-area| element represents a map.  Its content model is empty.
+The |map-area| element represents a map.
 
 To enable this element, the |maps.js| script must be loaded in
 addition to the main script:
 
-  <script src=js/maps.js async data-google-maps-key=...></script>
+  <script src=src/page-components.js async></script>
+  <script src=js/maps.js async></script>
 
 The following content attributes are available:
 
-  engine = googlemaps | googlemapsembed
+  <map-area engine="">
 
     The engine used to render the map.  If this content attribute is
     not explicitly specified, one of available engines is chosen.
-    Applications should not rely on the default.  Following engines
-    are available:
+    Applications should not rely on the default.
 
-      googlemaps
+    The following value is available:
+
+      engine="leaflet"
+
+        Leaflet <https://leafletjs.com/>.  Note that the script is
+        automatically loaded such that the application does not have
+        to load it by itself.
+
+    For backward compatibility, the following values are also
+    supported.  These values should not be used for new applications.
+
+      engine="googlemaps" [deprecated]
 
         Google Maps, using the Google Maps JavaScript API.  If this
         engine is used, the API key for the API must be specified to
@@ -1356,24 +1367,30 @@ The following content attributes are available:
         its value is used as the |libraries| parameter to the Google
         Maps API.
 
-      googlemapsembed
+      engine="googlemapsembed" [deprecated]
 
         Google Maps, using the Google Maps Embed API.  If this engine
         is used, the API key for the API must be specified to the
         |data-google-maps-key| attribute value of the root element
         (the |html| element).
 
-  lat (float)
+  lat="" : float
 
     The initial latitude of the center point of the map.  The default
     is zero.
 
-  lon (float)
+    Any mutation to the attribute results in the map being moved, if
+    necessary.
+
+  lon="" : float
 
     The initial longitude of the center point of the map.  The default
     is zero.
 
-  gsi
+    Any mutation to the attribute results in the map being moved, if
+    necessary.
+
+  gsi="" : boolean
 
     Whether map type GSI is enabled or not.  The map type GSI shows
     the 地理院タイル (GSI Tile)
@@ -1394,20 +1411,20 @@ The following content attributes are available:
 
     This attribute is ignored unless the |engine| is |googlemaps|.
 
-  gsititle (string)
+  gsititle="" : string
 
     The short description of the GSI map type, used as the tooltip of
     the button to switch to the GSI map type.  If not specified, the
     default text is used.  This content attribute is ignored if the
     |gsi| content attribute is NOT specified.
 
-  noimgsrc (URL)
+  noimgsrc="" : URL
 
     The (absolute or relative) URL of the image that is used when no
     image data is available.  If not specified, the default image is
     used.  This is applied to GSI maps.
 
-  controls
+  controls="" : boolean
 
     How builtin map controls are shown.  This attribute is supported
     only when the |engine| is |googlemaps|.
@@ -1431,10 +1448,13 @@ The following content attributes are available:
 
 The following properties are available:
 
-  ready (promise)
+  ready : Promise
 
     The promise which is fulfilled after the initialization of the
     element.
+
+    Note that the initial drawing of the element might not be finished
+    yet.
 
   getMapCenter ()
 
@@ -1460,7 +1480,7 @@ The following properties are available:
     This method throws an exception if the |engine| is
     |googlemapsembed|.
 
-  googleMap
+  googleMap [deprecated]
 
     The Google Maps API's |google.maps.Map| object of the map of the
     element.  If the element's map is not a Google Maps API's map, an
@@ -1472,26 +1492,26 @@ The following properties are available:
     This property returns |undefined| unless the |engine| is
     |googlemaps|.
 
-  maGoogleMapTypeGSI : String
+  maGoogleMapTypeGSI : String [deprecated]
 
     The identifier of the GSI map type, that can be used in Google
     Maps API when the |gsi| content attribute is specified.
 
 A |pcRedraw| event, which bubbles, is fired at the element when the
 map's visible area has been changed; e.g., when the map is
-initialized, the map's center has been moved (when |engine| is
-|googlemaps|), the zoom level has been changed (when |engine| is
-|googlemaps|), the map's dimension has been changed (when |engine| is
-|googlemaps|), and so on.  This event can be used as the oppotunity to
-relocate map overlay objects or to recalculate any associated data
-outside of the map.
+initialized, the map's center has been moved (when |engine| is not
+|googlemapsembed|), the zoom level has been changed (when |engine| is
+not |googlemapsembed|), the map's dimension has been changed (when
+|engine| is not |googlemapsembed|), and so on.  This event can be used
+as the oppotunity to relocate map overlay objects or to recalculate
+any associated data outside of the map.
 
 A |map-area| element can contain zero or more |map-controls| child
 elements.  A |map-controls| element is a set of custom control
 elements, which are placed over the map.  This element is supported
 only when the |engine| is |googlemaps|.
 
-A |map-controls| element can have a |position| element, which
+A |map-controls| element can have a |position| attribute, which
 indicates the desired placement of the element within the box of the
 map.  The value must be one of: |left-top|, |left-center|,
 |left-bottom|, |right-top|, |right-center|, |right-bottom|,

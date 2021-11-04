@@ -11,9 +11,14 @@
 </head>
 <body id=for-screenshot>
 
+  <test-code name="no export">
+    this.assert.equal (window.google, undefined);
+    this.assert.equal (window.L, undefined);
+  </test-code>
+  
   <test-code name="map-area default">
     /*
-      <map-area engine=googlemapsembed></map-area>
+      <map-area engine=leaflet></map-area>
     */
     var e = this.currentScript.querySelector ('map-area');
     await this.wait ();
@@ -26,22 +31,17 @@
     var pos = e.getMapCenter ();
     this.assert.equal (pos.lat, 0);
     this.assert.equal (pos.lon, 0);
-
-    try {
-      var bounds = e.getMapBounds ();
-      this.assert.equal (false, true, 'exception thrown');
-      this.assert.equal (bounds, undefined);
-    } catch (x) {
-      this.assert.equal (x.message, 'The map engine does not support this operation');
-    }
-
-    var gm = e.googleMap;
-    this.assert.equal (gm, undefined);
+    
+    var bounds = e.getMapBounds ();
+    this.assert.equal (bounds.north, 0.8239462091017685);
+    this.assert.equal (bounds.east, 2.6861572265625004);
+    this.assert.equal (bounds.south, -0.8239462091017558);
+    this.assert.equal (bounds.west, -2.6806640625);
   </test-code>
 
   <test-code name="map-area lat lon">
     /*
-      <map-area engine=googlemapsembed lat=20.33 lon=-120.7013></map-area>
+      <map-area engine=leaflet lat=20.33 lon=-120.7013></map-area>
     */
     var e = this.currentScript.querySelector ('map-area');
     await this.wait ();
@@ -54,101 +54,66 @@
     var pos = e.getMapCenter ();
     this.assert.equal (pos.lat, 20.33);
     this.assert.equal (pos.lon, -120.7013);
-
-    try {
-      var bounds = e.getMapBounds ();
-      this.assert.equal (false, true, 'exception thrown');
-      this.assert.equal (bounds, undefined);
-    } catch (x) {
-      this.assert.equal (x.message, 'The map engine does not support this operation');
-    }
-
-    var gm = e.googleMap;
-    this.assert.equal (gm, undefined);
+    
+    var bounds = e.getMapBounds ();
+    this.assert.equal (bounds.north, 21.099875492701216);
+    this.assert.equal (bounds.east, -118.0206298828125);
+    this.assert.equal (bounds.south, 19.554613885372127);
+    this.assert.equal (bounds.west, -123.387451171875);
   </test-code>
 
+  <test-code name="dynamic">
+    var e = document.createElement ('map-area');
+    e.setAttribute ('engine', 'leaflet');
+    e.setAttribute ('lat', 42);
+    e.setAttribute ('lon', 21);
+    this.currentScript.appendChild (e);
+
+    await e.ready;
+
+    var center = e.getMapCenter ();
+    this.assert.equal (center.lat, 42);
+    this.assert.equal (center.lon, 21);
+    
+    var bounds = e.getMapBounds ();
+    this.assert.equal (bounds.north, 42.60970621339408);
+    this.assert.equal (bounds.east,  23.681030273437504);
+    this.assert.equal (bounds.south, 41.3850519497068);
+    this.assert.equal (bounds.west,  18.314208984375004);
+  </test-code>
+  
   <test-code name="initially hidden">
     /*
       <div style="display:none">
-        <map-area engine=googlemapsembed lat=20.33 lon=-120.7013 initially-hidden></map-area>
+        <map-area engine=leaflet lat=20.33 lon=-120.7013 initially-hidden></map-area>
       </div>
     */
     var e = this.currentScript.querySelector ('map-area');
     await this.wait ();
 
-    await e.ready;
-
     this.assert.equal (e.offsetWidth, 0);
     this.assert.equal (e.offsetHeight, 0);
 
+    await e.ready;
+
     e.parentNode.style = 'block';
 
-    await this.wait (300);
+    await this.wait (1300);
     
-    this.assert.equal (e.offsetWidth, 977);
-    this.assert.equal (e.offsetHeight, 300);
-
     var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 20.33);
-    this.assert.equal (pos.lon, -120.7013);
-
-    try {
-      var bounds = e.getMapBounds ();
-      this.assert.equal (false, true, 'exception thrown');
-      this.assert.equal (bounds, undefined);
-    } catch (x) {
-      this.assert.equal (x.message, 'The map engine does not support this operation');
-    }
-
-    var gm = e.googleMap;
-    this.assert.equal (gm, undefined);
-  </test-code>
-
-  <test-code name="set center">
-    /*
-      <template><map-area engine=googlemapsembed lat=20.33 lon=-120.7013></map-area></template>
-    */
-    var t = this.currentScript.querySelector ('template');
-    this.currentScript.appendChild (t.content.cloneNode (true));
-    var e = this.currentScript.querySelector ('map-area');
-
-    await e.ready;
-    await this.wait (500);
-
-    e.setAttribute ('lat', 34.335);
-    e.setAttribute ('lon', 35.00018);
-
-    await this.wait (500);
-
-    var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 34.335);
-    this.assert.equal (pos.lon, 35.00018);
-  </test-code>
-
-  <test-code name="lat/lon race">
-    var e = document.createElement ('map-area');
-    e.setAttribute ('engine', 'googlemapsembed');
-    e.setAttribute ('lat', 42);
-    e.setAttribute ('lon', 21);
-    e.setAttribute ('id', '52623623444');
-    this.currentScript.appendChild (e);
-
-    await Promise.resolve ();
-    await e.ready;
-
-    e.setAttribute ('lat', -5);
-    e.setAttribute ('lon', -10);
-
-    await this.wait (500);
+    this.assert.equal (pos.lat, 20.32917469591343);
+    this.assert.equal (pos.lon, -120.70404052734376);
     
-    var center = e.getMapCenter ();
-    this.assert.equal (center.lat, -5);
-    this.assert.equal (center.lon, -10);
+    var bounds = e.getMapBounds ();
+    this.assert.equal (bounds.north, 21.099875492701216);
+    this.assert.equal (bounds.east, -118.0206298828125);
+    this.assert.equal (bounds.south, 19.554613885372127);
+    this.assert.equal (bounds.west, -123.387451171875);
   </test-code>
 
   <test-code name="initial redraw event">
     /*
-      <template><map-area engine=googlemapsembed lat=20.33 lon=-120.7013 init-redraw></map-area></template>
+      <template><map-area engine=leaflet lat=20.33 lon=-120.7013 init-redraw></map-area></template>
     */
     var t = this.currentScript.querySelector ('template');
     this.currentScript.appendChild (t.content.cloneNode (true));
@@ -156,14 +121,7 @@
     var result;
     var eventInvoked = new Promise (function (a, b) { result = a });
     e.addEventListener ('pcRedraw', function (ev) {
-      var a = undefined;
-      var b = undefined;
-      try {
-        a = ev.target.getMapBounds ();
-      } catch (x) {
-        b = x;
-      }
-      result ([ev.target.getMapCenter (), a, b]);
+      result ([ev.target.getMapCenter (), ev.target.getMapBounds ()]);
     });
     await this.wait ();
 
@@ -174,13 +132,15 @@
     this.assert.equal (pos.lon, -120.7013);
 
     var bounds = v[1];
-    this.assert.equal (bounds, undefined);
-    this.assert.equal (v[2].message, 'The map engine does not support this operation');
+    this.assert.equal (bounds.north, 21.099875492701216);
+    this.assert.equal (bounds.east, -118.0206298828125);
+    this.assert.equal (bounds.south, 19.554613885372127);
+    this.assert.equal (bounds.west, -123.387451171875);
   </test-code>
 
   <test-code name="redraw event by set center">
     /*
-      <template><map-area engine=googlemapsembed lat=20.33 lon=-120.7013></map-area></template>
+      <template><map-area engine=leaflet lat=20.33 lon=-120.7013></map-area></template>
     */
     var t = this.currentScript.querySelector ('template');
     this.currentScript.appendChild (t.content.cloneNode (true));
@@ -195,14 +155,7 @@
     var result;
     var eventInvoked = new Promise (function (a, b) { result = a });
     e.parentNode.addEventListener ('pcRedraw', function (ev) {
-      var a = undefined;
-      var b = undefined;
-      try {
-        a = ev.target.getMapBounds ();
-      } catch (x) {
-        b = x;
-      }
-      result ([ev.target.getMapCenter (), a, b]);
+      result ([ev.target.getMapCenter (), ev.target.getMapBounds ()]);
     });
 
     var v = await eventInvoked;
@@ -212,13 +165,15 @@
     this.assert.equal (pos.lon, 35.00018);
 
     var bounds = v[1];
-    this.assert.equal (bounds, undefined);
-    this.assert.equal (v[2].message, 'The map engine does not support this operation');
+    this.assert.equal (bounds.north, 35.0120020431607);
+    this.assert.equal (bounds.east, 37.68310546875);
+    this.assert.equal (bounds.south, 33.651208299204995);
+    this.assert.equal (bounds.west, 32.31628417968751);
   </test-code>
 
   <test-code name="center moved then redraw">
     /*
-      <map-area engine=googlemapsembed></map-area>
+      <map-area engine=leaflet></map-area>
     */
     var e = this.currentScript.querySelector ('map-area');
     await this.wait ();
@@ -242,7 +197,7 @@
 
   <test-code name="no redraw event before init">
     /*
-      <template><map-area engine=googlemapsembed lat=20.33 lon=-120.7013 a></map-area></template>
+      <template><map-area engine=leaflet lat=20.33 lon=-120.7013 a></map-area></template>
     */
     var t = this.currentScript.querySelector ('template');
     this.currentScript.appendChild (t.content.cloneNode (true));
@@ -263,7 +218,7 @@
     e.setAttribute ('lat', 53);
     e.setAttribute ('lon', -31);
     
-    await this.wait (1000);
+    await this.wait ();
     this.assert.equal (invoked > 0, true, 'invoked = ' + invoked);
 
     var center = e.getMapCenter ();
@@ -273,7 +228,7 @@
 
   <test-code name="no redraw event before init 2">
     /*
-      <template><map-area engine=googlemapsembed lat=-20.33 lon=-120.7013 b></map-area></template>
+      <template><map-area id=4224222 engine=leaflet lat=-20.33 lon=-120.7013 b></map-area></template>
     */
     var t = this.currentScript.querySelector ('template');
     this.currentScript.appendChild (t.content.cloneNode (true));
@@ -292,7 +247,7 @@
     e.setAttribute ('lon', 31);
     
     e.hidden = false;
-    await this.wait (1000);
+    await this.wait (500);
     
     this.assert.equal (invoked > 0, true, 'invoked = ' + invoked);
 
@@ -303,9 +258,10 @@
 
   <test-code name="lat/lon race">
     var e = document.createElement ('map-area');
-    e.setAttribute ('engine', 'googlemapsembed');
+    e.setAttribute ('engine', 'leaflet');
     e.setAttribute ('lat', 42);
     e.setAttribute ('lon', 21);
+    e.setAttribute ('id', '52623623444');
     this.currentScript.appendChild (e);
 
     await Promise.resolve ();
@@ -323,7 +279,7 @@
 
   <test-code name="lat/lon race">
     var e = document.createElement ('map-area');
-    e.setAttribute ('engine', 'googlemapsembed');
+    e.setAttribute ('engine', 'leaflet');
     e.setAttribute ('lat', 42);
     e.setAttribute ('lon', 21);
     e.hidden = true;
