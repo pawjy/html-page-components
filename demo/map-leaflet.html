@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<html>
+<title>Map</title>
+<link rel=stylesheet href=../css/default.css>
+<style>
+  p {
+    margin: 0;
+  }
+  .buttons {
+    display: flex;
+  }
+  map-area {
+    height: 40em;
+  }
+</style>
+<script src=../src/page-components.js async></script>
+<script src=../src/maps.js async></script>
+
+  <section id=map-section-1>
+    <map-area engine=leaflet gsi lat=35.2 lon=135.4></map-area>
+
+    <p class=buttons>
+      <button value=gsi-standard onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">standard</button>
+      <button value=gsi-english onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">english</button>
+      <button value=gsi-hillshade onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">hillshade</button>
+      <button value=gsi-photo onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">photo</button>
+      <button value=gsi-standard-hillshade onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">standard+hillshade</button>
+    <p><output name=bounds></output>
+    <script>
+    (() => {
+      var s = document.querySelector ('#map-section-1');
+      s.querySelector ('map-area').addEventListener ('pcRedraw', (ev) => {
+        var o = s.querySelector ('output');
+        var b = ev.target.getMapBounds ();
+        if (b) o.textContent = [b.north, b.east, b.south, b.west].join (' ');
+      });
+    }) ();
+    </script>
+  </section>

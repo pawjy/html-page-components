@@ -10,6 +10,11 @@
   </style>
 </head>
 <body id=for-screenshot>
+  
+  <test-code name="no export">
+    this.assert.equal (window.google, undefined);
+    this.assert.equal (window.L, undefined);
+  </test-code>
 
   <test-code name="map-area default">
     /*
@@ -26,12 +31,6 @@
     var pos = e.getMapCenter ();
     this.assert.equal (pos.lat, 0);
     this.assert.equal (pos.lon, 0);
-    
-    var bounds = e.getMapBounds ();
-    this.assert.equal (bounds, null);
-
-    var gm = e.googleMap;
-    this.assert.equal (!!gm, false);
   </test-code>
 
   <test-code name="map-area lat lon">
@@ -49,217 +48,19 @@
     var pos = e.getMapCenter ();
     this.assert.equal (pos.lat, 20.33);
     this.assert.equal (pos.lon, -120.7013);
-    
-    var bounds = e.getMapBounds ();
-    this.assert.equal (bounds, null);
   </test-code>
 
-  <test-code name="initially hidden">
-    /*
-      <div style="display:none">
-        <map-area lat=20.33 lon=-120.7013 initially-hidden></map-area>
-      </div>
-    */
-    var e = this.currentScript.querySelector ('map-area');
-    await this.wait ();
-
-    this.assert.equal (e.offsetWidth, 0);
-    this.assert.equal (e.offsetHeight, 0);
-
-    await e.ready;
-
-    e.parentNode.style = 'block';
-
-    await this.wait (1300);
-    
-    var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 20.33);
-    this.assert.equal (pos.lon, -120.7013);
-    
-    var bounds = e.getMapBounds ();
-    this.assert.equal (bounds, null);
-  </test-code>
-
-  <test-code name="initial redraw event">
-    /*
-      <template><map-area lat=20.33 lon=-120.7013 init-redraw></map-area></template>
-    */
-    var t = this.currentScript.querySelector ('template');
-    this.currentScript.appendChild (t.content.cloneNode (true));
-    var e = this.currentScript.querySelector ('map-area');
-    var result;
-    var eventInvoked = new Promise (function (a, b) { result = a });
-    e.addEventListener ('pcRedraw', function (ev) {
-      result ([ev.target.getMapCenter (), ev.target.getMapBounds ()]);
-    });
-    await this.wait ();
-
-    var v = await eventInvoked;
-
-    var pos = v[0];
-    this.assert.equal (pos.lat, 20.33);
-    this.assert.equal (pos.lon, -120.7013);
-
-    var bounds = v[1];
-    this.assert.equal (bounds, null);
-  </test-code>
-
-  <test-code name="redraw event by set center">
-    /*
-      <template><map-area lat=20.33 lon=-120.7013></map-area></template>
-    */
-    var t = this.currentScript.querySelector ('template');
-    this.currentScript.appendChild (t.content.cloneNode (true));
-    var e = this.currentScript.querySelector ('map-area');
-
-    await e.ready;
-    await this.wait (500);
-
-    e.setAttribute ('lat', 34.335);
-    e.setAttribute ('lon', 35.00018);
-    
-    var result;
-    var eventInvoked = new Promise (function (a, b) { result = a });
-    e.parentNode.addEventListener ('pcRedraw', function (ev) {
-      result ([ev.target.getMapCenter (), ev.target.getMapBounds ()]);
-    });
-
-    var v = await eventInvoked;
-
-    var pos = v[0];
-    this.assert.equal (pos.lat, 34.335);
-    this.assert.equal (pos.lon, 35.00018);
-
-    var bounds = v[1];
-    this.assert.equal (bounds, null);
-  </test-code>
-
-  <test-code name="center moved then redraw">
-    /*
-      <map-area></map-area>
-    */
-    var e = this.currentScript.querySelector ('map-area');
-    await this.wait ();
-    await e.ready;
-
-    var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 0);
-    this.assert.equal (pos.lon, 0);
-
-    e.setAttribute ('lat', 53);
-    e.setAttribute ('lon', 65);
-    await this.wait ();
-
-    e.style.setProperty ('width', '488px', 'important');
-    await this.wait ();
-      
-    var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 53);
-    this.assert.equal (pos.lon, 65);
-  </test-code>
-
-  <test-code name="no redraw event before init">
-    /*
-      <template><map-area lat=20.33 lon=-120.7013 a></map-area></template>
-    */
-    var t = this.currentScript.querySelector ('template');
-    this.currentScript.appendChild (t.content.cloneNode (true));
-    var e = this.currentScript.querySelector ('map-area');
-    e.hidden = true;
-    
-    var invoked = 0;
-    e.addEventListener ('pcRedraw', () => {
-      invoked++;
-    });
-      
-    await this.wait ();
-    this.assert.equal (invoked, 0);
-
-    e.hidden = false;
-    await this.wait (500);
-
-    e.setAttribute ('lat', 53);
-    e.setAttribute ('lon', -31);
-    
-    await this.wait (1000);
-    this.assert.equal (invoked > 0, true, 'invoked = ' + invoked);
-
-    var center = e.getMapCenter ();
-    this.assert.equal (center.lat, 53);
-    this.assert.equal (center.lon, -31);
-  </test-code>
-
-  <test-code name="no redraw event before init 2">
-    /*
-      <template><map-area lat=-20.33 lon=-120.7013 b></map-area></template>
-    */
-    var t = this.currentScript.querySelector ('template');
-    this.currentScript.appendChild (t.content.cloneNode (true));
-    var e = this.currentScript.querySelector ('map-area');
-    e.hidden = true;
-    
-    var invoked = 0;
-    e.addEventListener ('pcRedraw', () => {
-      invoked++;
-    });
-      
-    await this.wait (500);
-    this.assert.equal (invoked, 0);
-
-    e.setAttribute ('lat', 53);
-    e.setAttribute ('lon', 31);
-    
-    e.hidden = false;
-    await this.wait (1000);
-    
-    this.assert.equal (invoked > 0, true, 'invoked = ' + invoked);
-
-    var center = e.getMapCenter ();
-    this.assert.equal (center.lat > 0, true, center.lat);
-    this.assert.equal (center.lon > 0, true, center.lon);
-  </test-code>
-
-  <test-code name="lat/lon race">
+  <test-code name="dynamic">
     var e = document.createElement ('map-area');
     e.setAttribute ('lat', 42);
     e.setAttribute ('lon', 21);
     this.currentScript.appendChild (e);
 
-    await Promise.resolve ();
     await e.ready;
 
-    e.setAttribute ('lat', -5);
-    e.setAttribute ('lon', -10);
-
-    await this.wait (500);
-    
     var center = e.getMapCenter ();
-    this.assert.equal (center.lat, -5);
-    this.assert.equal (center.lon, -10);
-  </test-code>
-
-  <test-code name="lat/lon race">
-    var e = document.createElement ('map-area');
-    e.setAttribute ('lat', 42);
-    e.setAttribute ('lon', 21);
-    e.hidden = true;
-    this.currentScript.appendChild (e);
-
-    await Promise.resolve ();
-    await e.ready;
-
-    e.setAttribute ('lat', -5);
-    e.setAttribute ('lon', -10);
-
-    await this.wait (500);
-    
-    e.hidden = false;
-    
-    await this.wait (500);
-    
-    var center = e.getMapCenter ();
-    this.assert.equal (center.lat < 0, true, center.lat);
-    this.assert.equal (center.lon < 0, true, center.lon);
+    this.assert.equal (center.lat, 42);
+    this.assert.equal (center.lon, 21);
   </test-code>
   
   <script src=runtests.js data-maps></script>
