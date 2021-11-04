@@ -1455,9 +1455,10 @@ The following properties are available:
     westmost edge of the map.
 
     This method must be invoked after the initialization; otherwise
-    the method returns |null|.
+    the method throws an exception.
 
-    This method returns |null| unless the |engine| is |googlemaps|.
+    This method throws an exception if the |engine| is
+    |googlemapsembed|.
 
   googleMap
 
@@ -1468,7 +1469,8 @@ The following properties are available:
     This property getter must be invoked after the initialization;
     otherwise the property getter returns |null|.
     
-    This property returns |null| unless the |engine| is |googlemaps|.
+    This property returns |undefined| unless the |engine| is
+    |googlemaps|.
 
   maGoogleMapTypeGSI : String
 

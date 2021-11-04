@@ -47,9 +47,11 @@
         this.maEngine = this.getAttribute ('engine');
         if (this.maEngine === 'googlemaps') {
           return this.maInitGoogleMaps ();
-        } else {
-          this.maEngine = 'googlemapsembed';
+        } else if (this.maEngine === 'googlemapsembed') {
           return this.maInitGoogleMapsEmbed ();
+        } else {
+          this.maEngine = 'leaflet';
+          return this.pcInitLeaflet ();
         }
       }, // pcInit
       maInitGoogleMaps: function () {
@@ -168,6 +170,9 @@
         };
         return Promise.resolve ().then (() => this.maRedraw ({all: true}));
       }, // maInitGoogleMapsEmbed
+      pcInitLeaflet: function () {
+        // XXX
+      }, // pcInitLeaflet
       
       maRedrawEvent: function () {
         clearTimeout (this.maRedrawEventTimer);
@@ -264,7 +269,7 @@
         return this.maCenter; // or null
       }, // getMapCenter
       getMapBounds: function () {
-        if (!this.maGoogleMap) return null;
+        if (!this.maGoogleMap) throw new DOMException ('The map engine does not support this operation', 'NotSupportedError');
         var bounds = this.maGoogleMap.getBounds ();
         return {
           north: bounds.getNorthEast ().lat (),
