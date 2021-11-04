@@ -1342,9 +1342,11 @@ The following content attributes are available:
 
   <map-area engine="">
 
-    The engine used to render the map.  If this content attribute is
-    not explicitly specified, one of available engines is chosen.
-    Applications should not rely on the default.
+    The engine used to render the map.
+
+    If this content attribute is not explicitly specified, one of
+    available engines is chosen.  Applications should not rely on the
+    default.
 
     The following value is available:
 
@@ -1392,31 +1394,39 @@ The following content attributes are available:
 
   gsi="" : boolean
 
-    Whether map type GSI is enabled or not.  The map type GSI shows
-    the 地理院タイル (GSI Tile)
+    Whether GSI map types are enabled by default or not.
+
+    The GSI map types show the 地理院タイル (GSI Tile)
     <https://maps.gsi.go.jp/development/ichiran.html> map data
     provided by 国土地理院 (Geospatial Information Authority of Japan)
-    <http://www.gsi.go.jp/> of the Japanese Government.
+    <https://www.gsi.go.jp/> of the Japanese Government.
 
-    If the content attribute is NOT specified, the GSI map is not
-    enabled.  Otherwise, if non-empty attribute value is string, it is
-    used as the label of the button to switch to the GSI map type.
-    Otherwise, if the empty value is specified, the default label is
-    used.
+    If the map's |engine| is |leaflet|, the |gsi-standard| map type is
+    enabled by default when the attribute is specified.  The attribute
+    value has to be the empty string.
 
-    When the map type GSI is selected, a |map-credit| element whose
-    content is a link to the GSI Web site is displayed as the credit
-    of the GSI Tile, as required by GSI.  This element and its content
-    can be styled using CSS.
+    If the map's |engine| is |googlemaps|:
 
-    This attribute is ignored unless the |engine| is |googlemaps|.
+      If the content attribute is NOT specified, the GSI map is not
+      enabled.  Otherwise, if non-empty attribute value is string, it
+      is used as the label of the button to switch to the GSI map
+      type.  Otherwise, if the empty value is specified, the default
+      label is used.
 
-  gsititle="" : string
+      When the map type GSI is selected, a |map-credit| element whose
+      content is a link to the GSI Web site is displayed as the credit
+      of the GSI Tile, as required by GSI.  This element and its
+      content can be styled using CSS.
+
+    This attribute is ignored for other map engines.
+
+  gsititle="" : string [deprecated]
 
     The short description of the GSI map type, used as the tooltip of
     the button to switch to the GSI map type.  If not specified, the
-    default text is used.  This content attribute is ignored if the
-    |gsi| content attribute is NOT specified.
+    default text is used.  This content attribute is ignored unless
+    the map's |engine| is |googlemaps| and the |gsi| content attribute
+    is specified.
 
   noimgsrc="" : URL
 
@@ -1496,6 +1506,39 @@ The following properties are available:
 
     The identifier of the GSI map type, that can be used in Google
     Maps API when the |gsi| content attribute is specified.
+
+  setMapType (/mapType/)
+
+    Set the map type.
+
+    The argument must be an identifier of map type, i.e. one of
+    followings:
+
+      gsi-english
+
+        GSI's English map
+        <https://maps.gsi.go.jp/development/ichiran.html#english>.
+
+      gsi-hillshade
+
+        GSI's hillshade map
+        <https://maps.gsi.go.jp/development/ichiran.html#hillshademap>.
+
+      gsi-photo
+
+        GSI's photo
+        <https://maps.gsi.go.jp/development/ichiran.html#seamlessphoto>.
+
+      gsi-standard
+
+        GSI's standard map
+        <https://maps.gsi.go.jp/development/ichiran.html#std>.
+
+      gsi-standard-hillshade
+
+        GSI's standard map, overlayed on the GSI's hillshade map.
+
+    This method is ignored unless the map's |engine| is |leaflet|.
 
 A |pcRedraw| event, which bubbles, is fired at the element when the
 map's visible area has been changed; e.g., when the map is

@@ -845,6 +845,8 @@ qr-code img {
 
 map-area:not([hidden]) {
   display: block;
+}
+map-area {
   width: 100%;
   height: 300px;
 }
@@ -892,6 +894,35 @@ can-copy:lang(ja) {
 
 can-copy time {
   --paco-copy-format: unix-tz-json;
+}
+
+details[is=pc-map-credit-details]:not([open]):not([hidden]) {
+  display: inline;
+}
+details[is=pc-map-credit-details][open]:not([hidden]) {
+  display: inline-block;
+}
+details[is=pc-map-credit-details][open] {
+  max-width: 35em;
+}
+
+details[is=pc-map-credit-details]:not([open]) > summary:not([hidden]) {
+  display: inline;
+}
+details[is=pc-map-credit-details] > summary {
+  cursor: pointer;
+  color: #0078A8;
+  background: transparent;
+}
+details[is=pc-map-credit-details] > summary:hover {
+  text-decoration: underline;
+}
+details[is=pc-map-credit-details][open] > summary {
+  font-weight: bolder;
+}
+
+details[is=pc-map-credit-details] p {
+  margin: 0;
 }
 
 /*

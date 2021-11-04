@@ -301,6 +301,27 @@
     this.assert.equal (center.lat < 0, true, center.lat);
     this.assert.equal (center.lon < 0, true, center.lon);
   </test-code>
+  
+  <test-code name="map-area setMapType">
+    /*
+      <map-area engine=leaflet gsi></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+
+    await e.ready;
+
+    e.setMapType ('gsi-photo');
+
+    await this.wait (100);
+
+    var pos = e.getMapCenter ();
+    this.assert.equal (pos.lat, 0);
+    this.assert.equal (pos.lon, 0);
+
+    var d = e.querySelector ('details[is=pc-map-credit-details]');
+    this.assert.equal (!!d.offsetWidth, true, d.offsetWidth);
+    this.assert.equal (!!d.offsetHeight, true, d.offsetHeight);
+  </test-code>
 
   <script src=runtests.js data-maps></script>
 </body>

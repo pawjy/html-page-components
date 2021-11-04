@@ -33,6 +33,10 @@
       document.head.appendChild (script);
     });
   }; // loadGoogleMaps
+
+  var noImageURL = 'https://rawgit.com/wakaba/html-page-components/master/css/noimage.svg';
+  // Credit required by GSI.
+  var gsiCreditHTML = "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank' lang=ja>\u56FD\u571F\u5730\u7406\u9662</a>";
   
   define ({
     name: 'map-area',
@@ -182,6 +186,7 @@
 
         var map = this.pcLMap = L.map (this, {
         });
+        L.control.scale ({}).addTo (map);
 
         // Map need to be recomputed if it is initialized when not
         // shown.
@@ -196,6 +201,10 @@
           this.maRedrawEvent ();
         });
         map.setView (this.maCenter, 8);
+
+        if (this.hasAttribute ('gsi')) {
+          this.setMapType ('gsi-standard');
+        }
       }, // pcInitLeaflet
       
       maRedrawEvent: function () {
@@ -212,6 +221,7 @@
         for (var n in opts) {
           if (opts[n]) this.maRedrawNeedUpdated[n] = true;
         }
+        
         if (this.maRedrawNeedUpdated.relocate) {
           if (this.maEngine === 'leaflet') {
             this.pcLMap.invalidateSize ();
@@ -223,6 +233,14 @@
           }
           delete this.maRedrawNeedUpdated.relocate;
         }
+
+        if (this.maRedrawNeedUpdated.mapType) {
+          if (this.maEngine === 'leaflet') {
+            this.pcChangeMapType ();
+          }
+          delete this.maRedrawNeedUpdated.mapType;
+        }
+        
         clearTimeout (this.maRedrawTimer);
         this.maRedrawTimer = setTimeout (() => this.ma_Redraw (), 300);
       }, // maRedraw
@@ -338,7 +356,7 @@
             var y = coord.y;
             tile.src = 'https://cyberjapandata.gsi.go.jp/xyz/std/' + zoom + '/' + x + '/' + y + '.png';
             tile.onerror = () => {
-              tile.src = this.getAttribute ('noimgsrc') || 'https://rawgit.com/wakaba/html-page-components/master/css/noimage.svg';
+              tile.src = this.getAttribute ('noimgsrc') || noImageURL;
             };
             return tile;
           }, // getTile
@@ -347,14 +365,87 @@
         // Credit required by GSI.
         var credit = document.createElement ('map-credit');
         credit.hidden = true;
-        credit.innerHTML = '<a href=https://maps.gsi.go.jp/development/ichiran.html target=_blank>国土地理院</a>';
+        credit.innerHTML = gsiCreditHTML;
         map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push (credit);
         google.maps.event.addListener (map, 'maptypeid_changed', () => {
           credit.hidden = ! (map.getMapTypeId () === this.maGoogleMapTypeGSI);
         });
       }, // maEnableGoogleMapGSI
- 
+
+      setMapType: function (type) {
+        this.pcMapType = type;
+        this.maRedraw ({mapType: true});
+      }, // setMapType
+      pcChangeMapType: function () {
+        var type = this.pcMapType;
+        var map = this.pcLMap;
+
+        var layers = [];
+
+        var errorTileUrl = this.getAttribute ('noimgsrc') || noImageURL;
+        if (type === 'gsi-standard') {
+          var lStd = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 18,
+                minNativeZoom: 2,
+              });
+          layers.push (lStd);
+        } else if (type === 'gsi-english') {
+          var lEng = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 11,
+                minNativeZoom: 5,
+              });
+          layers.push (lEng);
+        } else if (type === 'gsi-hillshade') {
+          var lShade = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+              });
+          layers.push (lShade);
+        } else if (type === 'gsi-photo') {
+          var lPhoto = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+                attribution: "<details is=pc-map-credit-details><summary lang=ja>\u56FD\u571F\u5730\u7406\u9662\u4ED6</summary><p>"+gsiCreditHTML+"<p lang=ja>\u30C7\u30FC\u30BF\u30BD\u30FC\u30B9\uFF1ALandsat8\u753B\u50CF\uFF08GSI,TSIC,GEO Grid/AIST\uFF09, Landsat8\u753B\u50CF\uFF08courtesy of the U.S. Geological Survey\uFF09, \u6D77\u5E95\u5730\u5F62\uFF08GEBCO\uFF09<p lang=en>Images on \u4E16\u754C\u885B\u661F\u30E2\u30B6\u30A4\u30AF\u753B\u50CF obtained from site <a href=https://lpdaac.usgs.gov/data_access target=_blank>https://lpdaac.usgs.gov/data_access</a> maintained by the NASA Land Processes Distributed Active Archive Center (LP DAAC), USGS/Earth Resources Observation and Science (EROS) Center, Sioux Falls, South Dakota, (Year). Source of image data product.</details>",
+                errorTileUrl,
+                maxNativeZoom: 18,
+                minNativeZoom: 2,
+              });
+          layers.push (lPhoto);
+        } else if (type === 'gsi-standard-hillshade') {
+          var lShade = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                opacity: 0.8,
+              });
+          layers.push (lShade);
+          var lStd = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 18,
+                minNativeZoom: 2,
+                opacity: 0.8,
+              });
+          layers.push (lStd);
+        }
+        
+        map.eachLayer (l => map.removeLayer (l));
+        layers.forEach (l => map.addLayer (l));
+
+      }, // pcChangeMapType
+      
     },
-  });
+  }); // <map-area>
 
 }) ();
