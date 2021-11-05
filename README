@@ -1524,10 +1524,18 @@ The following properties are available:
         GSI's hillshade map
         <https://maps.gsi.go.jp/development/ichiran.html#hillshademap>.
 
+      gsi-hillshade-standard
+
+        GSI's standard map, rendered on the GSI's hillshade map.
+
       gsi-photo
 
         GSI's photo
         <https://maps.gsi.go.jp/development/ichiran.html#seamlessphoto>.
+
+      gsi-photo-standard
+
+        GSI's standard map, rendered on the GSI's photo.
 
       gsi-standard
 
