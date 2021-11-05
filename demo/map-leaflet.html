@@ -35,7 +35,20 @@
       <button value=gsi-standard-hillshade onclick="
         document.querySelector('map-area').setMapType(this.value);
       ">standard+hillshade</button>
-    <p><output name=bounds></output>
+      <button value=gsi-hillshade-standard onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">hillshade+standard</button>
+      <button value=gsi-photo-standard onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">photo+standard</button>
+
+      <input id=latlon onfocus=this.select() onchange="
+        var [lat, lon] = this.value.split (/,/);
+        var m = document.querySelector ('map-area');
+        m.setAttribute ('lat', lat);
+        m.setAttribute ('lon', lon);
+      ">
+      <output name=bounds></output>
     <script>
     (() => {
       var s = document.querySelector ('#map-section-1');
@@ -43,6 +56,9 @@
         var o = s.querySelector ('output');
         var b = ev.target.getMapBounds ();
         if (b) o.textContent = [b.north, b.east, b.south, b.west].join (' ');
+
+        var c = ev.target.getMapCenter ();
+        document.querySelector ('#latlon').value = c.lat + ',' + c.lon;
       });
     }) ();
     </script>
