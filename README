@@ -1346,17 +1346,20 @@ The following content attributes are available:
 
     If a |controls| attribute is specified with the empty value,
     default builtin map control is shown.  It is equivalent to
-    |controls="scale zoom"| (but might be changed in future).
+    |controls="scale zoom fullscreen currentposition"| (but might be
+    changed in future).
 
     If a |controls| attribute is specified to a space-separated list
     of keywords, the respective controls are shown, as follows:
 
-      |fullscreen|   Fullscreen mode button
-      |scale|        Scale
-      |streetview|   Street view mode button (ignored unless the map's
-                     |engine| is |googlemaps|; deprecated)
-      |type|         Map type switches
-      |zoom|         Zoom in and out buttons
+      |currentposition|  "Pan to the current position" button (ignored
+                         if the map's |engine| is |googlemaps|)
+      |fullscreen|       "Fullscreen mode" button
+      |scale|            Scale
+      |streetview|       "Street view mode" button (ignored unless the
+                         map's |engine| is |googlemaps|; deprecated)
+      |type|             Map type switches
+      |zoom|             "Zoom in" and "Zoom out" buttons
 
     If there is no |controls| attribute, no builtin map control is
     shown.
@@ -1368,6 +1371,12 @@ The following content attributes are available:
 
     This attribute is ignored when the map's |engine| is
     |googlemapsembed|.
+
+    When the "Pan to the current position" button is clicked but the
+    user or the browser does not allow to return the device's
+    location, a toast whose message is the CSS
+    '--paco-currentposition-failed-message' property value, which is a
+    CSS string, is shown.
 
   <map-area engine="">
 

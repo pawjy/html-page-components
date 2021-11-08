@@ -12,20 +12,6 @@
     document.head.appendChild (e);
   }; // define
   
-  function parseCSSString (cssText, defaultText) {
-    var m = (cssText || 'auto').match (/^\s*"([^"\\]*)"\s*$/); // XXX escape
-    if (m) {
-      return m[1];
-    }
-
-    var m = (cssText || 'auto').match (/^\s*'([^'\\]*)'\s*$/); // XXX escape
-    if (m) {
-      return m[1];
-    }
-
-    return defaultText;
-  } // parseCSSString
-
   var noImageURL = 'https://rawgit.com/wakaba/html-page-components/master/css/noimage.svg';
   // Credit required by GSI.
   var gsiCreditHTML = "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank' lang=ja>\u56FD\u571F\u5730\u7406\u9662</a>";
@@ -204,7 +190,7 @@
   };
   L.control.fullscreenButton = function (opts) {
     var b = document.createElement ('button');
-    b.className = 'pc-control-button pc-fullscreen-control-button';
+    b.className = 'paco-control-button paco-fullscreen-control-button';
     b.type = 'button';
     b.textContent = '\u26F6';
     b.onclick = async () => {
@@ -219,11 +205,29 @@
     opts.styling = b => {
       var e = b.pcMap.getContainer ();
       // recompute!
-      var m = parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-fullscreen-title'), 'Fullscreen');
+      var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-fullscreen-title'), 'Fullscreen');
       b.title = m;
     };
     return new L.Control.ElementControl (opts);
-  };
+  }; // L.control.fullscreenButton
+  L.control.currentPositionButton = function (opts) {
+    var b = document.createElement ('button');
+    b.className = 'paco-control-button paco-currentposition-control-button';
+    b.type = 'button';
+    b.textContent = '\u26EF';
+    b.onclick = async () => {
+      var e = b.pcMap.getContainer ();
+      e.pcLocateCurrentPosition ({pan: true});
+    };
+    opts.element = b;
+    opts.styling = b => {
+      var e = b.pcMap.getContainer ();
+      // recompute!
+      var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-currentposition-title'), 'Current position');
+      b.title = m;
+    };
+    return new L.Control.ElementControl (opts);
+  }; // L.control.currentPositionButton
 
   var gmPromise;
   var loadGoogleMaps = () => {
@@ -249,6 +253,7 @@
 
   define ({
     name: 'map-area',
+    pcInternal: true,
     props: {
       pcInit: function () {
         this.maRedrawNeedUpdated = {};
@@ -400,7 +405,8 @@
           if (c.length) {
             c.forEach (_ => controls[_] = true);
           } else {
-            controls = {zoom: true, scale: true, fullscreen: true};
+            controls = {zoom: true, scale: true, fullscreen: true,
+                        currentposition: true};
           }
         }
 
@@ -411,8 +417,8 @@
         if (controls.zoom) {
           // recompute!
           var s = getComputedStyle (this);
-          var zoomInTitle = parseCSSString (s.getPropertyValue ('--paco-zoomin-title'), 'Zoom in');
-          var zoomOutTitle = parseCSSString (s.getPropertyValue ('--paco-zoomout-title'), 'Zoom out');
+          var zoomInTitle = this.pcInternal.parseCSSString (s.getPropertyValue ('--paco-zoomin-title'), 'Zoom in');
+          var zoomOutTitle = this.pcInternal.parseCSSString (s.getPropertyValue ('--paco-zoomout-title'), 'Zoom out');
           L.control.zoom ({
             zoomInTitle,
             zoomOutTitle,
@@ -420,6 +426,17 @@
         }
         if (controls.scale) L.control.scale ({}).addTo (map);
         if (controls.fullscreen) L.control.fullscreenButton ({}).addTo (map);
+
+        if (controls.currentposition) {
+          L.control.currentPositionButton ({
+            position: 'bottomright',
+          }).addTo (map);
+          if (navigator.permissions && navigator.permissions.query) {
+            navigator.permissions.query ({name: "geolocation"}).then (ps => {
+              if (ps.state === 'granted') this.pcLocateCurrentPosition ({});
+            });
+          }
+        }
 
         // Map need to be recomputed if it is initialized when not
         // shown.
@@ -758,6 +775,43 @@
         layers.forEach (l => map.addLayer (l));
         
       }, // pcChangeMapType
+
+      pcLocateCurrentPosition: function (opts) {
+        if (opts.pan) {
+          if (this.pcCurrentPosition) {
+            this.pcLMap.panTo ({
+              lat: this.pcCurrentPosition.lat,
+              lng: this.pcCurrentPosition.lon,
+            });
+          } else {
+            this.pcLocateCurrentPositionPanRequested = true;
+          }
+        }
+        if (this.pcWatchPosition) return;
+        this.pcWatchPosition = navigator.geolocation.watchPosition ((p) => {
+          this.pcCurrentPosition = {
+            lat: p.coords.latitude,
+            lon: p.coords.longitude,
+            //latLonAccuracy: p.coords.accuracy,
+          };
+          if (this.pcLocateCurrentPositionPanRequested) {
+            this.pcLMap.panTo ({
+              lat: this.pcCurrentPosition.lat,
+              lng: this.pcCurrentPosition.lon,
+            });
+            delete this.pcLocateCurrentPositionPanRequested;
+          }
+        }, e => {
+          if (e.code === GeolocationPositionError.PERMISSION_DENIED) {
+            delete this.pcWatchPosition;
+
+            // recompute!
+            var m = this.pcInternal.parseCSSString (getComputedStyle (this).getPropertyValue ('--paco-geolocation-failed-message'), 'Failed to get the current position');
+            this.pcInternal.$paco.showToast ({text: m, className: 'paco-geolocation-failed'});
+          }
+          console.log (e);
+        });
+      }, // pcLocateCurrentPosition
       
     },
   }); // <map-area>
