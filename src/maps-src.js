@@ -11,6 +11,20 @@
     e.pcDef = def;
     document.head.appendChild (e);
   }; // define
+  
+  function parseCSSString (cssText, defaultText) {
+    var m = (cssText || 'auto').match (/^\s*"([^"\\]*)"\s*$/); // XXX escape
+    if (m) {
+      return m[1];
+    }
+
+    var m = (cssText || 'auto').match (/^\s*'([^'\\]*)'\s*$/); // XXX escape
+    if (m) {
+      return m[1];
+    }
+
+    return defaultText;
+  } // parseCSSString
 
   var noImageURL = 'https://rawgit.com/wakaba/html-page-components/master/css/noimage.svg';
   // Credit required by GSI.
@@ -175,6 +189,40 @@
   }); // L.GridLayer.GSIOverlay
   L.gridLayer.gsiOverlay = function (opts) {
     return new L.GridLayer.GSIOverlay (opts);
+  };
+
+  L.Control.ElementControl = L.Control.extend ({
+    onAdd: function (map) {
+      var e = this.options.element;
+      e.pcMap = map;
+      if (this.options.styling) this.options.styling (e);
+      return e;
+    }, // onAdd
+  });
+  L.control.elementControl = function (opts) {
+    return new L.Control.ElementControl (opts);
+  };
+  L.control.fullscreenButton = function (opts) {
+    var b = document.createElement ('button');
+    b.className = 'pc-control-button pc-fullscreen-control-button';
+    b.type = 'button';
+    b.textContent = '\u26F6';
+    b.onclick = async () => {
+      var e = b.pcMap.getContainer ();
+      if (document.fullscreenElement) {
+        document.exitFullscreen ();
+      } else {
+        e.requestFullscreen ();
+      }
+    };
+    opts.element = b;
+    opts.styling = b => {
+      var e = b.pcMap.getContainer ();
+      // recompute!
+      var m = parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-fullscreen-title'), 'Fullscreen');
+      b.title = m;
+    };
+    return new L.Control.ElementControl (opts);
   };
 
   var gmPromise;
@@ -345,9 +393,33 @@
           lon: this.maAttrFloat ('lon', 0),
         };
 
+        var c = this.getAttribute ('controls');
+        var controls = {};
+        if (c !== null) {
+          c = c.split (/\s+/).filter (_ => _.length);
+          if (c.length) {
+            c.forEach (_ => controls[_] = true);
+          } else {
+            controls = {zoom: true, scale: true, fullscreen: true};
+          }
+        }
+
         var map = this.pcLMap = L.map (this, {
+          zoomControl: false,
         });
-        L.control.scale ({}).addTo (map);
+
+        if (controls.zoom) {
+          // recompute!
+          var s = getComputedStyle (this);
+          var zoomInTitle = parseCSSString (s.getPropertyValue ('--paco-zoomin-title'), 'Zoom in');
+          var zoomOutTitle = parseCSSString (s.getPropertyValue ('--paco-zoomout-title'), 'Zoom out');
+          L.control.zoom ({
+            zoomInTitle,
+            zoomOutTitle,
+          }).addTo (map);
+        }
+        if (controls.scale) L.control.scale ({}).addTo (map);
+        if (controls.fullscreen) L.control.fullscreenButton ({}).addTo (map);
 
         // Map need to be recomputed if it is initialized when not
         // shown.
@@ -366,6 +438,11 @@
         if (this.hasAttribute ('gsi')) {
           this.setMapType ('gsi-standard');
         }
+        
+        new MutationObserver ((mutations) => {
+          this.maRedraw ({controls: true});
+        }).observe (this, {childList: true});
+        this.maRedraw ({controls: true});
       }, // pcInitLeaflet
       
       maRedrawEvent: function () {
@@ -431,7 +508,30 @@
           }
 
           if (updates.controls || updates.all) {
-            if (this.maEngine === 'googlemaps') {
+            if (this.maEngine === 'leaflet') {
+              Array.prototype.slice.call (this.children).forEach (e => {
+                if (e.localName === 'map-controls') {
+                  var position = {
+                    'top-left': 'topleft',
+                    'top-center': 'topleft',
+                    'top-right': 'topright',
+                    'bottom-left': 'bottomleft',
+                    'bottom-center': 'bottomleft',
+                    'left-top': 'topleft',
+                    'left-center': 'topleft',
+                    'left-bottom': 'bottomleft',
+                    'right-top': 'topright',
+                    'right-center': 'topright',
+                    'right-bottom': 'bottomright',
+                  }[e.getAttribute ('position')] || 'bottomright';
+                  var c = L.control.elementControl ({
+                    element: e,
+                    position,
+                  });
+                  c.addTo (this.pcLMap);
+                }
+              });
+            } else if (this.maEngine === 'googlemaps') {
               Array.prototype.slice.call (this.children).forEach (e => {
                 if (e.localName === 'map-controls') {
                   // <https://developers.google.com/maps/documentation/javascript/controls>
@@ -656,7 +756,7 @@
         
         map.eachLayer (l => map.removeLayer (l));
         layers.forEach (l => map.addLayer (l));
-
+        
       }, // pcChangeMapType
       
     },

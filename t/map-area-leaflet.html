@@ -140,7 +140,7 @@
 
   <test-code name="redraw event by set center">
     /*
-      <template><map-area engine=leaflet lat=20.33 lon=-120.7013></map-area></template>
+      <template><map-area engine=leaflet controls lat=20.33 lon=-120.7013></map-area></template>
     */
     var t = this.currentScript.querySelector ('template');
     this.currentScript.appendChild (t.content.cloneNode (true));
@@ -321,6 +321,68 @@
     var d = e.querySelector ('details[is=pc-map-credit-details]');
     this.assert.equal (!!d.offsetWidth, true, d.offsetWidth);
     this.assert.equal (!!d.offsetHeight, true, d.offsetHeight);
+  </test-code>
+
+  <test-code name="map-controls">
+    /*
+      <map-area engine=leaflet controls>
+        <map-controls>0</map-controls>
+        <map-controls position=top-left>1</map-controls>
+        <map-controls position=top-center>2</map-controls>
+        <map-controls position=top-right>3</map-controls>
+        <map-controls position=bottom-left>4</map-controls>
+        <map-controls position=bottom-center>5</map-controls>
+        <map-controls position=bottom-right>6</map-controls>
+        <map-controls position=left-top>7</map-controls>
+        <map-controls position=left-center>8</map-controls>
+        <map-controls position=left-bottom>9</map-controls>
+        <map-controls position=right-top>10</map-controls>
+        <map-controls position=right-center>11</map-controls>
+        <map-controls position=right-bottom>12</map-controls>
+      </map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+    await this.wait ();
+    await e.ready;
+
+    await this.wait (500);
+    
+    var controls = Array.prototype.slice.call (e.querySelectorAll ('map-controls')).sort ((a, b) => parseInt (a.textContent) - parseInt (b.textContent));
+    this.assert.equal (controls.length, 13);
+    this.assert.equal (Array.prototype.slice (e.children).filter (_ => _.localName === 'map-controls').length, 0);
+  </test-code>
+
+  <test-code name="map-controls dynamic">
+    /*
+      <map-area engine=leaflet controls>
+      </map-area>
+      <template>
+        <map-controls>0</map-controls>
+        <map-controls position=top-left>1</map-controls>
+        <map-controls position=top-center>2</map-controls>
+        <map-controls position=top-right>3</map-controls>
+        <map-controls position=bottom-left>4</map-controls>
+        <map-controls position=bottom-center>5</map-controls>
+        <map-controls position=bottom-right>6</map-controls>
+        <map-controls position=left-top>7</map-controls>
+        <map-controls position=left-center>8</map-controls>
+        <map-controls position=left-bottom>9</map-controls>
+        <map-controls position=right-top>10</map-controls>
+        <map-controls position=right-center>11</map-controls>
+        <map-controls position=right-bottom>12</map-controls>
+      </template>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+    await this.wait ();
+    await e.ready;
+
+    e.appendChild (this.currentScript.querySelector ('template').content);
+    
+    await this.wait (500);
+    
+    var controls = Array.prototype.slice.call (e.querySelectorAll ('map-controls')).sort ((a, b) => parseInt (a.textContent) - parseInt (b.textContent));
+    this.assert.equal (controls.length, 13);
+    this.assert.equal (Array.prototype.slice (e.children).filter (_ => _.localName === 'map-controls').length, 0);
   </test-code>
 
   <script src=runtests.js data-maps></script>

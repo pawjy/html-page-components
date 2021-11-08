@@ -849,6 +849,14 @@ map-area:not([hidden]) {
 map-area {
   width: 100%;
   height: 300px;
+  --paco-fullscreen-title: "Fullscreen";
+  --paco-zoomin-title: "Zoom in";
+  --paco-zoomout-title: "Zoom out";
+}
+map-area:lang(ja) {
+  --paco-fullscreen-title: "\5168\753B\9762";
+  --paco-zoomin-title: "\62E1\5927";
+  --paco-zoomout-title: "\7E2E\5C0F";
 }
 
 map-area > iframe.googlemapsembed:not([hidden]) {
@@ -870,6 +878,26 @@ map-area map-credit a {
   color: inherit;
   background: transparent;
   text-decoration: none;
+}
+
+map-area button.pc-control-button {
+  border: 2px solid rgba(0,0,0,0.2);
+  border-radius: 2px;
+  background-color: white;
+  color: black;
+  min-width: 30px;
+  min-height: 30px;
+  line-height: 30px;
+  font-size: 22px;
+  cursor: pointer;
+}
+map-area button.pc-control-button:hover {
+  background-color: #f4f4f4;
+  color: black;
+}
+map-area:fullscreen button.pc-control-button {
+  background-color: #ccc;
+  color: black;
 }
 
 template-set {
