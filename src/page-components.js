@@ -1,5 +1,7 @@
 (function () {
   var exportable = {$paco: {}};
+  var pcInternal = {};
+  pcInternal.$paco = exportable.$paco;
 
   var $promised = exportable.$promised = {};
 
@@ -177,6 +179,9 @@
     upgradedElementProps[def.name][def.is || null] = def.props = def.props || {};
     if (def.pcActionStatus) {
       def.props.pcActionStatus = commonMethods.pcActionStatus;
+    }
+    if (def.pcInternal) {
+      def.props.pcInternal = pcInternal;
     }
     
     upgrader[def.name] = upgrader[def.name] || {};
@@ -732,6 +737,7 @@
 
     return defaultText;
   } // parseCSSString
+  pcInternal.parseCSSString = parseCSSString;
   
   var copyText = navigator.clipboard ? s => {
     return navigator.clipboard.writeText (s);

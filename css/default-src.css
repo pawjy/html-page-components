@@ -184,13 +184,17 @@ map-area {
   width: 100%;
   height: 300px;
   --paco-fullscreen-title: "Fullscreen";
+  --paco-currentposition-title: "Current position";
   --paco-zoomin-title: "Zoom in";
   --paco-zoomout-title: "Zoom out";
+  --paco-geolocation-failed-message: "Failed to get the current position.";
 }
 map-area:lang(ja) {
   --paco-fullscreen-title: "\5168\753B\9762";
+  --paco-currentposition-title: "\73FE\5728\5730";
   --paco-zoomin-title: "\62E1\5927";
   --paco-zoomout-title: "\7E2E\5C0F";
+  --paco-geolocation-failed-message: "\73FE\5728\5730\306E\53D6\5F97\306B\5931\6557\3057\307E\3057\305F\3002";
 }
 
 map-area > iframe.googlemapsembed:not([hidden]) {
@@ -214,7 +218,7 @@ map-area map-credit a {
   text-decoration: none;
 }
 
-map-area button.pc-control-button {
+map-area button.paco-control-button {
   border: 2px solid rgba(0,0,0,0.2);
   border-radius: 2px;
   background-color: white;
@@ -225,11 +229,11 @@ map-area button.pc-control-button {
   font-size: 22px;
   cursor: pointer;
 }
-map-area button.pc-control-button:hover {
+map-area button.paco-control-button:hover {
   background-color: #f4f4f4;
   color: black;
 }
-map-area:fullscreen button.pc-control-button {
+map-area:fullscreen button.paco-control-button {
   background-color: #ccc;
   color: black;
 }
