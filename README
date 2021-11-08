@@ -1519,6 +1519,12 @@ The following properties are available:
         GSI's English map
         <https://maps.gsi.go.jp/development/ichiran.html#english>.
 
+      gsi-english-standard
+
+        GSI's English map, if available for the zoom level, or
+        fallbacked to GSI's standard map
+        <https://maps.gsi.go.jp/development/ichiran.html#std>.
+
       gsi-hillshade
 
         GSI's hillshade map
@@ -1539,8 +1545,7 @@ The following properties are available:
 
       gsi-standard
 
-        GSI's standard map
-        <https://maps.gsi.go.jp/development/ichiran.html#std>.
+        GSI's standard map.
 
       gsi-standard-hillshade
 

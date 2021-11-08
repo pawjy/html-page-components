@@ -88,6 +88,42 @@
     }); // colors
   } // computeColorOpacities
 
+  L.GridLayer.TileImages = L.GridLayer.extend ({
+    createTile: function (coords, done) {
+      var img = document.createElement ('img');
+      var tileSize = this.getTileSize ();
+      img.width = tileSize.x;
+      img.height = tileSize.y;
+
+      var u;
+      var srcs = this.options.srcs;
+      for (var i = 0; i < srcs.length; i++) {
+        var src = srcs[i];
+        if (src.minZoom <= coords.z && coords.z <= src.maxZoom) {
+          u = src.url;
+          break;
+        }
+      }
+      
+      new Promise ((ok, ng) => {
+        img.src = u.replace (/\{x\}/, coords.x)
+                   .replace (/\{y\}/, coords.y)
+                   .replace (/\{z\}/, coords.z);
+        img.onload = ok;
+        img.onerror = ng
+      }).then (() => {
+        done (null, img);
+      }, err => {
+        img.src = this.options.errorTileUrl;
+      });
+
+      return img;
+    }, // createTile
+  }); // L.GridLayer.TileImages
+  L.gridLayer.tileImages = function (opts) {
+    return new L.GridLayer.TileImages (opts);
+  };
+
   L.GridLayer.GSIOverlay = L.GridLayer.extend ({
     createTile: function (coords, done) {
       var canvas = document.createElement ('canvas');
@@ -595,6 +631,26 @@
                 minNativeZoom: 2,
              });
           layers.push (lPhoto);
+          layers.push (lGSI);
+        } else if (type === 'gsi-english-standard') {
+          var lGSI = L.gridLayer.tileImages ({
+            srcs: [
+              {
+                url: 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png',
+                maxZoom: 18,
+                minZoom: 12,
+              },
+              {
+                url: 'https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png',
+                maxZoom: 11,
+                minZoom: 5,
+              },
+            ],
+            attribution: gsiCreditHTML,
+            errorTileUrl,
+            maxNativeZoom: 18,
+            minNativeZoom: 5,
+          });
           layers.push (lGSI);
         }
         
