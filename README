@@ -1562,20 +1562,41 @@ not |googlemapsembed|), the map's dimension has been changed (when
 as the oppotunity to relocate map overlay objects or to recalculate
 any associated data outside of the map.
 
-A |map-area| element can contain zero or more |map-controls| child
-elements.  A |map-controls| element is a set of custom control
-elements, which are placed over the map.  This element is supported
-only when the |engine| is |googlemaps|.
+Element content.  A |map-area| element can contain zero or more
+|map-controls| child elements.
 
-A |map-controls| element can have a |position| attribute, which
-indicates the desired placement of the element within the box of the
-map.  The value must be one of: |left-top|, |left-center|,
-|left-bottom|, |right-top|, |right-center|, |right-bottom|,
-|top-left|, |top-center|, |top-right|, |bottom-left|, |bottom-center|,
-or |bottom-right| (default).
+  A |map-controls| element represents a set of custom control
+  elements, which are placed over the map.
 
-Note that |map-controls| elements might be reparented whenever
-necessary.
+  A |map-controls| element can have a |position| content attribute,
+  which indicates the desired placement of the element within the box
+  of the map.
+
+  The value must be one of: |left-top|, |left-bottom|, |right-top|,
+  and |right-bottom|.
+
+  For backward compatibility, following values are also supported (but
+  deprecated): |top-left|, |top-right|, |bottom-left|, and
+  |bottom-right|.  If the map's |engine| does not support these values
+  (i.e. the map's |engine| is not |googlemaps|), these are interpreted
+  as if their counterpart, e.g. |right-bottom| for |bottom-right|.
+
+  For backward compatibility, following values are also supported (but
+  deprecated): |left-center|, |right-center|, |top-center|, and
+  |bottom-center|.  If the map's |engine| does not support these
+  values (i.e. the map's |engine| is not |googlemaps|), these are
+  interpreted as if |center| in the values were replaced by |top| or
+  |left|.
+
+  If a |map-controls| element does not have any |position| content
+  attribute, it is placed as if the value |bottom-right| were
+  specified.
+
+  Note that |map-controls| elements might be reparented whenever
+  necessary.
+
+  Any |map-controls| element is ignored when the map's |engine| is
+  |googlemapsembed|.
 
 ** <qr-code>
 

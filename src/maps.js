@@ -100,7 +100,6 @@
       img.width = tileSize.x;
       img.height = tileSize.y;
 
-      console.log(coords.z);
       var u;
       var srcs = this.options.srcs;
       for (var i = 0; i < srcs.length; i++) {
@@ -181,6 +180,16 @@
   }); // L.GridLayer.GSIOverlay
   L.gridLayer.gsiOverlay = function (opts) {
     return new L.GridLayer.GSIOverlay (opts);
+  };
+
+  L.Control.ElementControl = L.Control.extend ({
+    onAdd: function () {
+      var e = this.options.element;
+      return e;
+    }, // onAdd
+  });
+  L.control.elementControl = function (opts) {
+    return new L.Control.ElementControl (opts);
   };
 
   var gmPromise;
@@ -372,6 +381,11 @@
         if (this.hasAttribute ('gsi')) {
           this.setMapType ('gsi-standard');
         }
+        
+        new MutationObserver ((mutations) => {
+          this.maRedraw ({controls: true});
+        }).observe (this, {childList: true});
+        this.maRedraw ({controls: true});
       }, // pcInitLeaflet
       
       maRedrawEvent: function () {
@@ -437,7 +451,30 @@
           }
 
           if (updates.controls || updates.all) {
-            if (this.maEngine === 'googlemaps') {
+            if (this.maEngine === 'leaflet') {
+              Array.prototype.slice.call (this.children).forEach (e => {
+                if (e.localName === 'map-controls') {
+                  var position = {
+                    'top-left': 'topleft',
+                    'top-center': 'topleft',
+                    'top-right': 'topright',
+                    'bottom-left': 'bottomleft',
+                    'bottom-center': 'bottomleft',
+                    'left-top': 'topleft',
+                    'left-center': 'topleft',
+                    'left-bottom': 'bottomleft',
+                    'right-top': 'topright',
+                    'right-center': 'topright',
+                    'right-bottom': 'bottomright',
+                  }[e.getAttribute ('position')] || 'bottomright';
+                  var c = L.control.elementControl ({
+                    element: e,
+                    position,
+                  });
+                  c.addTo (this.pcLMap);
+                }
+              });
+            } else if (this.maEngine === 'googlemaps') {
               Array.prototype.slice.call (this.children).forEach (e => {
                 if (e.localName === 'map-controls') {
                   // <https://developers.google.com/maps/documentation/javascript/controls>
@@ -662,7 +699,7 @@
         
         map.eachLayer (l => map.removeLayer (l));
         layers.forEach (l => map.addLayer (l));
-
+        
       }, // pcChangeMapType
       
     },
