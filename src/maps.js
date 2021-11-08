@@ -16,6 +16,20 @@
     e.pcDef = def;
     document.head.appendChild (e);
   }; // define
+  
+  function parseCSSString (cssText, defaultText) {
+    var m = (cssText || 'auto').match (/^\s*"([^"\\]*)"\s*$/); // XXX escape
+    if (m) {
+      return m[1];
+    }
+
+    var m = (cssText || 'auto').match (/^\s*'([^'\\]*)'\s*$/); // XXX escape
+    if (m) {
+      return m[1];
+    }
+
+    return defaultText;
+  } // parseCSSString
 
   var noImageURL = 'https://rawgit.com/wakaba/html-page-components/master/css/noimage.svg';
   // Credit required by GSI.
@@ -183,12 +197,36 @@
   };
 
   L.Control.ElementControl = L.Control.extend ({
-    onAdd: function () {
+    onAdd: function (map) {
       var e = this.options.element;
+      e.pcMap = map;
+      if (this.options.styling) this.options.styling (e);
       return e;
     }, // onAdd
   });
   L.control.elementControl = function (opts) {
+    return new L.Control.ElementControl (opts);
+  };
+  L.control.fullscreenButton = function (opts) {
+    var b = document.createElement ('button');
+    b.className = 'pc-control-button pc-fullscreen-control-button';
+    b.type = 'button';
+    b.textContent = '\u26F6';
+    b.onclick = async () => {
+      var e = b.pcMap.getContainer ();
+      if (document.fullscreenElement) {
+        document.exitFullscreen ();
+      } else {
+        e.requestFullscreen ();
+      }
+    };
+    opts.element = b;
+    opts.styling = b => {
+      var e = b.pcMap.getContainer ();
+      // recompute!
+      var m = parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-fullscreen-title'), 'Fullscreen');
+      b.title = m;
+    };
     return new L.Control.ElementControl (opts);
   };
 
@@ -367,15 +405,26 @@
           if (c.length) {
             c.forEach (_ => controls[_] = true);
           } else {
-            controls = {zoom: true, scale: true};
+            controls = {zoom: true, scale: true, fullscreen: true};
           }
         }
 
         var map = this.pcLMap = L.map (this, {
-          zoomControl: !!controls.zoom,
+          zoomControl: false,
         });
 
+        if (controls.zoom) {
+          // recompute!
+          var s = getComputedStyle (this);
+          var zoomInTitle = parseCSSString (s.getPropertyValue ('--paco-zoomin-title'), 'Zoom in');
+          var zoomOutTitle = parseCSSString (s.getPropertyValue ('--paco-zoomout-title'), 'Zoom out');
+          L.control.zoom ({
+            zoomInTitle,
+            zoomOutTitle,
+          }).addTo (map);
+        }
         if (controls.scale) L.control.scale ({}).addTo (map);
+        if (controls.fullscreen) L.control.fullscreenButton ({}).addTo (map);
 
         // Map need to be recomputed if it is initialized when not
         // shown.

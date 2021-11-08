@@ -1351,10 +1351,10 @@ The following content attributes are available:
     If a |controls| attribute is specified to a space-separated list
     of keywords, the respective controls are shown, as follows:
 
-      |fullscreen|   Fullscreen view mode
+      |fullscreen|   Fullscreen mode button
       |scale|        Scale
-      |streetview|   Street view mode (ignored unless the map's
-                     |engine| is |googlemaps|)
+      |streetview|   Street view mode button (ignored unless the map's
+                     |engine| is |googlemaps|; deprecated)
       |type|         Map type switches
       |zoom|         Zoom in and out buttons
 
