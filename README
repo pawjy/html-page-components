@@ -1340,6 +1340,35 @@ addition to the main script:
 
 The following content attributes are available:
 
+  <map-engine controls="">
+
+    How builtin map controls are shown.
+
+    If a |controls| attribute is specified with the empty value,
+    default builtin map control is shown.  It is equivalent to
+    |controls="scale zoom"| (but might be changed in future).
+
+    If a |controls| attribute is specified to a space-separated list
+    of keywords, the respective controls are shown, as follows:
+
+      |fullscreen|   Fullscreen view mode
+      |scale|        Scale
+      |streetview|   Street view mode (ignored unless the map's
+                     |engine| is |googlemaps|)
+      |type|         Map type switches
+      |zoom|         Zoom in and out buttons
+
+    If there is no |controls| attribute, no builtin map control is
+    shown.
+
+    For backward compatibility, when the map's |engine| is
+    |googlemaps|, the map's |engine|'s default is applied when there
+    is no |controls| attribute and no builtin control is shown when
+    the |controls| attribute value is the empty string.
+
+    This attribute is ignored when the map's |engine| is
+    |googlemapsembed|.
+
   <map-area engine="">
 
     The engine used to render the map.
@@ -1433,28 +1462,6 @@ The following content attributes are available:
     The (absolute or relative) URL of the image that is used when no
     image data is available.  If not specified, the default image is
     used.  This is applied to GSI maps.
-
-  controls="" : boolean
-
-    How builtin map controls are shown.  This attribute is supported
-    only when the |engine| is |googlemaps|.
-
-    If the attribute is not specified, the map engine's default is
-    applied.  (This behavior is different from the |controls|
-    attribute of media elements.)
-
-    If the attribute is specified with the empty value, no control is
-    shown.  (This behavior is different from the |controls| attribute
-    of media elements.)
-
-    If the attribute value is a space-separated list of following
-    keywords, the respective controls only are shown:
-
-      |fullscreen|   Fullscreen view mode
-      |scale|        Scale
-      |streetview|   Street view mode
-      |type|         Map type switches
-      |zoom|         Zoom in and out buttons
 
 The following properties are available:
 
@@ -1553,14 +1560,16 @@ The following properties are available:
 
     This method is ignored unless the map's |engine| is |leaflet|.
 
-A |pcRedraw| event, which bubbles, is fired at the element when the
-map's visible area has been changed; e.g., when the map is
-initialized, the map's center has been moved (when |engine| is not
-|googlemapsembed|), the zoom level has been changed (when |engine| is
-not |googlemapsembed|), the map's dimension has been changed (when
-|engine| is not |googlemapsembed|), and so on.  This event can be used
-as the oppotunity to relocate map overlay objects or to recalculate
-any associated data outside of the map.
+Events.
+
+  A |pcRedraw| event, which bubbles, is fired at the element when the
+  map's visible area has been changed; e.g., when the map is
+  initialized, the map's center has been moved (when |engine| is not
+  |googlemapsembed|), the zoom level has been changed (when |engine|
+  is not |googlemapsembed|), the map's dimension has been changed
+  (when |engine| is not |googlemapsembed|), and so on.  This event can
+  be used as the oppotunity to relocate map overlay objects or to
+  recalculate any associated data outside of the map.
 
 Element content.  A |map-area| element can contain zero or more
 |map-controls| child elements.

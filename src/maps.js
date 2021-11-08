@@ -360,9 +360,22 @@
           lon: this.maAttrFloat ('lon', 0),
         };
 
+        var c = this.getAttribute ('controls');
+        var controls = {};
+        if (c !== null) {
+          c = c.split (/\s+/).filter (_ => _.length);
+          if (c.length) {
+            c.forEach (_ => controls[_] = true);
+          } else {
+            controls = {zoom: true, scale: true};
+          }
+        }
+
         var map = this.pcLMap = L.map (this, {
+          zoomControl: !!controls.zoom,
         });
-        L.control.scale ({}).addTo (map);
+
+        if (controls.scale) L.control.scale ({}).addTo (map);
 
         // Map need to be recomputed if it is initialized when not
         // shown.
