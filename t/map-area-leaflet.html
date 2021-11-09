@@ -387,7 +387,7 @@
 
   <test-code name="map-area controls=type">
     /*
-      <map-area engine=leaflet lat=20.33 lon=-120.7013 controls></map-area>
+      <map-area engine=leaflet lat=20.33 lon=-120.7013 controls gsi></map-area>
     */
     var e = this.currentScript.querySelector ('map-area');
     await this.wait ();
@@ -414,6 +414,15 @@
     await this.wait ();
     var a = e.querySelector ('a[href^="geo:"]');
     this.assert.equal (a.href, 'geo:20.33,-120.7013');
+
+    var c = m.querySelector ('menu-item:nth-of-type(3) input[type=checkbox]');
+    c.click ();
+    await this.wait ();
+    
+    this.assert.equal (e.pcMapType, 'gsi-hillshade-standard');
+    this.assert.equal (m.querySelector ('menu-item:nth-of-type(1)').classList.contains ('selected'), false);
+    this.assert.equal (m.querySelector ('menu-item:nth-of-type(2)').classList.contains ('selected'), false);
+    this.assert.equal (m.querySelector ('menu-item:nth-of-type(3)').classList.contains ('selected'), true);
   </test-code>
 
   <script src=runtests.js data-maps></script>

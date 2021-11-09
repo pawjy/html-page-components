@@ -246,12 +246,49 @@
       mi[2].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-open-geohack-text'), 'Open in others...');
       mi[3].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-copy-center-text'), 'Copy center coordinates');
 
+      if (e.hasAttribute ('gsi')) {
+        var mm = m.querySelector ('menu-main');
+        var nodes = document.createElement ('div');
+        nodes.innerHTML = '<menu-item data-class-field=mapClassName data-true=gsi-standard-hillshade data-false=gsi-lang><button>Map</button> <label><input type=checkbox> <span>Hillshade</span></label></menu-item><menu-item data-class-field=photoClassName data-true=gsi-photo-standard data-false=gsi-photo><button>Photo</button> <label><input type=checkbox> <span>Map</span></label></menu-item><menu-item data-class-field=hillshadeClassName data-true=gsi-hillshade-standard data-false=gsi-hillshade><button>Hillshade</button> <label><input type=checkbox> <span>Map</span></label></menu-item><hr>'
+        var mis = nodes.querySelectorAll ('menu-item');
+        mis[0].onclick = mis[1].onclick = mis[2].onclick = function () {
+          e.setMapType (this.getAttribute ('data-' + this.querySelector ('input[type=checkbox]').checked));
+          this.dispatchEvent (new Event ('toggle', {bubbles: true}));
+        };
+        var sMap = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-map-text'), 'Map');
+        var sHillshade = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-hillshade-text'), 'Hillshade');
+        var sPhoto = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-photo-text'), 'Photo');
+        mis[0].querySelector ('button').textContent = sMap;
+        mis[0].querySelector ('span').textContent = sHillshade;
+        mis[1].querySelector ('button').textContent = sPhoto;
+        mis[1].querySelector ('span').textContent = sMap;
+        mis[2].querySelector ('button').textContent = sHillshade;
+        mis[2].querySelector ('span').textContent = sMap;
+        Array.prototype.slice.call (nodes.childNodes).reverse ().forEach (_ => mm.insertBefore (_, mm.firstChild));
+      }
+
       m.addEventListener ('toggle', () => {
         if (m.hasAttribute ('open')) {
+          var mapClassName = '';
+          var hillshadeClassName = '';
+          var photoClassName = '';
+          var mt = e.pcMapType;
+          if (mt === 'gsi-lang' || mt === 'gsi-standard-hillshade') {
+            mapClassName = 'selected';
+          }
+          if (mt === 'gsi-photo' || mt === 'gsi-photo-standard') {
+            photoClassName = 'selected';
+          }
+          if (mt === 'gsi-hillshade' || mt === 'gsi-hillshade-standard') {
+            hillshadeClassName = 'selected';
+          }
           e.pcInternal.$fill (m, {
             lat: e.maCenter.lat,
             lon: e.maCenter.lon,
             zoomLevel: e.pcZoomLevel,
+            mapClassName,
+            hillshadeClassName,
+            photoClassName,
           });
         }
       });

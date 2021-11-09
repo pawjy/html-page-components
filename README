@@ -1358,7 +1358,7 @@ The following content attributes are available:
       |scale|            Scale
       |streetview|       "Street view mode" button (ignored unless the
                          map's |engine| is |googlemaps|; deprecated)
-      |type|             Map type switches
+      |type|             Map type menu (or buttons)
       |zoom|             "Zoom in" and "Zoom out" buttons
 
     If there is no |controls| attribute, no builtin map control is
@@ -1427,6 +1427,9 @@ The following content attributes are available:
 
     If the attribute is specified, the |gsi-lang| map type is selected
     by default.
+
+    If the attribute is specified, GSI map types are added to the map
+    type menu (see |<map-area controls>|).
 
     For backward compatibility, when the map's |engine| is
     |googlemaps|:
