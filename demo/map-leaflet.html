@@ -34,6 +34,9 @@
       <button value=gsi-english-standard onclick="
         document.querySelector('map-area').setMapType(this.value);
       ">english/standard</button>
+      <button value=gsi-lang onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">lang-dependent</button>
       <button value=gsi-hillshade onclick="
         document.querySelector('map-area').setMapType(this.value);
       ">hillshade</button>
@@ -56,6 +59,7 @@
         m.setAttribute ('lat', lat);
         m.setAttribute ('lon', lon);
       ">
+    <p>
       <output name=bounds></output>
     <script>
     (() => {

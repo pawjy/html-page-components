@@ -1,12 +1,30 @@
 /* page-components.js default styles */
 
+:root {
+  --paco-menu-z-index: 99999999;
+  --paco-leaflet-control-default-background-color: white;
+  --paco-leaflet-control-default-color: black;
+  --paco-leaflet-control-hover-background-color: #f4f4f4;
+  --paco-leaflet-control-hover-color: black;
+  --paco-leaflet-control-selected-background-color: #ccc;
+  --paco-leaflet-control-selected-color: black;
+  --paco-leaflet-menu-background-color: white;
+  --paco-leaflet-menu-color: #333;
+  --paco-leaflet-menu-selected-background-color: var(--paco-leaflet-control-selected-background-color);
+  --paco-leaflet-menu-selected-color: var(--paco-leaflet-control-selected-color);
+}
+
 popup-menu:not([open]) > menu-main {
   display: none;
 }
 
 popup-menu[open] > menu-main:not([hidden]) {
   display: block;
+}
+
+popup-menu > menu-main {
   position: absolute;
+  z-index: var(--paco-menu-z-index);
 }
 
 tab-set[ready] > section:not(.active) {
@@ -188,6 +206,18 @@ map-area {
   --paco-zoomin-title: "Zoom in";
   --paco-zoomout-title: "Zoom out";
   --paco-geolocation-failed-message: "Failed to get the current position.";
+  --paco-maptype-title: "Map type";
+  --paco-open-googlemaps-text: "Open in Google Maps";
+  --paco-open-openstreetmap-text: "Open in OpenStreetMap";
+  --paco-open-geohack-text: "Open in others...";
+  --paco-copy-center-text: "Copy center coordinates";
+  --paco--gsi-lang: gsi-standard;
+  --paco-maptype-map-text: 'Map';
+  --paco-maptype-hillshade-text: 'Hillshade';
+  --paco-maptype-photo-text: 'Photo';
+}
+map-area:lang(en) {
+  --paco--gsi-lang: gsi-english-standard;
 }
 map-area:lang(ja) {
   --paco-fullscreen-title: "\5168\753B\9762";
@@ -195,6 +225,14 @@ map-area:lang(ja) {
   --paco-zoomin-title: "\62E1\5927";
   --paco-zoomout-title: "\7E2E\5C0F";
   --paco-geolocation-failed-message: "\73FE\5728\5730\306E\53D6\5F97\306B\5931\6557\3057\307E\3057\305F\3002";
+  --paco-maptype-title: "\5730\56F3\306E\7A2E\985E";
+  --paco-open-googlemaps-text: "Google Maps \3067\958B\304F";
+  --paco-open-openstreetmap-text: "OpenStreetMap \3067\958B\304F";
+  --paco-open-geohack-text: "\305D\306E\4ED6\3067\958B\304F...";
+  --paco-copy-center-text: "\4E2D\5FC3\306E\5EA7\6A19\3092\30B3\30D4\30FC";
+  --paco-maptype-map-text: '\5730\56F3';
+  --paco-maptype-hillshade-text: '\5730\5F62'; /* '\9670\5F71\8D77\4F0F' */
+  --paco-maptype-photo-text: '\822A\7A7A\5199\771F';
 }
 
 map-area > iframe.googlemapsembed:not([hidden]) {
@@ -221,21 +259,87 @@ map-area map-credit a {
 map-area button.paco-control-button {
   border: 2px solid rgba(0,0,0,0.2);
   border-radius: 2px;
-  background-color: white;
-  color: black;
+  background-color: var(--paco-leaflet-control-default-background-color);
+  color: var(--paco-leaflet-control-default-color);
   min-width: 30px;
   min-height: 30px;
   line-height: 30px;
   font-size: 22px;
   cursor: pointer;
+  user-select: none;
 }
 map-area button.paco-control-button:hover {
-  background-color: #f4f4f4;
-  color: black;
+  background-color: var(--paco-leaflet-control-hover-background-color);
+  color: var(--paco-leaflet-control-hover-color);
 }
 map-area:fullscreen button.paco-control-button {
-  background-color: #ccc;
-  color: black;
+  background-color: var(--paco-leaflet-control-selected-background-color);
+  color: var(--paco-leaflet-control-selected-color);
+}
+
+map-area popup-menu.leaflet-control {
+  z-index: var(--paco-menu-z-index);
+}
+
+map-area popup-menu[open] > button.paco-control-button {
+  background-color: var(--paco-leaflet-control-selected-background-color);
+  color: var(--paco-leaflet-control-selected-color);
+}
+
+map-area popup-menu > button::after {
+  content: "\25BC";
+  font-size: 50%;
+  margin: .2em 0 .2em .4em;
+}
+
+map-area popup-menu > menu-main {
+  border: 2px solid rgba(0,0,0,0.2);
+  border-radius: 2px;
+  padding: .5em;
+  background-color: var(--paco-leaflet-menu-background-color);
+  color: var(--paco-leaflet-menu-color);
+  font-size: 1rem;
+  min-width: 10em;
+  width: max-content;
+}
+
+map-area popup-menu > menu-main > menu-item:not([hidden]) {
+  display: flex;
+  align-items: center;
+}
+
+map-area popup-menu > menu-main > menu-item a:not([hidden]) {
+  display: block;
+}
+map-area popup-menu > menu-main > menu-item a,
+map-area.leaflet-container popup-menu > menu-main > menu-item a {
+  text-decoration: none;
+  color: inherit;
+  background-color: transparent;
+  padding: .3em;
+}
+map-area popup-menu > menu-main > menu-item a:hover,
+map-area popup-menu > menu-main > menu-item a:focus,
+map-area popup-menu > menu-main > menu-item a:active {
+  background-color: var(--paco-leaflet-menu-selected-background-color);
+  color: var(--paco-leaflet-menu-selected-color);
+}
+
+map-area popup-menu > menu-main > menu-item > button {
+  flex: 1;
+  -webkit-appearance: none;
+  border: none;
+  padding: .3em;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+map-area popup-menu > menu-main > menu-item.selected > button {
+  background-color: var(--paco-leaflet-menu-selected-background-color);
+  color: var(--paco-leaflet-menu-selected-color);
 }
 
 template-set {
