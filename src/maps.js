@@ -457,12 +457,15 @@
           L.control.zoom ({
             zoomInTitle,
             zoomOutTitle,
+            position: 'bottomright',
           }).addTo (map);
         }
         if (controls.scale) L.control.scale ({}).addTo (map);
 
         if (controls.type) {
-          L.control.mapTypeMenu ({}).addTo (map);
+          L.control.mapTypeMenu ({
+            position: 'topleft',
+          }).addTo (map);
         }
         if (controls.fullscreen) L.control.fullscreenButton ({}).addTo (map);
 
@@ -493,7 +496,7 @@
         map.setView (this.maCenter, 8);
 
         if (this.hasAttribute ('gsi')) {
-          this.setMapType ('gsi-standard');
+          this.setMapType ('gsi-lang');
         }
         
         new MutationObserver ((mutations) => {
@@ -695,10 +698,22 @@
         this.maRedraw ({mapType: true});
       }, // setMapType
       pcChangeMapType: function () {
-        var type = this.pcMapType;
+        var sType = this.pcMapType;
         var map = this.pcLMap;
 
         var layers = [];
+
+        var type = sType;
+        if (sType === 'gsi-lang') {
+          var s = getComputedStyle (this);
+          var lang = s.getPropertyValue ('--paco--gsi-lang') || '';
+          lang = lang.replace (/^\s+/, '').replace (/\s+$/, '');
+          if (lang === 'gsi-english-standard') {
+            type = 'gsi-english-standard';
+          } else {
+            type = 'gsi-standard';
+          }
+        }
 
         var errorTileUrl = this.getAttribute ('noimgsrc') || noImageURL;
         if (type === 'gsi-standard') {

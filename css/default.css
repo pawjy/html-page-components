@@ -877,6 +877,7 @@ map-area {
   --paco-open-openstreetmap-text: "Open in OpenStreetMap";
   --paco-open-geohack-text: "Open in others...";
   --paco-copy-center-text: "Copy center coordinates";
+  --paco--gsi-lang: gsi-standard;
 }
 map-area:lang(ja) {
   --paco-fullscreen-title: "\5168\753B\9762";
@@ -889,6 +890,9 @@ map-area:lang(ja) {
   --paco-open-openstreetmap-text: "OpenStreetMap \3067\958B\304F";
   --paco-open-geohack-text: "\305D\306E\4ED6\3067\958B\304F...";
   --paco-copy-center-text: "\4E2D\5FC3\306E\5EA7\6A19\3092\30B3\30D4\30FC";
+}
+map-area:lang(en) {
+  --paco--gsi-lang: gsi-english-standard;
 }
 
 map-area > iframe.googlemapsembed:not([hidden]) {
@@ -955,8 +959,8 @@ map-area popup-menu > menu-main {
   background-color: var(--paco-leaflet-menu-background-color);
   color: var(--paco-leaflet-menu-color);
   font-size: 1rem;
-  right: 0;
   min-width: 10em;
+  width: max-content;
 }
 
 map-area popup-menu > menu-main > menu-item:not([hidden]) {

@@ -1414,6 +1414,45 @@ The following content attributes are available:
         |data-google-maps-key| attribute value of the root element
         (the |html| element).
 
+  <map-area gsi=""> : boolean
+
+    Whether GSI map types are enabled by default or not.
+
+    The GSI map types show the 地理院タイル (GSI Tile)
+    <https://maps.gsi.go.jp/development/ichiran.html> map data
+    provided by 国土地理院 (Geospatial Information Authority of Japan)
+    <https://www.gsi.go.jp/> of the Japanese Government.
+
+    If specified, the attribute value has to be the empty string.
+
+    If the attribute is specified, the |gsi-lang| map type is selected
+    by default.
+
+    For backward compatibility, when the map's |engine| is
+    |googlemaps|:
+
+      If the attribute is specified, the GSI standard map is added to
+      the list of map type buttons available for the selection.  If
+      the attribute value is not the empty string, it is used as the
+      label of the button.  If the attribute value is the empty
+      string, the default label is used instead.
+
+      When the map type GSI is selected, a |map-credit| element whose
+      content is a link to the GSI Web site is displayed as the credit
+      of the GSI Tile, as required by GSI.  This element and its
+      content can be styled using CSS.
+
+    This attribute is ignored when the map's |engine| is
+    |googlemapsembed|.
+
+  <map-area gsititle=""> : string [deprecated]
+
+    The short description of the GSI map type, used as the tooltip of
+    the button to switch to the GSI map type.  If not specified, the
+    default text is used.  This content attribute is ignored unless
+    the map's |engine| is |googlemaps| and the |gsi| content attribute
+    is specified.
+
   lat="" : float
 
     The initial latitude of the center point of the map.  The default
@@ -1429,42 +1468,6 @@ The following content attributes are available:
 
     Any mutation to the attribute results in the map being moved, if
     necessary.
-
-  gsi="" : boolean
-
-    Whether GSI map types are enabled by default or not.
-
-    The GSI map types show the 地理院タイル (GSI Tile)
-    <https://maps.gsi.go.jp/development/ichiran.html> map data
-    provided by 国土地理院 (Geospatial Information Authority of Japan)
-    <https://www.gsi.go.jp/> of the Japanese Government.
-
-    If the map's |engine| is |leaflet|, the |gsi-standard| map type is
-    enabled by default when the attribute is specified.  The attribute
-    value has to be the empty string.
-
-    If the map's |engine| is |googlemaps|:
-
-      If the content attribute is NOT specified, the GSI map is not
-      enabled.  Otherwise, if non-empty attribute value is string, it
-      is used as the label of the button to switch to the GSI map
-      type.  Otherwise, if the empty value is specified, the default
-      label is used.
-
-      When the map type GSI is selected, a |map-credit| element whose
-      content is a link to the GSI Web site is displayed as the credit
-      of the GSI Tile, as required by GSI.  This element and its
-      content can be styled using CSS.
-
-    This attribute is ignored for other map engines.
-
-  gsititle="" : string [deprecated]
-
-    The short description of the GSI map type, used as the tooltip of
-    the button to switch to the GSI map type.  If not specified, the
-    default text is used.  This content attribute is ignored unless
-    the map's |engine| is |googlemaps| and the |gsi| content attribute
-    is specified.
 
   noimgsrc="" : URL
 
@@ -1549,6 +1552,12 @@ The following properties are available:
       gsi-hillshade-standard
 
         GSI's standard map, rendered on the GSI's hillshade map.
+
+      gsi-lang
+
+        Language-dependent.  If the map's language (as specified by
+        the |lang=""| attribute) is |en|, same as
+        |gsi-english-standard|.  Otherwise, same as |gsi-standard|.
 
       gsi-photo
 
