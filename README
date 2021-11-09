@@ -1346,8 +1346,8 @@ The following content attributes are available:
 
     If a |controls| attribute is specified with the empty value,
     default builtin map control is shown.  It is equivalent to
-    |controls="scale zoom fullscreen currentposition"| (but might be
-    changed in future).
+    |controls="scale zoom fullscreen currentposition type"| (but might
+    be changed in future).
 
     If a |controls| attribute is specified to a space-separated list
     of keywords, the respective controls are shown, as follows:

@@ -228,6 +228,36 @@
     };
     return new L.Control.ElementControl (opts);
   }; // L.control.currentPositionButton
+  L.control.mapTypeMenu = function (opts) {
+    var m = document.createElement ('popup-menu');
+    m.className = 'paco-map-type-menu';
+    m.innerHTML = '<button type=button class="paco-control-button">\u{1F5FA}</button><menu-main><menu-item><a data-href-template="https://www.google.com/maps?ll={lat},{lon}&z={zoomLevel}" target=_blank rel=noreferrer>Google Maps</a></menu-item><menu-item><a data-href-template="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom={zoomLevel}" target=_blank rel=noreferrer>OpenStreetMap</a></menu-item><menu-item><a data-href-template="https://geohack.toolforge.org/geohack.php?params={lat};{lon}" target=_blank rel=noreferrer>Others...</a></menu-item><menu-item><a data-href-template="geo:{lat},{lon}" is=copy-url>Copy</a></menu-item></menu-main>';
+    m.addEventListener ('dblclick', ev => ev.stopPropagation ());
+    opts.element = m;
+    opts.styling = m => {
+      var e = m.pcMap.getContainer ();
+      
+      // recompute!
+      var s = getComputedStyle (e);
+      m.firstChild.title = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-title'), 'Map type');
+      var mi = m.querySelectorAll ('a');
+      mi[0].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-open-googlemaps-text'), 'Open in Google Maps');
+      mi[1].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-open-openstreetmap-text'), 'Open in OpenStreetMap');
+      mi[2].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-open-geohack-text'), 'Open in others...');
+      mi[3].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-copy-center-text'), 'Copy center coordinates');
+
+      m.addEventListener ('toggle', () => {
+        if (m.hasAttribute ('open')) {
+          e.pcInternal.$fill (m, {
+            lat: e.maCenter.lat,
+            lon: e.maCenter.lon,
+            zoomLevel: e.pcZoomLevel,
+          });
+        }
+      });
+    };
+    return new L.Control.ElementControl (opts);
+  }; // L.control.mapTypeMenu
 
   var gmPromise;
   var loadGoogleMaps = () => {
@@ -406,7 +436,7 @@
             c.forEach (_ => controls[_] = true);
           } else {
             controls = {zoom: true, scale: true, fullscreen: true,
-                        currentposition: true};
+                        currentposition: true, type: true};
           }
         }
 
@@ -425,6 +455,10 @@
           }).addTo (map);
         }
         if (controls.scale) L.control.scale ({}).addTo (map);
+
+        if (controls.type) {
+          L.control.mapTypeMenu ({}).addTo (map);
+        }
         if (controls.fullscreen) L.control.fullscreenButton ({}).addTo (map);
 
         if (controls.currentposition) {
@@ -448,6 +482,7 @@
         map.on ('load viewreset zoomend moveend', ev => {
           var c = map.getCenter ();
           this.maCenter = {lat: c.lat, lon: c.lng};
+          this.pcZoomLevel = map.getZoom ();
           this.maRedrawEvent ();
         });
         map.setView (this.maCenter, 8);
