@@ -1429,7 +1429,7 @@ The following content attributes are available:
     by default.
 
     If the attribute is specified, GSI map types are added to the map
-    type menu (see |<map-area controls>|).
+    type menu (see |<map-area controls=type>|).
 
     For backward compatibility, when the map's |engine| is
     |googlemaps|:
@@ -1456,6 +1456,22 @@ The following content attributes are available:
     the map's |engine| is |googlemaps| and the |gsi| content attribute
     is specified.
 
+  <map-area jma=""> : boolean
+
+    Whether the JMA map are enabled or not.
+
+    The JMA map shows the tile images provided by 気象庁 (Japan
+    Meteorological Agency) <https://www.jma.go.jp/> of the Japanese
+    Government.
+
+    If specified, the attribute value has to be the empty string.
+
+    If the attribute is specified, the JMA map option is added to the
+    map type menu (see |<map-area controls=type>|).
+
+    This attribute is ignored when the map's |engine| is |googlemaps|
+    or |googlemapsembed|.
+
   lat="" : float
 
     The initial latitude of the center point of the map.  The default
@@ -1477,6 +1493,16 @@ The following content attributes are available:
     The (absolute or relative) URL of the image that is used when no
     image data is available.  If not specified, the default image is
     used.  This is applied to GSI maps.
+
+  <map-area tzoffset=""> : number
+
+    The time-zone offset from UTC, represented as a floating-point
+    number in seconds, where a positive number mean a time faster than
+    UTC.  If not specified, defaulted to the platform's time-zone
+    offset.
+
+    This value is used when a timestamp is shown.  See also
+    |toggleJMANowc|.
 
 The following properties are available:
 
@@ -1580,6 +1606,29 @@ The following properties are available:
         GSI's standard map, overlayed on the GSI's hillshade map.
 
     This method is ignored unless the map's |engine| is |leaflet|.
+
+  toggleJMANowc (/flag/)
+
+    Set whether the JMA map tile images should be shown over the map
+    or not.
+
+    The argument must be a boolean value.  If true, it's shown.
+
+    The tile images shown are the most recent 速報版解析雨量タイル画像,
+    which is generated every 10 minutes
+    <https://www.data.jma.go.jp/add/suishin/cgi-bin/catalogue/make_product_page.cgi?id=KaisekiU>.
+    See also:
+    <https://www.jma.go.jp/jma/kishou/know/kurashi/kaiseki.html>,
+    <https://www.jma.go.jp/jma/kishou/know/kurashi/kotan_nowcast.html>,
+    <https://www.jma.go.jp/jma/kishou/info/coment.html>.
+
+    The tile images are reloaded whenever the new image data is
+    available.
+
+    When the JMA map is shown, a map control that contains the
+    timestamp of the map is shown.  Its formatting should be handled
+    by time.js <https://github.com/wakaba/timejs>.  (A demo file
+    |demo/map-leaflet.html| has an example.)
 
 Events.
 
