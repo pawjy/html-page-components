@@ -425,6 +425,50 @@
     this.assert.equal (m.querySelector ('menu-item:nth-of-type(3)').classList.contains ('selected'), true);
   </test-code>
 
+  <test-code name="map-area jma">
+    /*
+      <map-area engine=leaflet lat=20.33 lon=-120.7013 controls jma lang=ja></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+    await e.ready;
+
+    var m = e.querySelector ('popup-menu');
+    this.assert.equal (!!m.offsetWidth, true, 'menu shown');
+    m.querySelector ('button').click ();
+
+    await this.wait ();
+    var input = e.querySelector ('input[type=checkbox]');
+    this.assert.equal (input.parentNode.querySelector ('span').textContent, '雨雲の動き');
+
+    input.click ();
+    var ts = e.querySelector ('.paco-jma-timestamp-control');
+    this.assert.equal (!!ts.offsetWidth, true);
+    this.assert.equal (!!ts.querySelector ('time').textContent, true);
+    this.assert.equal (ts.querySelector ('time').getAttribute ('tzoffset'), null);
+  </test-code>
+
+  <test-code name="map-area timestamp tzoffset">
+    /*
+      <map-area engine=leaflet lat=20.33 lon=-120.7013 controls jma tzoffset=-3600></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+    await e.ready;
+
+    var m = e.querySelector ('popup-menu');
+    this.assert.equal (!!m.offsetWidth, true, 'menu shown');
+    m.querySelector ('button').click ();
+
+    await this.wait ();
+    var input = e.querySelector ('input[type=checkbox]');
+    this.assert.equal (input.parentNode.querySelector ('span').textContent, '雨雲の動き');
+
+    input.click ();
+    var ts = e.querySelector ('.paco-jma-timestamp-control');
+    this.assert.equal (!!ts.offsetWidth, true);
+    this.assert.equal (!!ts.querySelector ('time').textContent, true);
+    this.assert.equal (ts.querySelector ('time').getAttribute ('tzoffset'), '-3600');
+  </test-code>
+
   <script src=runtests.js data-maps></script>
 </body>
 </html>
