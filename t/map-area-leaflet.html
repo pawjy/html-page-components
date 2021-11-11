@@ -449,7 +449,7 @@
 
   <test-code name="map-area timestamp tzoffset">
     /*
-      <map-area engine=leaflet lat=20.33 lon=-120.7013 controls jma tzoffset=-3600></map-area>
+      <map-area engine=leaflet lat=20.33 lon=-120.7013 controls jma tzoffset=-3600 lang=ja></map-area>
     */
     var e = this.currentScript.querySelector ('map-area');
     await e.ready;
@@ -466,7 +466,7 @@
     var ts = e.querySelector ('.paco-jma-timestamp-control');
     this.assert.equal (!!ts.offsetWidth, true);
     this.assert.equal (!!ts.querySelector ('time').textContent, true);
-    this.assert.equal (ts.querySelector ('time').getAttribute ('tzoffset'), '-3600');
+    this.assert.equal (ts.querySelector ('time').getAttribute ('data-tzoffset'), '-3600');
   </test-code>
 
   <script src=runtests.js data-maps></script>
