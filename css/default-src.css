@@ -275,7 +275,7 @@ map-area button.paco-control-button:hover {
   background-color: var(--paco-leaflet-control-hover-background-color);
   color: var(--paco-leaflet-control-hover-color);
 }
-map-area:fullscreen button.paco-control-button {
+map-area:fullscreen button.paco-fullscreen-control-button {
   background-color: var(--paco-leaflet-control-selected-background-color);
   color: var(--paco-leaflet-control-selected-color);
 }
@@ -370,11 +370,13 @@ template-set {
 }
 
 a[is=copy-url],
-button[is=copy-text-content] {
+button[is=copy-text-content],
+can-copy {
   --paco-copied-message: "Copied to the clipboard!";
 }
 a[is=copy-url]:lang(ja),
-button[is=copy-text-content]:lang(ja) {
+button[is=copy-text-content]:lang(ja),
+can-copy:lang(ja) {
   --paco-copied-message: "\30AF\30EA\30C3\30D7\30DC\30FC\30C9\306B\30B3\30D4\30FC\3057\307E\3057\305F\3002";
 }
 
