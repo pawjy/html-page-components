@@ -55,9 +55,12 @@ src/maps.js: src/maps-src.js \
 	cat intermediate/leaflet/LICENSE >> $@
 	echo '*/' >> $@
 
-css/default.css: css/default-src.css \
+css/default.css: \
+    css/default-import.css \
+    css/default-src.css \
     intermediate/leaflet/leaflet.css intermediate/leaflet/LICENSE
-	echo '/* Leaflet default styles */' > $@
+	cat css/default-import.css > $@
+	echo '/* Leaflet default styles */' >> $@
 	cat intermediate/leaflet/leaflet.css >> $@
 	echo '/*' >> $@
 	cat intermediate/leaflet/LICENSE >> $@

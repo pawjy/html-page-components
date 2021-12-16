@@ -1,3 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols&display=swap');
+
+/*
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+*/
 /* Leaflet default styles */
 /* required styles */
 
@@ -679,6 +688,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   --paco-leaflet-menu-selected-background-color: var(--paco-leaflet-control-selected-background-color);
   --paco-leaflet-menu-selected-color: var(--paco-leaflet-control-selected-color);
   --paco-leaflet-menu-item-padding: .3em;
+  --paco-symbol-font: "Noto Sans Symbols";
 }
 
 popup-menu:not([open]) > menu-main {
@@ -926,13 +936,16 @@ map-area map-credit a {
 }
 
 map-area button.paco-control-button {
+  -webkit-appearance: none;
+  width: auto;
   border: 2px solid rgba(0,0,0,0.2);
   border-radius: 2px;
+  padding: 5px;
   background-color: var(--paco-leaflet-control-default-background-color);
   color: var(--paco-leaflet-control-default-color);
   min-width: 30px;
   min-height: 30px;
-  line-height: 30px;
+  line-height: 1;
   font-size: 22px;
   cursor: pointer;
   user-select: none;
@@ -955,10 +968,18 @@ map-area popup-menu[open] > button.paco-control-button {
   color: var(--paco-leaflet-control-selected-color);
 }
 
+map-area .paco-fullscreen-control-button,
+map-area .paco-currentposition-control-button,
+map-area .paco-maptype-control-button {
+  font-family: var(--paco-symbol-font);
+}
+
 map-area popup-menu > button::after {
   content: "\25BC";
+  font-family: var(--paco-symbol-font);
   font-size: 50%;
   margin: .2em 0 .2em .4em;
+  vertical-align: middle;
 }
 
 map-area popup-menu > menu-main {
