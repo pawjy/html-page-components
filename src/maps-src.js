@@ -229,13 +229,19 @@
     return new L.Control.ElementControl (opts);
   }; // L.control.currentPositionButton
   L.control.mapTypeMenu = function (opts) {
+    var c = document.createElement ('span');
+    c.className = 'paco-menu-container';
+    
     var m = document.createElement ('popup-menu');
     m.className = 'paco-map-type-menu';
     m.innerHTML = '<button type=button class="paco-control-button paco-maptype-control-button">\u{1F5FA}</button><menu-main><menu-item><a data-href-template="https://www.google.com/maps?ll={lat},{lon}&z={zoomLevel}" target=_blank rel=noreferrer>Google Maps</a></menu-item><menu-item><a data-href-template="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom={zoomLevel}" target=_blank rel=noreferrer>OpenStreetMap</a></menu-item><menu-item><a data-href-template="https://geohack.toolforge.org/geohack.php?params={lat};{lon}" target=_blank rel=noreferrer>Others...</a></menu-item><menu-item><a data-href-template="geo:{lat},{lon}" is=copy-url>Copy</a></menu-item></menu-main>';
     m.addEventListener ('dblclick', ev => ev.stopPropagation ());
-    opts.element = m;
-    opts.styling = m => {
-      var e = m.pcMap.getContainer ();
+    c.appendChild (m);
+
+    opts.element = c;
+    opts.styling = c => {
+      var e = c.pcMap.getContainer ();
+      var m = c.querySelector ('popup-menu.paco-map-type-menu');
       
       // recompute!
       var s = getComputedStyle (e);
@@ -259,50 +265,66 @@
       if (e.hasAttribute ('gsi')) {
         var mm = m.querySelector ('menu-main');
         var nodes = document.createElement ('div');
-        nodes.innerHTML = '<menu-item data-class-field=mapClassName data-true=gsi-standard-hillshade data-false=gsi-lang><button>Map</button> <label><input type=checkbox> <span>Hillshade</span></label></menu-item><menu-item data-class-field=photoClassName data-true=gsi-photo-standard data-false=gsi-photo><button>Photo</button> <label><input type=checkbox> <span>Map</span></label></menu-item><menu-item data-class-field=hillshadeClassName data-true=gsi-hillshade-standard data-false=gsi-hillshade><button>Hillshade</button> <label><input type=checkbox> <span>Map</span></label></menu-item><hr>';
-        var mis = nodes.querySelectorAll ('menu-item');
-        mis[0].onclick = mis[1].onclick = mis[2].onclick = function () {
-          e.setMapType (this.getAttribute ('data-' + this.querySelector ('input[type=checkbox]').checked));
-          this.dispatchEvent (new Event ('toggle', {bubbles: true}));
-        };
+        nodes.innerHTML = '<menu-item><popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-photo-standard data-false=gsi-photo><button class=paco-control-button>Photo</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><hr>';
+        var pms = Array.prototype.slice.call (nodes.querySelectorAll ('popup-menu'));
+        Array.prototype.slice.call (nodes.childNodes).reverse ().forEach (_ => mm.insertBefore (_, mm.firstChild));
+
+        if (opts.buttons) {
+          var n = document.createElement ('span');
+          n.className = 'paco-menu-button-container';
+          n.innerHTML = '<popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-photo-standard data-false=gsi-photo><button class=paco-control-button>Photo</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu>';
+          pms = pms.concat (Array.prototype.slice.call (n.querySelectorAll ('popup-menu')));
+
+          c.insertBefore (n, c.firstChild);
+          m.firstChild.textContent = '\u22EF';
+        } // controls=typebuttons
+
         var sMap = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-map-text'), 'Map');
+        var sMapLabel = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-maplabel-text'), 'Labels');
         var sHillshade = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-hillshade-text'), 'Hillshade');
         var sPhoto = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-photo-text'), 'Photo');
-        mis[0].querySelector ('button').textContent = sMap;
-        mis[0].querySelector ('span').textContent = sHillshade;
-        mis[1].querySelector ('button').textContent = sPhoto;
-        mis[1].querySelector ('span').textContent = sMap;
-        mis[2].querySelector ('button').textContent = sHillshade;
-        mis[2].querySelector ('span').textContent = sMap;
-        Array.prototype.slice.call (nodes.childNodes).reverse ().forEach (_ => mm.insertBefore (_, mm.firstChild));
+        var buttonLabels = {
+          'gsi-lang': sMap,
+          'gsi-photo': sPhoto,
+          'gsi-hillshade': sHillshade,
+          'gsi-standard-hillshade': sHillshade,
+          'gsi-photo-standard': sMapLabel,
+          'gsi-hillshade-standard': sMapLabel,
+        };
+
+        pms.forEach (pm => {
+          var button = pm.querySelector ('button');
+          button.addEventListener ('click', function () {
+            var checked = pm.querySelector ('input[type=checkbox]').checked;
+            e.setMapType (pm.getAttribute ('data-' + checked));
+          });
+          button.textContent = buttonLabels[pm.getAttribute ('data-false')];
+
+          pm.querySelector ('input[type=checkbox]').onclick = function () {
+            e.setMapType (pm.getAttribute ('data-' + this.checked));
+          };
+          pm.querySelector ('span').textContent = buttonLabels[pm.getAttribute ('data-true')];
+        });
       } // gsi=""
 
-      m.addEventListener ('toggle', () => {
-        if (m.hasAttribute ('open')) {
-          var mapClassName = '';
-          var hillshadeClassName = '';
-          var photoClassName = '';
-          var mt = e.pcMapType;
-          if (mt === 'gsi-lang' || mt === 'gsi-standard-hillshade') {
-            mapClassName = 'selected';
-          }
-          if (mt === 'gsi-photo' || mt === 'gsi-photo-standard') {
-            photoClassName = 'selected';
-          }
-          if (mt === 'gsi-hillshade' || mt === 'gsi-hillshade-standard') {
-            hillshadeClassName = 'selected';
-          }
-          e.pcInternal.$fill (m, {
-            lat: e.maCenter.lat,
-            lon: e.maCenter.lon,
-            zoomLevel: e.pcZoomLevel,
-            mapClassName,
-            hillshadeClassName,
-            photoClassName,
+      e.addEventListener ('pcMapTypeChange', () => {
+        var mt = e.pcMapType;
+        c.querySelectorAll ('popup-menu[data-true]').forEach (pm => {
+          var tt = mt === pm.getAttribute ('data-true');
+          var ff = mt === pm.getAttribute ('data-false');
+          pm.classList.toggle ('selected', tt || ff);
+          pm.querySelectorAll ('input[type=checkbox]').forEach (_ => {
+            _.checked = tt;
           });
-        }
+        });
+        e.pcInternal.$fill (c, {
+          lat: e.maCenter.lat,
+          lon: e.maCenter.lon,
+          zoomLevel: e.pcZoomLevel,
+        });
       });
     };
+
     return new L.Control.ElementControl (opts);
   }; // L.control.mapTypeMenu
   
@@ -594,6 +616,7 @@
         if (controls.type) {
           L.control.mapTypeMenu ({
             position: 'topleft',
+            buttons: controls.typebuttons,
           }).addTo (map);
         }
         if (controls.fullscreen) L.control.fullscreenButton ({}).addTo (map);
@@ -823,8 +846,10 @@
       }, // maEnableGoogleMapGSI
 
       setMapType: function (type) {
-        this.pcMapType = type;
-        this.maRedraw ({mapType: true});
+        if (this.pcMapType !== type) {
+          this.pcMapType = type;
+          this.maRedraw ({mapType: true});
+        }
       }, // setMapType
       toggleJMANowc: function (_) {
         this.pcJMANowc = !!_;
@@ -968,6 +993,7 @@
         
         map.eachLayer (l => map.removeLayer (l));
         layers.forEach (l => map.addLayer (l));
+        this.dispatchEvent (new Event ('pcMapTypeChange'));
       }, // pcChangeMapType
 
       pcLocateCurrentPosition: function (opts) {

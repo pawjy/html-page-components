@@ -1358,7 +1358,9 @@ The following content attributes are available:
       |scale|            Scale
       |streetview|       "Street view mode" button (ignored unless the
                          map's |engine| is |googlemaps|; deprecated)
-      |type|             Map type menu (or buttons)
+      |type|             Map type menu (or buttons, if the map's
+                         |engine| is |googlemaps|)
+      |typebuttons|      Map type buttons, if |type| is also specified
       |zoom|             "Zoom in" and "Zoom out" buttons
 
     If there is no |controls| attribute, no builtin map control is

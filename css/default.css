@@ -890,6 +890,7 @@ map-area {
   --paco-copy-center-text: "Copy center coordinates";
   --paco--gsi-lang: gsi-standard;
   --paco-maptype-map-text: 'Map';
+  --paco-maptype-maplabel-text: 'Labels';
   --paco-maptype-hillshade-text: 'Hillshade';
   --paco-maptype-photo-text: 'Photo';
   --paco-maptype-jmanowc-current-text: 'Rain';
@@ -909,6 +910,7 @@ map-area:lang(ja) {
   --paco-open-geohack-text: "\305D\306E\4ED6\3067\958B\304F...";
   --paco-copy-center-text: "\4E2D\5FC3\306E\5EA7\6A19\3092\30B3\30D4\30FC";
   --paco-maptype-map-text: '\5730\56F3';
+  --paco-maptype-maplabel-text: '\30E9\30D9\30EB';
   --paco-maptype-hillshade-text: '\5730\5F62'; /* '\9670\5F71\8D77\4F0F' */
   --paco-maptype-photo-text: '\822A\7A7A\5199\771F';
   --paco-maptype-jmanowc-current-text: '\96E8\96F2\306E\52D5\304D';
@@ -959,13 +961,26 @@ map-area:fullscreen button.paco-fullscreen-control-button {
   color: var(--paco-leaflet-control-selected-color);
 }
 
-map-area popup-menu.leaflet-control {
+map-area .leaflet-control.paco-menu-container {
   z-index: var(--paco-menu-z-index);
 }
 
+map-area .paco-menu-button-container popup-menu,
+map-area .paco-map-type-menu,
+map-area .paco-map-type-menu popup-menu {
+  --paco-hover-action: open;
+}
+
+map-area .paco-menu-button-container popup-menu {
+  position: relative;
+}
+
+map-area .paco-map-type-menu {
+}
+
 map-area popup-menu[open] > button.paco-control-button {
-  background-color: var(--paco-leaflet-control-selected-background-color);
-  color: var(--paco-leaflet-control-selected-color);
+  background-color: var(--paco-leaflet-control-hover-background-color);
+  color: var(--paco-leaflet-control-hover-color);
 }
 
 map-area .paco-fullscreen-control-button,
@@ -974,12 +989,46 @@ map-area .paco-maptype-control-button {
   font-family: var(--paco-symbol-font);
 }
 
+map-area popup-menu > button {
+  cursor: pointer;
+}
+
+map-area .paco-menu-button-container popup-menu > button,
+map-area .paco-menu-button-container + popup-menu > button {
+  padding: .5em;
+  font-size: 1rem;
+  vertical-align: middle;
+}
+
+map-area .paco-menu-button-container popup-menu > button {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right-width: 1px;
+}
+map-area .paco-menu-button-container popup-menu:not(:first-child) > button,
+map-area .paco-menu-button-container + popup-menu > button {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left-width: 1px;
+}
+
+map-area .paco-menu-container popup-menu.selected > button {
+  background-color: var(--paco-leaflet-menu-selected-background-color);
+  color: var(--paco-leaflet-menu-selected-color);
+}
+
 map-area popup-menu > button::after {
   content: "\25BC";
   font-family: var(--paco-symbol-font);
   font-size: 50%;
   margin: .2em 0 .2em .4em;
   vertical-align: middle;
+}
+map-area .paco-menu-button-container popup-menu > button::after {
+  content: none;
+}
+map-area .paco-menu-button-container + popup-menu > button::after {
+  content: none;
 }
 
 map-area popup-menu > menu-main {
@@ -991,6 +1040,10 @@ map-area popup-menu > menu-main {
   font-size: 1rem;
   min-width: 10em;
   width: max-content;
+}
+
+map-area .paco-menu-button-container popup-menu > menu-main {
+  left: 0 !important;
 }
 
 map-area popup-menu > menu-main > menu-item:not([hidden]) {
@@ -1015,8 +1068,8 @@ map-area.leaflet-container popup-menu > menu-main > menu-item > label:only-child
 map-area popup-menu > menu-main > menu-item a:hover,
 map-area popup-menu > menu-main > menu-item a:focus,
 map-area popup-menu > menu-main > menu-item a:active {
-  background-color: var(--paco-leaflet-menu-selected-background-color);
-  color: var(--paco-leaflet-menu-selected-color);
+  background-color: var(--paco-leaflet-control-hover-background-color);
+  color: var(--paco-leaflet-control-hover-color);
 }
 
 map-area popup-menu > menu-main > menu-item > button {
@@ -1031,9 +1084,33 @@ map-area popup-menu > menu-main > menu-item > button {
   cursor: pointer;
 }
 
-map-area popup-menu > menu-main > menu-item.selected > button {
-  background-color: var(--paco-leaflet-menu-selected-background-color);
-  color: var(--paco-leaflet-menu-selected-color);
+map-area popup-menu > menu-main > menu-item > popup-menu {
+  flex: 1;
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  position: relative;
+}
+
+map-area popup-menu > menu-main > menu-item > popup-menu > button.paco-control-button {
+  width: 100%;
+  border: none;
+  padding: var(--paco-leaflet-menu-item-padding);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+map-area popup-menu > menu-main > menu-item > popup-menu > button.paco-control-button::after {
+  content: none;
+}
+
+map-area popup-menu > menu-main > menu-item > popup-menu > menu-main {
+  top: 0 !important;
+  left: 100% !important;
 }
 
 map-area .paco-timestamp-control a {
