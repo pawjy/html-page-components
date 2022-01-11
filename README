@@ -1607,6 +1607,10 @@ The following properties are available:
 
         GSI's standard map, overlayed on the GSI's hillshade map.
 
+      none
+
+        No map.
+
     This method is ignored unless the map's |engine| is |leaflet|.
 
   toggleJMANowc (/flag/)
@@ -2219,7 +2223,7 @@ Wakaba <wakaba@suikawiki.org>.
 
 * License
 
-Copyright 2017-2021 Wakaba <wakaba@suikawiki.org>.
+Copyright 2017-2022 Wakaba <wakaba@suikawiki.org>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as

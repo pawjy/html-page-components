@@ -270,10 +270,12 @@
       if (e.hasAttribute ('gsi')) {
         var mm = m.querySelector ('menu-main');
         var nodes = document.createElement ('div');
-        nodes.innerHTML = '<menu-item><popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-photo-standard data-false=gsi-photo><button class=paco-control-button>Photo</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><hr>';
+        nodes.innerHTML = '<menu-item><popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-photo-standard data-false=gsi-photo><button class=paco-control-button>Photo</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><button data-true=none>None</button></menu-item><hr>';
+        var nb = nodes.querySelector ('menu-item:last-of-type button');
+        
         var pms = Array.prototype.slice.call (nodes.querySelectorAll ('popup-menu'));
         Array.prototype.slice.call (nodes.childNodes).reverse ().forEach (_ => mm.insertBefore (_, mm.firstChild));
-
+        
         if (opts.buttons) {
           var n = document.createElement ('span');
           n.className = 'paco-menu-button-container';
@@ -288,6 +290,7 @@
         var sMapLabel = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-maplabel-text'), 'Labels');
         var sHillshade = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-hillshade-text'), 'Hillshade');
         var sPhoto = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-photo-text'), 'Photo');
+        var sNone = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-none-text'), 'None');
         var buttonLabels = {
           'gsi-lang': sMap,
           'gsi-photo': sPhoto,
@@ -296,7 +299,7 @@
           'gsi-photo-standard': sMapLabel,
           'gsi-hillshade-standard': sMapLabel,
         };
-
+        
         pms.forEach (pm => {
           var button = pm.querySelector ('button');
           button.addEventListener ('click', function () {
@@ -310,11 +313,16 @@
           };
           pm.querySelector ('span').textContent = buttonLabels[pm.getAttribute ('data-true')];
         });
+
+        nb.textContent = sNone;
+        nb.onclick = () => {
+          e.setMapType ('none');
+        };
       } // gsi=""
 
       e.addEventListener ('pcMapTypeChange', () => {
         var mt = e.pcMapType;
-        c.querySelectorAll ('popup-menu[data-true]').forEach (pm => {
+        c.querySelectorAll ('popup-menu[data-true], button[data-true]').forEach (pm => {
           var tt = mt === pm.getAttribute ('data-true');
           var ff = mt === pm.getAttribute ('data-false');
           pm.classList.toggle ('selected', tt || ff);
@@ -987,6 +995,8 @@
             minNativeZoom: 5,
           });
           layers.push (lGSI);
+        } else if (type === 'none') {
+          //
         }
 
         if (this.pcJMANowc) {
@@ -998,6 +1008,7 @@
         
         map.eachLayer (l => map.removeLayer (l));
         layers.forEach (l => map.addLayer (l));
+        this.classList.toggle ('paco-maptype-none', type === 'none');
         this.dispatchEvent (new Event ('pcMapTypeChange'));
       }, // pcChangeMapType
 
@@ -1045,7 +1056,7 @@
 
 /*
 
-Copyright 2017-2021 Wakaba <wakaba@suikawiki.org>.
+Copyright 2017-2022 Wakaba <wakaba@suikawiki.org>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as

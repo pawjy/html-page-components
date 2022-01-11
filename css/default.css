@@ -689,6 +689,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   --paco-leaflet-menu-selected-color: var(--paco-leaflet-control-selected-color);
   --paco-leaflet-menu-item-padding: .3em;
   --paco-symbol-font: "Noto Sans Symbols";
+  --paco-blueback-color: #0000F6;
+  --paco-greenback-color: #00F600;
+  --paco-opaque-background-color: var(--paco-greenback-color);
+  --paco-opaque-color: currentcolor;
 }
 
 popup-menu:not([open]) > menu-main {
@@ -893,7 +897,9 @@ map-area {
   --paco-maptype-maplabel-text: 'Labels';
   --paco-maptype-hillshade-text: 'Hillshade';
   --paco-maptype-photo-text: 'Photo';
+  --paco-maptype-none-text: 'None';
   --paco-maptype-jmanowc-current-text: 'Rain';
+  --paco-maptype-none-text: 'None';
 }
 map-area:lang(en) {
   --paco--gsi-lang: gsi-english-standard;
@@ -913,6 +919,7 @@ map-area:lang(ja) {
   --paco-maptype-maplabel-text: '\30E9\30D9\30EB';
   --paco-maptype-hillshade-text: '\5730\5F62'; /* '\9670\5F71\8D77\4F0F' */
   --paco-maptype-photo-text: '\822A\7A7A\5199\771F';
+  --paco-maptype-none-text: '\306A\3057';
   --paco-maptype-jmanowc-current-text: '\96E8\96F2\306E\52D5\304D';
 }
 
@@ -935,6 +942,11 @@ map-area map-credit a {
   color: inherit;
   background: transparent;
   text-decoration: none;
+}
+
+map-area.leaflet-container.paco-maptype-none {
+  background: var(--paco-opaque-background-color);
+  color: var(--paco-opaque-color);
 }
 
 map-area button.paco-control-button {
@@ -1012,7 +1024,8 @@ map-area .paco-menu-button-container + popup-menu > button {
   border-left-width: 1px;
 }
 
-map-area .paco-menu-container popup-menu.selected > button {
+map-area .paco-menu-container popup-menu.selected > button,
+map-area .paco-menu-container button.selected {
   background-color: var(--paco-leaflet-menu-selected-background-color);
   color: var(--paco-leaflet-menu-selected-color);
 }
