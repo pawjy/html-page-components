@@ -4,11 +4,15 @@
   link0.href = "https://code.jquery.com/qunit/qunit-2.2.0.css";
   document.head.appendChild (link0);
 
-  var link = document.createElement ('link');
-  link.rel = "stylesheet";
-  link.href = "test.css";
-  document.head.appendChild (link);
-
+  var styleLoaded = new Promise ((ok, ng) => {
+    var link = document.createElement ('link');
+    link.rel = "stylesheet";
+    link.href = "test.css";
+    link.onload = ok;
+    link.onerror = ng;
+    document.head.appendChild (link);
+  });
+  
   var meta = document.createElement ('viewport');
   meta.name = 'viewport';
   meta.content = "width=device-width";
@@ -39,13 +43,15 @@
   });
 
   var scriptLoaded = new Promise (function (ok, error) {
-    var script = document.createElement ('script');
-    script.src = '../src/page-components.js';
-    script.onload = ok;
-    script.onerror = error;
     var v = document.currentScript.getAttribute ('data-export');
-    if (v) script.setAttribute ('data-export', v);
-    document.body.appendChild (script);
+    styleLoaded.then (() => {
+      var script = document.createElement ('script');
+      script.src = '../src/page-components.js';
+      script.onload = ok;
+      script.onerror = error;
+      if (v) script.setAttribute ('data-export', v);
+      document.body.appendChild (script);
+    });
   });
 
   if (document.currentScript.hasAttribute ('data-maps')) {

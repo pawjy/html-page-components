@@ -1346,8 +1346,8 @@ The following content attributes are available:
 
     If a |controls| attribute is specified with the empty value,
     default builtin map control is shown.  It is equivalent to
-    |controls="scale zoom fullscreen currentposition type"| (but might
-    be changed in future).
+    |controls="scale zoom fullscreen streetview currentposition type"|
+    (but might be changed in future).
 
     If a |controls| attribute is specified to a space-separated list
     of keywords, the respective controls are shown, as follows:
@@ -1356,9 +1356,10 @@ The following content attributes are available:
                          if the map's |engine| is |googlemaps|)
       |fullscreen|       "Fullscreen mode" button
       |scale|            Scale
-      |streetview|       "Street view mode" button (ignored unless the
-                         map's |engine| is |googlemaps|; deprecated)
-      |type|             Map type menu (or buttons)
+      |streetview|       "Street View mode" button
+      |type|             Map type menu (or buttons, if the map's
+                         |engine| is |googlemaps|)
+      |typebuttons|      Map type buttons, if |type| is also specified
       |zoom|             "Zoom in" and "Zoom out" buttons
 
     If there is no |controls| attribute, no builtin map control is
@@ -1604,6 +1605,10 @@ The following properties are available:
       gsi-standard-hillshade
 
         GSI's standard map, overlayed on the GSI's hillshade map.
+
+      none
+
+        No map.
 
     This method is ignored unless the map's |engine| is |leaflet|.
 
@@ -2217,7 +2222,7 @@ Wakaba <wakaba@suikawiki.org>.
 
 * License
 
-Copyright 2017-2021 Wakaba <wakaba@suikawiki.org>.
+Copyright 2017-2022 Wakaba <wakaba@suikawiki.org>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
