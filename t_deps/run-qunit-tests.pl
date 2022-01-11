@@ -91,6 +91,10 @@ sub execute_test_html_file {
         return $session->go (Web::URL->parse_string ($test_url));
       })->then (sub {
         return $session->execute (q{
+          return document.pcTestLoaded;
+        });
+      })->then (sub {
+        return $session->execute (q{
           return Promise.resolve().then(function () {
             var bannerElem = document.querySelector("#qunit-banner");
             var testFinished = bannerElem && (bannerElem.classList.contains("qunit-pass") || bannerElem.classList.contains("qunit-fail"));

@@ -23,17 +23,6 @@
   a.textContent = 'Top';
   document.body.appendChild (a);
 
-  // XXX for backward compatibility: remove this later!
-  if (!Node.prototype.getRootNode) {
-    Node.prototype.getRootNode = function () {
-      var node = this;
-      while (node.parentNode) {
-        node = node.parentNode;
-      }
-      return node;
-    };
-  }
-
   var qunitLoaded = new Promise (function (ok, error) {
     var script = document.createElement ('script');
     script.src = 'https://code.jquery.com/qunit/qunit-2.2.0.js';
@@ -110,6 +99,10 @@
   div2.id = "qunit";
   div2.dir = 'ltr';
   document.body.appendChild (div2);
+
+  document.pcTestLoaded = Promise.all ([
+    qunitLoaded,
+  ]);
 }) ();
 /*
 
