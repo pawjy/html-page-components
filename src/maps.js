@@ -187,6 +187,7 @@
       var e = this.options.element;
       e.pcMap = map;
       if (this.options.styling) this.options.styling (e);
+      L.DomEvent.disableClickPropagation (e);
       return e;
     }, // onAdd
   });
@@ -233,6 +234,25 @@
     };
     return new L.Control.ElementControl (opts);
   }; // L.control.currentPositionButton
+  L.control.streetViewButton = function (opts) {
+    var b = document.createElement ('button');
+    b.className = 'paco-control-button paco-streetview-control-button';
+    b.type = 'button';
+    b.textContent = '\u{1F6B6}';
+    b.setAttribute ('draggable', 'true');
+    b.ondragstart = () => {
+      var e = b.pcMap.getContainer ();
+      e.pcStartStreetViewDragMode (b);
+    };
+    opts.element = b;
+    opts.styling = b => {
+      var e = b.pcMap.getContainer ();
+      // recompute!
+      var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-streetview-title'), 'Street View');
+      b.title = m;
+    };
+    return new L.Control.ElementControl (opts);
+  }; // L.control.streetViewButton
   L.control.mapTypeMenu = function (opts) {
     var c = document.createElement ('span');
     c.className = 'paco-menu-container';
@@ -605,7 +625,8 @@
             c.forEach (_ => controls[_] = true);
           } else {
             controls = {zoom: true, scale: true, fullscreen: true,
-                        currentposition: true, type: true};
+                        currentposition: true, type: true,
+                        streetview: true};
           }
         }
 
@@ -643,6 +664,12 @@
               if (ps.state === 'granted') this.pcLocateCurrentPosition ({});
             });
           }
+        }
+
+        if (controls.streetview) {
+          L.control.streetViewButton ({
+            position: 'bottomright',
+          }).addTo (map);
         }
 
         // Map need to be recomputed if it is initialized when not
@@ -1048,6 +1075,24 @@
           console.log (e);
         });
       }, // pcLocateCurrentPosition
+
+      pcStartStreetViewDragMode: function (src) {
+        var handlers = [];
+        this.addEventListener ('dragover', handlers[0] = ev => {
+          ev.preventDefault ();
+        });
+        this.addEventListener ('drop', handlers[1] = ev => {
+          var ll = this.pcLMap.mouseEventToLatLng (ev);
+          var u = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + ll.lat + ',' + ll.lng;
+          window.open (u, '_blank', 'noreferrer');
+        });
+
+        src.addEventListener ('dragend', handlers[2] = ev => {
+          this.removeEventListener ('dragover', handlers[0]);
+          this.removeEventListener ('drop', handlers[1]);
+          src.removeEventListener ('dragend', handlers[2]);
+        });
+      }, // pcStartStreetViewDragMode
       
     },
   }); // <map-area>

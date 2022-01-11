@@ -209,6 +209,7 @@ map-area {
   height: 300px;
   --paco-fullscreen-title: "Fullscreen";
   --paco-currentposition-title: "Current position";
+  --paco-streetview-title: "Street View";
   --paco-zoomin-title: "Zoom in";
   --paco-zoomout-title: "Zoom out";
   --paco-geolocation-failed-message: "Failed to get the current position.";
@@ -232,6 +233,7 @@ map-area:lang(en) {
 map-area:lang(ja) {
   --paco-fullscreen-title: "\5168\753B\9762";
   --paco-currentposition-title: "\73FE\5728\5730";
+  --paco-streetview-title: "\30B9\30C8\30EA\30FC\30C8\30D3\30E5\30FC";
   --paco-zoomin-title: "\62E1\5927";
   --paco-zoomout-title: "\7E2E\5C0F";
   --paco-geolocation-failed-message: "\73FE\5728\5730\306E\53D6\5F97\306B\5931\6557\3057\307E\3057\305F\3002";

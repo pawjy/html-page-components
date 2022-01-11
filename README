@@ -1356,8 +1356,7 @@ The following content attributes are available:
                          if the map's |engine| is |googlemaps|)
       |fullscreen|       "Fullscreen mode" button
       |scale|            Scale
-      |streetview|       "Street view mode" button (ignored unless the
-                         map's |engine| is |googlemaps|; deprecated)
+      |streetview|       "Street View mode" button
       |type|             Map type menu (or buttons, if the map's
                          |engine| is |googlemaps|)
       |typebuttons|      Map type buttons, if |type| is also specified
