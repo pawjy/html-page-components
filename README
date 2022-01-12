@@ -1352,8 +1352,7 @@ The following content attributes are available:
     If a |controls| attribute is specified to a space-separated list
     of keywords, the respective controls are shown, as follows:
 
-      |currentposition|  "Pan to the current position" button (ignored
-                         if the map's |engine| is |googlemaps|)
+      |currentposition|  "Pan to the current position" button
       |fullscreen|       "Fullscreen mode" button
       |scale|            Scale
       |streetview|       "Street View mode" button

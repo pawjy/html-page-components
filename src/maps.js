@@ -528,6 +528,7 @@
 
           var applyControls = () => {
             var opts = {};
+            var cp = false;
             var value = this.getAttribute ('controls');
             if (value === null) {
               opts.scaleControl = opts.fullscreenControl =
@@ -547,9 +548,37 @@
                   type: 'mapTypeControl',
                 }[v];
                 if (key) opts[key] = true;
+                if (v === 'currentposition') cp = true;
               });
-            }
+            } // value
             this.maGoogleMap.setOptions (opts);
+
+            if (cp && !this.pcCurrentPositionButtonAdded) {
+              this.pcCurrentPositionButtonAdded = true;
+              var e = document.createElement ('map-controls');
+              e.setAttribute ('position', 'right-bottom');
+              e.className = 'paco-currentposition-container';
+              var b = document.createElement ('button');
+              b.className = 'paco-control-button paco-currentposition-control-button';
+              b.type = 'button';
+              b.textContent = '\u26EF';
+              b.onclick = () => {
+                this.pcLocateCurrentPosition ({pan: true});
+              };
+              
+              // recompute!
+              var mCP = this.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-currentposition-title'), 'Current position');
+              b.title = mCP;
+              
+              e.appendChild (b);
+              if (controls) {
+                controls.push (e);
+              } else {
+                this.appendChild (e);
+                this.maRedraw ({controls: true});
+              }
+              this.pcInitCurrentPosition ();
+            } // cp
           }; // applyControls
           new MutationObserver (applyControls)
               .observe (this, {attributeFilter: ['controls']});
@@ -579,6 +608,7 @@
             this.maRedraw ({controls: true});
           }).observe (this, {childList: true});
           controls.forEach (e => this.appendChild (e));
+          controls = null;
           
           this.maRedraw ({all: true});
         }).then (() => {
@@ -655,21 +685,17 @@
         }
         if (controls.fullscreen) L.control.fullscreenButton ({}).addTo (map);
 
-        if (controls.currentposition) {
-          L.control.currentPositionButton ({
-            position: 'bottomright',
-          }).addTo (map);
-          if (navigator.permissions && navigator.permissions.query) {
-            navigator.permissions.query ({name: "geolocation"}).then (ps => {
-              if (ps.state === 'granted') this.pcLocateCurrentPosition ({});
-            });
-          }
-        }
-
         if (controls.streetview) {
           L.control.streetViewButton ({
             position: 'bottomright',
           }).addTo (map);
+        }
+
+        if (controls.currentposition) {
+          L.control.currentPositionButton ({
+            position: 'bottomright',
+          }).addTo (map);
+          this.pcInitCurrentPosition ();
         }
 
         // Map need to be recomputed if it is initialized when not
@@ -1039,10 +1065,17 @@
         this.dispatchEvent (new Event ('pcMapTypeChange'));
       }, // pcChangeMapType
 
+      pcInitCurrentPosition: function () {
+        if (navigator.permissions && navigator.permissions.query) {
+          navigator.permissions.query ({name: "geolocation"}).then (ps => {
+            if (ps.state === 'granted') this.pcLocateCurrentPosition ({});
+          });
+        }
+      }, // pcInitCurrentPosition
       pcLocateCurrentPosition: function (opts) {
         if (opts.pan) {
           if (this.pcCurrentPosition) {
-            this.pcLMap.panTo ({
+            (this.pcLMap || this.googleMap).panTo ({
               lat: this.pcCurrentPosition.lat,
               lng: this.pcCurrentPosition.lon,
             });
@@ -1058,7 +1091,7 @@
             //latLonAccuracy: p.coords.accuracy,
           };
           if (this.pcLocateCurrentPositionPanRequested) {
-            this.pcLMap.panTo ({
+            (this.pcLMap || this.googleMap).panTo ({
               lat: this.pcCurrentPosition.lat,
               lng: this.pcCurrentPosition.lon,
             });
