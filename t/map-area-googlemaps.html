@@ -26,6 +26,10 @@
     var pos = e.getMapCenter ();
     this.assert.equal (pos.lat, 0);
     this.assert.equal (pos.lon, 0);
+
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, 0);
+    this.assert.equal (v.lon, 0);
     
     var bounds = e.getMapBounds ();
     this.assert.equal (bounds.north, 0.8239462091017685);
@@ -52,12 +56,30 @@
     var pos = e.getMapCenter ();
     this.assert.equal (pos.lat, 20.33);
     this.assert.equal (pos.lon, -120.7013);
+
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, 20.33);
+    this.assert.equal (v.lon, -120.7013);
     
     var bounds = e.getMapBounds ();
     this.assert.equal (bounds.north, 21.100696609215188);
     this.assert.equal (bounds.east, -118.01788935546875);
     this.assert.equal (bounds.south, 19.555443247555317);
     this.assert.equal (bounds.west, -123.38471064453125);
+
+    e.valueAsLatLon = {lat: -40.3, lon: 51.122};
+
+    await this.wait (100);
+
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, -40.3);
+    this.assert.equal (v.lon, 51.122);
+    this.assert.equal (e.getAttribute ('lat'), -40.3);
+    this.assert.equal (e.getAttribute ('lon'), 51.122);
+
+    var pos = e.getMapCenter ();
+    this.assert.equal (Math.abs (pos.lat - -40.6) < 1, true, pos.lat);
+    this.assert.equal (Math.abs (pos.lon - 51.122) < 1, true, pos.lon);
   </test-code>
 
   <test-code name="initially hidden">
@@ -114,6 +136,10 @@
     this.assert.equal (bounds.east, -118.01788935546875);
     this.assert.equal (bounds.south, 19.555443247555317);
     this.assert.equal (bounds.west, -123.38471064453125);
+
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, 20.33);
+    this.assert.equal (v.lon, -120.7013);
   </test-code>
 
   <test-code name="redraw event by set center">
@@ -139,14 +165,18 @@
     var v = await eventInvoked;
 
     var pos = v[0];
-    this.assert.equal (pos.lat, 34.335);
-    this.assert.equal (pos.lon, 35.00018);
+    this.assert.equal (Math.abs (pos.lat - 34.335) < 1, true, pos.lat);
+    this.assert.equal (Math.abs (pos.lon - 35.00018) < 1, true, pos.lon);
 
     var bounds = v[1];
     this.assert.equal (bounds.north, 35.01263237794283);
     this.assert.equal (Math.abs (bounds.east - 37.68359064453125) < 0.00001, true, bounds.east);
     this.assert.equal (bounds.south, 33.65184894255799);
     this.assert.equal (Math.abs (bounds.west - 32.31676935546875) < 0.00001, true, bounds.west);
+
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, 34.335);
+    this.assert.equal (v.lon, 35.00018);
   </test-code>
 
   <test-code name="center moved then redraw">
@@ -170,6 +200,10 @@
     var pos = e.getMapCenter ();
     this.assert.equal (pos.lat, 53);
     this.assert.equal (pos.lon, 65);
+
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, 0);
+    this.assert.equal (v.lon, 0);
   </test-code>
 
   <test-code name="no redraw event before init">
@@ -273,6 +307,10 @@
     var center = e.getMapCenter ();
     this.assert.equal (center.lat < 0, true, center.lat);
     this.assert.equal (center.lon < 0, true, center.lon);
+
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, 42);
+    this.assert.equal (v.lon, 21);
   </test-code>
 
   <test-code name="map-controls">

@@ -478,6 +478,23 @@
       pcInit: function () {
         this.maRedrawNeedUpdated = {};
         this.ready = new Promise ((r) => this.maRedrawNeedUpdated.onready = r);
+
+        this.pcValue = {lat: 0, lon: 0};
+        var initialValue = this.valueAsLatLon;
+        if (initialValue) {
+          this.setAttribute ('lat', initialValue.lat);
+          this.setAttribute ('lon', initialValue.lon);
+        }
+        Object.defineProperty (this, 'valueAsLatLon', {
+          get: function () {
+            return this.pcValue;
+          },
+          set: function (newValue) {
+            newValue = newValue || {};
+            this.setAttribute ('lat', newValue.lat);
+            this.setAttribute ('lon', newValue.lon);
+          },
+        });
         
         this.maEngine = this.getAttribute ('engine');
         if (this.maEngine === 'googlemaps') {
@@ -598,10 +615,11 @@
                 lat: this.maAttrFloat ('lat', 0),
                 lon: this.maAttrFloat ('lon', 0),
               },
+              value: true,
             });
           });
           mo.observe (this, {attributeFilter: ['lat', 'lon']});
-          this.maCenter = {
+          this.maCenter = this.pcValue = {
             lat: this.maAttrFloat ('lat', 0),
             lon: this.maAttrFloat ('lon', 0),
           };
@@ -624,13 +642,16 @@
       }, // maInitGoogleMaps
       maInitGoogleMapsEmbed: function () {
         var mo = new MutationObserver ((mutations) => {
-          this.maRedraw ({center: {
-            lat: this.maAttrFloat ('lat', 0),
-            lon: this.maAttrFloat ('lon', 0),
-          }});
+          this.maRedraw ({
+            center: {
+              lat: this.maAttrFloat ('lat', 0),
+              lon: this.maAttrFloat ('lon', 0),
+            },
+            value: true,
+          });
         });
         mo.observe (this, {attributeFilter: ['lat', 'lon']});
-        this.maCenter = {
+        this.maCenter = this.pcValue = {
           lat: this.maAttrFloat ('lat', 0),
           lon: this.maAttrFloat ('lon', 0),
         };
@@ -638,12 +659,15 @@
       }, // maInitGoogleMapsEmbed
       pcInitLeaflet: function () {
         (new MutationObserver ((mutations) => {
-          this.maRedraw ({center: {
-            lat: this.maAttrFloat ('lat', 0),
-            lon: this.maAttrFloat ('lon', 0),
-          }});
+          this.maRedraw ({
+            center: {
+              lat: this.maAttrFloat ('lat', 0),
+              lon: this.maAttrFloat ('lon', 0),
+            },
+            value: true,
+          });
         })).observe (this, {attributeFilter: ['lat', 'lon']});
-        this.maCenter = {
+        this.maCenter = this.pcValue = {
           lat: this.maAttrFloat ('lat', 0),
           lon: this.maAttrFloat ('lon', 0),
         };
@@ -747,16 +771,16 @@
           if (this.pcLMap) {
             this.pcLMap.panTo (p);
           } else if (this.maGoogleMap) {
-            if (this.maRedrawNeedUpdated.pan) {
-              this.maGoogleMap.panTo (p);
-            } else {
-              this.maGoogleMap.setCenter (p);
-            }
+            this.maGoogleMap.panTo (p);
           } else {
             this.maCenter = this.maRedrawNeedUpdated.center;
             this.maRedrawNeedUpdated.all = true;
           }
+          if (this.maRedrawNeedUpdated.value) {
+            this.pcValue = this.maRedrawNeedUpdated.center;
+          }
           delete this.maRedrawNeedUpdated.center;
+          delete this.maRedrawNeedUpdated.value;
           delete this.maRedrawNeedUpdated.pan;
         } // center
         
@@ -1174,7 +1198,6 @@
           if (this.pcCurrentPosition) {
             this.maRedraw ({
               center: this.pcCurrentPosition,
-              pan: true,
             });
           } else {
             this.pcLocateCurrentPositionPanRequested = true;
@@ -1191,7 +1214,6 @@
           if (this.pcLocateCurrentPositionPanRequested) {
             this.maRedraw ({
               center: this.pcCurrentPosition,
-              pan: true,
             });
             delete this.pcLocateCurrentPositionPanRequested;
           }

@@ -1634,6 +1634,21 @@ The following properties are available:
     by time.js <https://github.com/wakaba/timejs>.  (A demo file
     |demo/map-leaflet.html| has an example.)
 
+  valueAsLatLon : {lat: Float, lon: Float}
+
+    The "value" point coordinate of the map.
+
+    On getting, it returns a new {lat, lon} object.
+
+    On setting, the new value must be a {lat, lon} object.  It updates
+    the |lat| and |lon| content attributes to the specified values.
+
+    The "value" point is set by the following operations:
+
+      - Setting the |lat| content attribute.
+      - Setting the |lon| content attribute.
+      - Setting the |valueAsLatLon| property to a {lat, lon} value.
+
 Events.
 
   A |pcRedraw| event, which bubbles, is fired at the element when the

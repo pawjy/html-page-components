@@ -60,6 +60,20 @@
     this.assert.equal (bounds.east, -118.0206298828125);
     this.assert.equal (bounds.south, 19.554613885372127);
     this.assert.equal (bounds.west, -123.387451171875);
+
+    e.valueAsLatLon = {lat: -40.53, lon: 131.122};
+
+    await this.wait ();
+
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, -40.53);
+    this.assert.equal (v.lon, 131.122);
+    this.assert.equal (e.getAttribute ('lat'), -40.53);
+    this.assert.equal (e.getAttribute ('lon'), 131.122);
+
+    var pos = e.getMapCenter ();
+    this.assert.equal (pos.lat, -40.53);
+    this.assert.equal (pos.lon, 131.122);
   </test-code>
 
   <test-code name="dynamic">
@@ -67,6 +81,25 @@
     e.setAttribute ('engine', 'leaflet');
     e.setAttribute ('lat', 42);
     e.setAttribute ('lon', 21);
+    this.currentScript.appendChild (e);
+
+    await e.ready;
+
+    var center = e.getMapCenter ();
+    this.assert.equal (center.lat, 42);
+    this.assert.equal (center.lon, 21);
+    
+    var bounds = e.getMapBounds ();
+    this.assert.equal (bounds.north, 42.60970621339408);
+    this.assert.equal (bounds.east,  23.681030273437504);
+    this.assert.equal (bounds.south, 41.3850519497068);
+    this.assert.equal (bounds.west,  18.314208984375004);
+  </test-code>
+
+  <test-code name="valueAsLatLon before init">
+    var e = document.createElement ('map-area');
+    e.setAttribute ('engine', 'leaflet');
+    e.valueAsLatLon = {lat: 42, lon: 21};
     this.currentScript.appendChild (e);
 
     await e.ready;
