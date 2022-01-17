@@ -901,6 +901,7 @@ map-area {
   --paco-maptype-none-text: 'None';
   --paco-maptype-jmanowc-current-text: 'Rain';
   --paco-maptype-none-text: 'None';
+  --paco-marker-currentposition: "\25CF" purple 24px;
 }
 map-area:lang(en) {
   --paco--gsi-lang: gsi-english-standard;
@@ -1142,6 +1143,22 @@ map-area .paco-jma-timestamp-control time:not([hidden]) {
 }
 map-area .paco-jma-timestamp-control time {
   --timejs-serialization: dtsjp2;
+}
+
+map-area .paco-currentposition-container {
+  margin-right: 10px;
+}
+
+map-area .paco-currentposition-container button.paco-control-button {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 3px;
+  box-shadow: rgb(0 0 0 / 30%) 0px 1px 4px -1px;
+  background: white;
+  color: black;
+  font-size: 32px;
+  user-select: none;
 }
 
 template-set {

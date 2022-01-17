@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+<html>
+<title>Map</title>
+<link rel=stylesheet href=../css/default.css>
+<script>
+  var xhr = new XMLHttpRequest;
+  xhr.open ('GET', 'map-googlemaps.html', false);
+  xhr.send (null);
+  var p = new DOMParser;
+  var doc = p.parseFromString (xhr.responseText, 'text/html');
+  var mk = doc.documentElement.getAttribute ('data-google-maps-key');
+  document.documentElement.setAttribute ('data-google-maps-key', mk);
+</script>
+<script src=../src/page-components.js async></script>
+<script src=../src/maps.js async></script>
+
+<tab-set>
+  <tab-menu></tab-menu>
+  <section id=map-section-1>
+    <h1>Map #1</h1>
+    <map-area lat=35.2 lon=135.4 engine=googlemapsembed></map-area>
+    <output name=bounds></output>
+    <script>
+    (() => {
+      var s = document.querySelector ('#map-section-1');
+      s.querySelector ('map-area').addEventListener ('pcRedraw', (ev) => {
+        var o = s.querySelector ('output');
+        var b = ev.target.getMapBounds ();
+        if (b) o.textContent = [b.north, b.east, b.south, b.west].join (' ');
+      });
+    }) ();
+    </script>
+  </section>
+  <section id=map-section-2>
+    <h1>Map #2</h1>
+    <map-area lat=-30.2 lon=-85.4 engine=googlemapsembed></map-area>
+    <output name=bounds></output>
+    <script>
+    (() => {
+      var s = document.querySelector ('#map-section-2');
+      s.querySelector ('map-area').addEventListener ('pcRedraw', (ev) => {
+        var o = s.querySelector ('output');
+        var b = ev.target.getMapBounds ();
+        if (b) o.textContent = [b.north, b.east, b.south, b.west].join (' ');
+      });
+    }) ();
+    </script>
+  </section>
+</tab-set>
+
+<map-area engine=googlemapsembed></map-area>

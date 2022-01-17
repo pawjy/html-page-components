@@ -528,6 +528,7 @@
 
           var applyControls = () => {
             var opts = {};
+            var cp = false;
             var value = this.getAttribute ('controls');
             if (value === null) {
               opts.scaleControl = opts.fullscreenControl =
@@ -547,9 +548,37 @@
                   type: 'mapTypeControl',
                 }[v];
                 if (key) opts[key] = true;
+                if (v === 'currentposition') cp = true;
               });
-            }
+            } // value
             this.maGoogleMap.setOptions (opts);
+
+            if (cp && !this.pcCurrentPositionButtonAdded) {
+              this.pcCurrentPositionButtonAdded = true;
+              var e = document.createElement ('map-controls');
+              e.setAttribute ('position', 'right-bottom');
+              e.className = 'paco-currentposition-container';
+              var b = document.createElement ('button');
+              b.className = 'paco-control-button paco-currentposition-control-button';
+              b.type = 'button';
+              b.textContent = '\u26EF';
+              b.onclick = () => {
+                this.pcLocateCurrentPosition ({pan: true});
+              };
+              
+              // recompute!
+              var mCP = this.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-currentposition-title'), 'Current position');
+              b.title = mCP;
+              
+              e.appendChild (b);
+              if (controls) {
+                controls.push (e);
+              } else {
+                this.appendChild (e);
+                this.maRedraw ({controls: true});
+              }
+              this.pcInitCurrentPosition ();
+            } // cp
           }; // applyControls
           new MutationObserver (applyControls)
               .observe (this, {attributeFilter: ['controls']});
@@ -564,9 +593,11 @@
             this.maRedrawEvent ();
           });
           var mo = new MutationObserver ((mutations) => {
-            this.maGoogleMap.setCenter ({
-              lat: this.maAttrFloat ('lat', 0),
-              lng: this.maAttrFloat ('lon', 0),
+            this.maRedraw ({
+              center: {
+                lat: this.maAttrFloat ('lat', 0),
+                lon: this.maAttrFloat ('lon', 0),
+              },
             });
           });
           mo.observe (this, {attributeFilter: ['lat', 'lon']});
@@ -579,6 +610,7 @@
             this.maRedraw ({controls: true});
           }).observe (this, {childList: true});
           controls.forEach (e => this.appendChild (e));
+          controls = null;
           
           this.maRedraw ({all: true});
         }).then (() => {
@@ -592,11 +624,10 @@
       }, // maInitGoogleMaps
       maInitGoogleMapsEmbed: function () {
         var mo = new MutationObserver ((mutations) => {
-          this.maCenter = {
+          this.maRedraw ({center: {
             lat: this.maAttrFloat ('lat', 0),
             lon: this.maAttrFloat ('lon', 0),
-          };
-          this.maRedraw ({all: true});
+          }});
         });
         mo.observe (this, {attributeFilter: ['lat', 'lon']});
         this.maCenter = {
@@ -607,10 +638,10 @@
       }, // maInitGoogleMapsEmbed
       pcInitLeaflet: function () {
         (new MutationObserver ((mutations) => {
-          this.pcLMap.panTo ({
+          this.maRedraw ({center: {
             lat: this.maAttrFloat ('lat', 0),
-            lng: this.maAttrFloat ('lon', 0),
-          });
+            lon: this.maAttrFloat ('lon', 0),
+          }});
         })).observe (this, {attributeFilter: ['lat', 'lon']});
         this.maCenter = {
           lat: this.maAttrFloat ('lat', 0),
@@ -655,21 +686,17 @@
         }
         if (controls.fullscreen) L.control.fullscreenButton ({}).addTo (map);
 
-        if (controls.currentposition) {
-          L.control.currentPositionButton ({
-            position: 'bottomright',
-          }).addTo (map);
-          if (navigator.permissions && navigator.permissions.query) {
-            navigator.permissions.query ({name: "geolocation"}).then (ps => {
-              if (ps.state === 'granted') this.pcLocateCurrentPosition ({});
-            });
-          }
-        }
-
         if (controls.streetview) {
           L.control.streetViewButton ({
             position: 'bottomright',
           }).addTo (map);
+        }
+
+        if (controls.currentposition) {
+          L.control.currentPositionButton ({
+            position: 'bottomright',
+          }).addTo (map);
+          this.pcInitCurrentPosition ();
         }
 
         // Map need to be recomputed if it is initialized when not
@@ -709,8 +736,29 @@
       }, // ma_RedrawEvent
       maRedraw: function (opts) {
         for (var n in opts) {
-          if (opts[n]) this.maRedrawNeedUpdated[n] = true;
+          if (opts[n]) this.maRedrawNeedUpdated[n] = opts[n];
         }
+
+        if (this.maRedrawNeedUpdated.center) {
+          var p = {
+            lat: this.maRedrawNeedUpdated.center.lat,
+            lng: this.maRedrawNeedUpdated.center.lon,
+          };
+          if (this.pcLMap) {
+            this.pcLMap.panTo (p);
+          } else if (this.maGoogleMap) {
+            if (this.maRedrawNeedUpdated.pan) {
+              this.maGoogleMap.panTo (p);
+            } else {
+              this.maGoogleMap.setCenter (p);
+            }
+          } else {
+            this.maCenter = this.maRedrawNeedUpdated.center;
+            this.maRedrawNeedUpdated.all = true;
+          }
+          delete this.maRedrawNeedUpdated.center;
+          delete this.maRedrawNeedUpdated.pan;
+        } // center
         
         if (this.maRedrawNeedUpdated.relocate) {
           if (this.maEngine === 'leaflet') {
@@ -805,6 +853,77 @@
               });
             }
           } // controls
+
+          if (updates.currentPositionMarker || updates.all) {
+            if (this.pcCurrentPosition) {
+              if (!this.pcCurrentPositionMarker) {
+                // recompute!
+                var s = getComputedStyle (this);
+                var v = s.getPropertyValue ('--paco-marker-currentposition') || 'auto';
+
+                var markerURL = null;
+                var markerSize = null;
+                var m = v.match (/^\s*("[^"]*"|'[^']*')\s+(\S+)\s+(\S+)\s*$/);
+                if (m) {
+                  var mt = document.createElement ('span');
+                  var s = this.pcInternal.parseCSSString (m[1], null);
+                  if (s) {
+                    mt.textContent = s;
+                    var mc = document.createElement ('span');
+                    mc.textContent = m[2];
+                    var ms = document.createElement ('span');
+                    ms.textContent = m[3];
+                    markerSize = [m[3], m[3]];
+                    var mss = ms.innerHTML;
+                    markerURL = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+mss+' '+mss+'"><text x="calc('+mss+'/2)" y="calc('+mss+'/2)" width="'+mss+'" height="'+mss+'" font-size="'+mss+'" text-anchor="middle" alignment-baseline="central" fill="'+mc.innerHTML+'">'+mt.innerHTML+'</text></svg>');
+                  }
+                } else {
+                  m = v.match (/^\s*url\(([^()"\\]+)\)\s*$/);
+                  if (m) {
+                    markerURL = m[1];
+                  }
+                }
+                if (!markerURL) console.log ("Bad |--paco-marker-currentposition| value: |"+v+"|");
+
+                if (this.pcLMap) {
+                  this.pcCurrentPositionMarker = L.marker (this.pcCurrentPosition, {
+                    //draggable: true,
+                    //title: "",
+                    icon: L.icon ({
+                      iconUrl: markerURL,
+                      iconSize: markerSize,
+                    }),
+                  }).addTo (this.pcLMap);
+                } else {
+                  if (markerSize) markerSize = { // must be in px
+                    width: parseFloat (markerSize[0]),
+                    height: parseFloat (markerSize[1]),
+                  };
+                  this.pcCurrentPositionMarker = new google.maps.Marker ({
+                    position: {
+                      lat: this.pcCurrentPosition.lat,
+                      lng: this.pcCurrentPosition.lon,
+                    },
+                    map: this.googleMap,
+                    //title: "",
+                    icon: {
+                      url: markerURL,
+                      size: markerSize,
+                    },
+                  });
+                }
+              } else { // pcCurrentPositionMarker
+                if (this.pcCurrentPositionMarker.setLatLng) {
+                  this.pcCurrentPositionMarker.setLatLng (this.pcCurrentPosition);
+                } else {
+                  this.pcCurrentPositionMarker.setPosition ({
+                    lat: this.pcCurrentPosition.lat,
+                    lng: this.pcCurrentPosition.lon,
+                  });
+                }
+              } // pcCurrentPositionMarker
+            }
+          } // currentPositionMarker
         } // isShown
         
         if (updates.onready) {
@@ -1032,19 +1151,30 @@
           });
           layers.push (lNowc);
         }
+
+        layers.forEach (l => l.pcIsMapTypeLayer = true);
         
-        map.eachLayer (l => map.removeLayer (l));
+        map.eachLayer (l => {
+          if (l.pcIsMapTypeLayer) map.removeLayer (l);
+        });
         layers.forEach (l => map.addLayer (l));
         this.classList.toggle ('paco-maptype-none', type === 'none');
         this.dispatchEvent (new Event ('pcMapTypeChange'));
       }, // pcChangeMapType
 
+      pcInitCurrentPosition: function () {
+        if (navigator.permissions && navigator.permissions.query) {
+          navigator.permissions.query ({name: "geolocation"}).then (ps => {
+            if (ps.state === 'granted') this.pcLocateCurrentPosition ({});
+          });
+        }
+      }, // pcInitCurrentPosition
       pcLocateCurrentPosition: function (opts) {
         if (opts.pan) {
           if (this.pcCurrentPosition) {
-            this.pcLMap.panTo ({
-              lat: this.pcCurrentPosition.lat,
-              lng: this.pcCurrentPosition.lon,
+            this.maRedraw ({
+              center: this.pcCurrentPosition,
+              pan: true,
             });
           } else {
             this.pcLocateCurrentPositionPanRequested = true;
@@ -1057,10 +1187,11 @@
             lon: p.coords.longitude,
             //latLonAccuracy: p.coords.accuracy,
           };
+          this.maRedraw ({currentPositionMarker: true});
           if (this.pcLocateCurrentPositionPanRequested) {
-            this.pcLMap.panTo ({
-              lat: this.pcCurrentPosition.lat,
-              lng: this.pcCurrentPosition.lon,
+            this.maRedraw ({
+              center: this.pcCurrentPosition,
+              pan: true,
             });
             delete this.pcLocateCurrentPositionPanRequested;
           }
