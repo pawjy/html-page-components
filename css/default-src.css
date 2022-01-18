@@ -250,10 +250,12 @@ map-area:lang(ja) {
   --paco-maptype-photo-text: '\822A\7A7A\5199\771F';
   --paco-maptype-none-text: '\306A\3057';
   --paco-maptype-jmanowc-current-text: '\96E8\96F2\306E\52D5\304D';
+  --paco-map-click-action: none;
 }
 
 map-area[formcontrol] {
   --paco-marker-value: url(https://raw.githubusercontent.com/wakaba/html-page-components/master/intermediate/leaflet/marker-icon.png);
+  --paco-map-click-action: set-value;
 }
 
 map-area > iframe.googlemapsembed:not([hidden]) {

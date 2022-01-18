@@ -1696,14 +1696,15 @@ The following properties are available:
 
     On getting, it returns a new {lat, lon} object.
 
-    On setting, the new value must be a {lat, lon} object.  It updates
-    the |lat| and |lon| content attributes to the specified values.
-
+    On setting, the new value must be a {lat, lon} object.
+    
     The "value" point is set by the following operations:
 
       - Setting the |lat| content attribute.
       - Setting the |lon| content attribute.
       - Setting the |valueAsLatLon| property to a {lat, lon} value.
+      - User moving the "value" point marker by dragging.
+      - User clicking a point on the map.
 
 Events.
 
