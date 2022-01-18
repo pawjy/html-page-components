@@ -60,6 +60,55 @@
     this.assert.equal (bounds.east, -118.0206298828125);
     this.assert.equal (bounds.south, 19.554613885372127);
     this.assert.equal (bounds.west, -123.387451171875);
+
+    var p = {lat: -40.53, lon: 131.122};
+    e.valueAsLatLon = p;
+    this.assert.equal (p === e.valueAsLatLon, false);
+
+    await this.wait ();
+
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, -40.53);
+    this.assert.equal (v.lon, 131.122);
+    this.assert.equal (e.getAttribute ('lat'), '20.33');
+    this.assert.equal (e.getAttribute ('lon'), '-120.7013');
+    this.assert.equal (p === e.valueAsLatLon, false);
+    this.assert.equal (v === e.valueAsLatLon, false);
+
+    var pos = e.getMapCenter ();
+    this.assert.equal (pos.lat, 20.33);
+    this.assert.equal (pos.lon, -120.7013);
+
+    e.pcScroll ({center: {lat: 32.211, lon: 143.444}});
+    await this.wait ();
+
+    var pos = e.getMapCenter ();
+    this.assert.equal (pos.lat, 32.211);
+    this.assert.equal (pos.lon, 143.444);
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, -40.53);
+    this.assert.equal (v.lon, 131.122);
+
+    e.pcScroll ({center: {lat: 30.211, lon: 140.444}, setValue: true});
+    await this.wait ();
+
+    var pos = e.getMapCenter ();
+    this.assert.equal (pos.lat, 30.211);
+    this.assert.equal (pos.lon, 140.444);
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, 30.211);
+    this.assert.equal (v.lon, 140.444);
+
+    e.parentNode.style.overflow = 'scroll';
+    e.parentNode.style.height = '10em';
+    e.style.marginTop = '20em';
+    this.assert.equal (e.parentNode.scrollTop, 0);
+
+    e.pcScroll ({center: {lat: 30.211, lon: 140.444}, intoView: true});
+    await this.wait ();
+    
+    this.assert.equal (e.parentNode.scrollTop > 0, true);
+    
   </test-code>
 
   <test-code name="dynamic">
@@ -67,6 +116,25 @@
     e.setAttribute ('engine', 'leaflet');
     e.setAttribute ('lat', 42);
     e.setAttribute ('lon', 21);
+    this.currentScript.appendChild (e);
+
+    await e.ready;
+
+    var center = e.getMapCenter ();
+    this.assert.equal (center.lat, 42);
+    this.assert.equal (center.lon, 21);
+    
+    var bounds = e.getMapBounds ();
+    this.assert.equal (bounds.north, 42.60970621339408);
+    this.assert.equal (bounds.east,  23.681030273437504);
+    this.assert.equal (bounds.south, 41.3850519497068);
+    this.assert.equal (bounds.west,  18.314208984375004);
+  </test-code>
+
+  <test-code name="valueAsLatLon before init">
+    var e = document.createElement ('map-area');
+    e.setAttribute ('engine', 'leaflet');
+    e.valueAsLatLon = {lat: 42, lon: 21};
     this.currentScript.appendChild (e);
 
     await e.ready;
@@ -510,6 +578,108 @@
     this.assert.equal (ts.querySelector ('time').getAttribute ('data-tzoffset'), '-3600');
   </test-code>
 
+  <test-code name="formdata 1">
+    /*
+      <form is=save-data data-saver=formDataTest1 action method=post>
+        <map-area formcontrol latname=foo lonname=bar></map-area>
+        <button type=submit>Submit</button>
+      </form>
+    */
+    var f = this.currentScript.querySelector ('form');
+    var e = f.querySelector ('map-area');
+    await this.wait ();
+
+    f.querySelector ('button').click ();
+
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'saver');
+      handler.setAttribute ('name', 'formDataTest1');
+      handler.pcHandler = function (fd) {
+        ok (fd);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var fd = await promise;
+
+    this.assert.equal (fd.get ('foo'), '0');
+    this.assert.equal (fd.get ('bar'), '0');
+  </test-code>
+
+  <test-code name="formdata 2">
+    /*
+      <form is=save-data data-saver=formDataTest2 action method=post>
+        <map-area formcontrol latname=foo lonname=bar></map-area>
+        <button type=submit>Submit</button>
+      </form>
+    */
+    var f = this.currentScript.querySelector ('form');
+    var e = f.querySelector ('map-area');
+    e.setAttribute ('lat', 32.444);
+    e.setAttribute ('lon', -130.12);
+    await this.wait ();
+
+    f.querySelector ('button').click ();
+
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'saver');
+      handler.setAttribute ('name', 'formDataTest2');
+      handler.pcHandler = function (fd) {
+        ok (fd);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var fd = await promise;
+
+    this.assert.equal (fd.get ('foo'), '32.444');
+    this.assert.equal (fd.get ('bar'), '-130.12');
+  </test-code>
+
+  <test-code name="formdata 3">
+    /*
+      <form is=save-data data-saver=formDataTest3 action method=post>
+        <map-area formcontrol latname=foo lonname=bar></map-area>
+        <button type=submit>Submit</button>
+      </form>
+    */
+    var f = this.currentScript.querySelector ('form');
+    var e = f.querySelector ('map-area');
+
+    var events = [];
+    e.parentNode.addEventListener ('input', ev => {
+      events.push (ev);
+    });
+    e.parentNode.addEventListener ('change', ev => {
+      events.push (ev);
+    });
+    
+    e.pcMarkerMoveEnd ({lat: 32.444, lon: -130.12});
+    await this.wait ();
+
+    f.querySelector ('button').click ();
+
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'saver');
+      handler.setAttribute ('name', 'formDataTest3');
+      handler.pcHandler = function (fd) {
+        ok (fd);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var fd = await promise;
+
+    this.assert.equal (fd.get ('foo'), '32.444');
+    this.assert.equal (fd.get ('bar'), '-130.12');
+
+    this.assert.equal (events.length, 2);
+    this.assert.equal (events[0].type, 'input');
+    this.assert.equal (events[0].target, e);
+    this.assert.equal (events[1].type, 'change');
+    this.assert.equal (events[1].target, e);
+  </test-code>
+  
   <script src=runtests.js data-maps></script>
 </body>
 </html>
