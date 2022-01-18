@@ -487,12 +487,17 @@
         }
         Object.defineProperty (this, 'valueAsLatLon', {
           get: function () {
-            return this.pcValue;
+            return {
+              lat: this.pcValue.lat,
+              lon: this.pcValue.lon,
+            };
           },
           set: function (newValue) {
             newValue = newValue || {};
-            this.setAttribute ('lat', newValue.lat);
-            this.setAttribute ('lon', newValue.lon);
+            this.pcValue = {lat: 0+newValue.lat, lon: 0+newValue.lon};
+            if (!Number.isFinite (this.pcValue.lat)) this.pcValue.lat = 0;
+            if (!Number.isFinite (this.pcValue.lon)) this.pcValue.lon = 0;
+            this.maRedraw ({valueMarker: true});
           },
         });
         
@@ -618,7 +623,7 @@
               value: true,
             });
           });
-          mo.observe (this, {attributeFilter: ['lat', 'lon']});
+          mo.observe (this, {attributeFilter: ['lat', 'lon', 'readonly']});
           this.maCenter = this.pcValue = {
             lat: this.maAttrFloat ('lat', 0),
             lon: this.maAttrFloat ('lon', 0),
@@ -666,7 +671,7 @@
             },
             value: true,
           });
-        })).observe (this, {attributeFilter: ['lat', 'lon']});
+        })).observe (this, {attributeFilter: ['lat', 'lon', 'readonly']});
         this.maCenter = this.pcValue = {
           lat: this.maAttrFloat ('lat', 0),
           lon: this.maAttrFloat ('lon', 0),
@@ -745,7 +750,8 @@
         new MutationObserver ((mutations) => {
           this.maRedraw ({controls: true});
         }).observe (this, {childList: true});
-        this.maRedraw ({controls: true});
+        this.maRedraw ({controls: true, valueMarker: true,
+                        relocate: true});
       }, // pcInitLeaflet
       
       maRedrawEvent: function () {
@@ -778,6 +784,7 @@
           }
           if (this.maRedrawNeedUpdated.value) {
             this.pcValue = this.maRedrawNeedUpdated.center;
+            this.maRedrawNeedUpdated.valueMarker = true;
           }
           delete this.maRedrawNeedUpdated.center;
           delete this.maRedrawNeedUpdated.value;
@@ -878,13 +885,16 @@
             }
           } // controls
 
-          if (updates.currentPositionMarker || updates.all) {
-            if (this.pcCurrentPosition) {
-              if (!this.pcCurrentPositionMarker) {
-                // recompute!
-                var s = getComputedStyle (this);
-                var v = s.getPropertyValue ('--paco-marker-currentposition') || 'auto';
+          var computedStyle;
+          var updateMarker = (markerName, propName, pos, opts) => {
+            if (!this[markerName]) {
+              // recompute!
+              computedStyle = computedStyle || getComputedStyle (this);
+              var v = computedStyle.getPropertyValue (propName) || 'none';
 
+              if (v.match (/^\s*none\s*$/)) {
+                this[markerName] = {setLatLng: () => {}};
+              } else {
                 var markerURL = null;
                 var markerSize = null;
                 var m = v.match (/^\s*("[^"]*"|'[^']*')\s+(\S+)\s+(\S+)\s*$/);
@@ -902,52 +912,79 @@
                     markerURL = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+mss+' '+mss+'"><text x="calc('+mss+'/2)" y="calc('+mss+'/2)" width="'+mss+'" height="'+mss+'" font-size="'+mss+'" text-anchor="middle" alignment-baseline="central" fill="'+mc.innerHTML+'">'+mt.innerHTML+'</text></svg>');
                   }
                 } else {
-                  m = v.match (/^\s*url\(([^()"\\]+)\)\s*$/);
+                  m = v.match (/^\s*url\(((?:[^()"'\\]|\\[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E])+)\)\s*$/);
                   if (m) {
-                    markerURL = m[1];
+                    markerURL = m[1].replace (/\\(.)/g, (_, v) => v);
                   }
                 }
-                if (!markerURL) console.log ("Bad |--paco-marker-currentposition| value: |"+v+"|");
+              if (!markerURL) console.log ("Bad |"+propName+"| value: |"+v+"|");
 
-                if (this.pcLMap) {
-                  this.pcCurrentPositionMarker = L.marker (this.pcCurrentPosition, {
-                    //draggable: true,
-                    //title: "",
-                    icon: L.icon ({
-                      iconUrl: markerURL,
-                      iconSize: markerSize,
-                    }),
-                  }).addTo (this.pcLMap);
-                } else {
-                  if (markerSize) markerSize = { // must be in px
-                    width: parseFloat (markerSize[0]),
-                    height: parseFloat (markerSize[1]),
-                  };
-                  this.pcCurrentPositionMarker = new google.maps.Marker ({
-                    position: {
-                      lat: this.pcCurrentPosition.lat,
-                      lng: this.pcCurrentPosition.lon,
-                    },
-                    map: this.googleMap,
-                    //title: "",
+              if (this.pcLMap) {
+                this[markerName] = L.marker (pos, {
+                  draggable: !!opts.draggable,
+                  //title: "",
+                  icon: L.icon ({
+                    iconUrl: markerURL,
+                    iconSize: markerSize,
+                  }),
+                }).addTo (this.pcLMap);
+                this[markerName].on ('moveend', ev => {
+                  var p = this[markerName].getLatLng ();
+                  this.pcMarkerMoveEnd ({
+                    lat: p.lat,
+                    lon: p.lng,
+                  });
+                });
+              } else {
+                if (markerSize) markerSize = { // must be in px
+                  width: parseFloat (markerSize[0]),
+                  height: parseFloat (markerSize[1]),
+                };
+                this[markerName] = new google.maps.Marker ({
+                  position: {
+                    lat: pos.lat,
+                    lng: pos.lon,
+                  },
+                  map: this.googleMap,
+                  draggable: !!opts.draggable,
+                  //title: "",
                     icon: {
                       url: markerURL,
                       size: markerSize,
                     },
                   });
-                }
-              } else { // pcCurrentPositionMarker
-                if (this.pcCurrentPositionMarker.setLatLng) {
-                  this.pcCurrentPositionMarker.setLatLng (this.pcCurrentPosition);
-                } else {
-                  this.pcCurrentPositionMarker.setPosition ({
-                    lat: this.pcCurrentPosition.lat,
-                    lng: this.pcCurrentPosition.lon,
+                  this[markerName].addListener ('dragend', ev => {
+                    var p = ev.latLng;
+                    this.pcMarkerMoveEnd ({
+                      lat: p.lat (),
+                      lon: p.lng (),
+                    });
                   });
                 }
-              } // pcCurrentPositionMarker
+              } // !none
+            } else { // marker
+              if (this[markerName].setLatLng) {
+                this[markerName].setLatLng (pos);
+              } else {
+                this[markerName].setPosition ({
+                  lat: pos.lat,
+                  lng: pos.lon,
+                });
+              }
+            } // marker
+          }; // updateMarker
+
+          if (updates.currentPositionMarker || updates.all) {
+            if (this.pcCurrentPosition) {
+              updateMarker ('pcCurrentPositionMarker', '--paco-marker-currentposition', this.pcCurrentPosition, {});
             }
           } // currentPositionMarker
+
+          if (updates.valueMarker || updates.all) {
+            updateMarker ('pcValueMarker', '--paco-marker-value', this.pcValue, {
+              draggable: !this.hasAttribute ('readonly'),
+            });
+          } // valueMarker
         } // isShown
         
         if (updates.onready) {
@@ -1246,6 +1283,22 @@
           src.removeEventListener ('dragend', handlers[2]);
         });
       }, // pcStartStreetViewDragMode
+
+      pcMarkerMoveEnd: function (p) {
+        this.pcValue = p;
+        this.dispatchEvent (new Event ('input', {bubbles: true, composed: true}));
+        this.dispatchEvent (new Event ('change', {bubbles: true}));
+      }, // pcMarkerMoveEnd
+
+      pcModifyFormData: function (fd) {
+        var latname = this.getAttribute ('latname') || '';
+        var lonname = this.getAttribute ('lonname') || '';
+        if (latname || lonname) {
+          var v = this.valueAsLatLon;
+          if (latname) fd.set (latname, v.lat);
+          if (lonname) fd.set (lonname, v.lon);
+        }
+      }, // pcModifyFormData
       
     },
   }); // <map-area>

@@ -20,7 +20,7 @@
 <script src=https://wiki.suikawiki.org/scripts/time async data-time-selector=time></script>
 
   <section id=map-section-1 lang=ja>
-    <map-area engine=leaflet controls="type typebuttons scale fullscreen currentposition zoom streetview" gsi jma lat=35.2 lon=135.4 >
+    <map-area engine=leaflet controls="type typebuttons scale fullscreen currentposition zoom streetview" gsi jma lat=35.2 lon=135.4 formcontrol>
       <map-controls>ABC</map-controls>
       <map-controls position=top-left>XYZ</map-controls>
       <map-controls position=top-left><button>xyz</button></map-controls>
@@ -67,16 +67,24 @@
       ">
     <p>
       <output name=bounds></output>
+    <p>
+      <output name=value></output>
     <script>
     (() => {
       var s = document.querySelector ('#map-section-1');
       s.querySelector ('map-area').addEventListener ('pcRedraw', (ev) => {
-        var o = s.querySelector ('output');
+        var o = s.querySelector ('output[name=bounds]');
         var b = ev.target.getMapBounds ();
         if (b) o.textContent = [b.north, b.east, b.south, b.west].join (' ');
 
         var c = ev.target.getMapCenter ();
         document.querySelector ('#latlon').value = c.lat + ',' + c.lon;
+      });
+      s.querySelector ('map-area').addEventListener ('change', (ev) => {
+        var o = s.querySelector ('output[name=value]');
+
+        var v = ev.target.valueAsLatLon;
+        o.textContent = [v.lat, v.lon];
       });
     }) ();
     </script>

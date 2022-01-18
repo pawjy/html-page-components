@@ -1355,7 +1355,7 @@ The following content attributes are available:
       |currentposition|  "Pan to the current position" button
       |fullscreen|       "Fullscreen mode" button
       |scale|            Scale
-      |streetview|       "Street View mode" button
+      |streetview|       "Open Street View" button
       |type|             Map type menu (or buttons, if the map's
                          |engine| is |googlemaps|)
       |typebuttons|      Map type buttons, if |type| is also specified
@@ -1413,6 +1413,20 @@ The following content attributes are available:
         is used, the API key for the API must be specified to the
         |data-google-maps-key| attribute value of the root element
         (the |html| element).
+
+  <map-area formcontrol=""> : boolean
+
+    Whether the map should act as a position selection form control or
+    not.
+
+    If specified, a marker is shown at the "value" point coordinate of
+    the map, which can be accessed via the |valueAsLatLon| property
+    and through the form submission (see |latname=""| and |lonname=""|
+    content attributes).  The marker is draggable unless |readonly=""|
+    content attribute is also specified.
+
+    When the marker is dragged by the user, an |input| event, followed
+    by a |change| event, is fired at the element.
 
   <map-area gsi=""> : boolean
 
@@ -1472,27 +1486,41 @@ The following content attributes are available:
     This attribute is ignored when the map's |engine| is |googlemaps|
     or |googlemapsembed|.
 
-  lat="" : float
+  lat="" : Float
+  lon="" : Float
 
-    The initial latitude of the center point of the map.  The default
-    is zero.
+    The initial latitude and longitude of the center point of the map.
+    The default is zero.
 
-    Any mutation to the attribute results in the map being moved, if
+    Any mutation to these attributes result in the map being moved, if
     necessary.
 
-  lon="" : float
+  <map-area latname=""> : string
+  <map-area lonname=""> : string
 
-    The initial longitude of the center point of the map.  The default
-    is zero.
+    The form field name for the latitude and longitude of the "value"
+    point coordinate of the map.
 
-    Any mutation to the attribute results in the map being moved, if
-    necessary.
+    The |formcontrol=""| content attribute must also be specified.
+    Otherwise, these content attributes have no effect.
 
-  noimgsrc="" : URL
+    When the containing |form[is=save-data]| element is submitted, two
+    form data entries are inserted from the map: (/latname/, /lat/)
+    and (/lonname/, /lon/) where /latname/ and /lonname/ are
+    |latname=""| and |lonname=""| content attribute values and /lat/
+    and /lon/ are |valueAsLatLon| property value's |lat| and |lon|
+    values.
+
+  <map-area noimgsrc=""> : URL
 
     The (absolute or relative) URL of the image that is used when no
     image data is available.  If not specified, the default image is
     used.  This is applied to GSI maps.
+
+  <map-area readonly=""> : boolean
+
+    If specified, the marker for the "value" point coordinate of the
+    map is not draggable.
 
   <map-area tzoffset=""> : number
 
@@ -2017,7 +2045,7 @@ There are following definition types:
 
     The |this| value used when the handler is invoked is the |form|
     element.  The handler is invoked with the dictionary, as described
-    in the |form[is-save-data]|'s documentation.
+    in the |form[is=save-data]|'s documentation.
 
   formvalidator (handler)
 
@@ -2026,7 +2054,7 @@ There are following definition types:
 
     The |this| value used when the handler is the |form| element.  The
     handler is invoked with the dictionary, as described in the
-    |form[is-save-data]|'s documentation.
+    |form[is=save-data]|'s documentation.
 
     If the result is valid (i.e. the form is ready to be submitted),
     the handler must return (or return a promise that is fulfilled).
@@ -2038,7 +2066,7 @@ There are following definition types:
 
     A form submission handler for |form| element whose |is| is
     |save-data|.  It is expected to return a |Response| object or
-    equivalent, as described in the |form[is-save-data]|'s
+    equivalent, as described in the |form[is=save-data]|'s
     documentation.
 
     The |this| value used when the handler is the |form| element.

@@ -74,12 +74,12 @@
     var v = e.valueAsLatLon;
     this.assert.equal (v.lat, -40.3);
     this.assert.equal (v.lon, 51.122);
-    this.assert.equal (e.getAttribute ('lat'), -40.3);
-    this.assert.equal (e.getAttribute ('lon'), 51.122);
+    this.assert.equal (e.getAttribute ('lat'), 20.33);
+    this.assert.equal (e.getAttribute ('lon'), -120.7013);
 
     var pos = e.getMapCenter ();
-    this.assert.equal (Math.abs (pos.lat - -40.6) < 1, true, pos.lat);
-    this.assert.equal (Math.abs (pos.lon - 51.122) < 1, true, pos.lon);
+    this.assert.equal (pos.lat, 20.33);
+    this.assert.equal (pos.lon, -120.7013);
   </test-code>
 
   <test-code name="initially hidden">
@@ -256,7 +256,7 @@
     e.googleMap.setCenter ({lat: 53, lng: 31});
     
     e.hidden = false;
-    await this.wait (500);
+    await this.wait (1000);
     
     this.assert.equal (invoked > 0, true, 'invoked = ' + invoked);
 

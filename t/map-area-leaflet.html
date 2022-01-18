@@ -61,19 +61,23 @@
     this.assert.equal (bounds.south, 19.554613885372127);
     this.assert.equal (bounds.west, -123.387451171875);
 
-    e.valueAsLatLon = {lat: -40.53, lon: 131.122};
+    var p = {lat: -40.53, lon: 131.122};
+    e.valueAsLatLon = p;
+    this.assert.equal (p === e.valueAsLatLon, false);
 
     await this.wait ();
 
     var v = e.valueAsLatLon;
     this.assert.equal (v.lat, -40.53);
     this.assert.equal (v.lon, 131.122);
-    this.assert.equal (e.getAttribute ('lat'), -40.53);
-    this.assert.equal (e.getAttribute ('lon'), 131.122);
+    this.assert.equal (e.getAttribute ('lat'), '20.33');
+    this.assert.equal (e.getAttribute ('lon'), '-120.7013');
+    this.assert.equal (p === e.valueAsLatLon, false);
+    this.assert.equal (v === e.valueAsLatLon, false);
 
     var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, -40.53);
-    this.assert.equal (pos.lon, 131.122);
+    this.assert.equal (pos.lat, 20.33);
+    this.assert.equal (pos.lon, -120.7013);
   </test-code>
 
   <test-code name="dynamic">
@@ -543,6 +547,108 @@
     this.assert.equal (ts.querySelector ('time').getAttribute ('data-tzoffset'), '-3600');
   </test-code>
 
+  <test-code name="formdata 1">
+    /*
+      <form is=save-data data-saver=formDataTest1 action method=post>
+        <map-area formcontrol latname=foo lonname=bar></map-area>
+        <button type=submit>Submit</button>
+      </form>
+    */
+    var f = this.currentScript.querySelector ('form');
+    var e = f.querySelector ('map-area');
+    await this.wait ();
+
+    f.querySelector ('button').click ();
+
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'saver');
+      handler.setAttribute ('name', 'formDataTest1');
+      handler.pcHandler = function (fd) {
+        ok (fd);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var fd = await promise;
+
+    this.assert.equal (fd.get ('foo'), '0');
+    this.assert.equal (fd.get ('bar'), '0');
+  </test-code>
+
+  <test-code name="formdata 2">
+    /*
+      <form is=save-data data-saver=formDataTest2 action method=post>
+        <map-area formcontrol latname=foo lonname=bar></map-area>
+        <button type=submit>Submit</button>
+      </form>
+    */
+    var f = this.currentScript.querySelector ('form');
+    var e = f.querySelector ('map-area');
+    e.setAttribute ('lat', 32.444);
+    e.setAttribute ('lon', -130.12);
+    await this.wait ();
+
+    f.querySelector ('button').click ();
+
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'saver');
+      handler.setAttribute ('name', 'formDataTest2');
+      handler.pcHandler = function (fd) {
+        ok (fd);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var fd = await promise;
+
+    this.assert.equal (fd.get ('foo'), '32.444');
+    this.assert.equal (fd.get ('bar'), '-130.12');
+  </test-code>
+
+  <test-code name="formdata 3">
+    /*
+      <form is=save-data data-saver=formDataTest3 action method=post>
+        <map-area formcontrol latname=foo lonname=bar></map-area>
+        <button type=submit>Submit</button>
+      </form>
+    */
+    var f = this.currentScript.querySelector ('form');
+    var e = f.querySelector ('map-area');
+
+    var events = [];
+    e.parentNode.addEventListener ('input', ev => {
+      events.push (ev);
+    });
+    e.parentNode.addEventListener ('change', ev => {
+      events.push (ev);
+    });
+    
+    e.pcMarkerMoveEnd ({lat: 32.444, lon: -130.12});
+    await this.wait ();
+
+    f.querySelector ('button').click ();
+
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'saver');
+      handler.setAttribute ('name', 'formDataTest3');
+      handler.pcHandler = function (fd) {
+        ok (fd);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var fd = await promise;
+
+    this.assert.equal (fd.get ('foo'), '32.444');
+    this.assert.equal (fd.get ('bar'), '-130.12');
+
+    this.assert.equal (events.length, 2);
+    this.assert.equal (events[0].type, 'input');
+    this.assert.equal (events[0].target, e);
+    this.assert.equal (events[1].type, 'change');
+    this.assert.equal (events[1].target, e);
+  </test-code>
+  
   <script src=runtests.js data-maps></script>
 </body>
 </html>
