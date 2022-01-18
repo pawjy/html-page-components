@@ -630,6 +630,17 @@
           }).observe (this, {childList: true});
           controls.forEach (e => this.appendChild (e));
           controls = null;
+
+          // recompute!
+          var s = getComputedStyle (this);
+          var v = s.getPropertyValue ('--paco-map-click-action') || 'none';
+          if (v.match (/^\s*set-value\s*$/)) {
+            this.maGoogleMap.addListener ('click', ev => {
+              var p = ev.latLng;
+              this.pcMarkerMoveEnd ({lat: p.lat (), lon: p.lng ()});
+              this.maRedraw ({valueMarker: true, userActivated: true});
+            });
+          }
           
           this.maRedraw ({all: true});
         }).then (() => {
@@ -739,6 +750,17 @@
         });
         map.setView (this.maCenter, 8);
 
+        // recompute!
+        var s = getComputedStyle (this);
+        var v = s.getPropertyValue ('--paco-map-click-action') || 'none';
+        if (v.match (/^\s*set-value\s*$/)) {
+          map.on ('click', ev => {
+            var p = ev.latlng;
+            this.pcMarkerMoveEnd ({lat: p.lat, lon: p.lng});
+            this.maRedraw ({valueMarker: true, userActivated: true});
+          });            
+        }
+
         if (this.hasAttribute ('gsi')) {
           this.setMapType ('gsi-lang');
         }
@@ -805,9 +827,13 @@
           }
           delete this.maRedrawNeedUpdated.mapType;
         }
-        
+
         clearTimeout (this.maRedrawTimer);
-        this.maRedrawTimer = setTimeout (() => this.ma_Redraw (), 300);
+        if (this.maRedrawNeedUpdated.userActivated) {
+          requestAnimationFrame (() => this.ma_Redraw ());
+        } else {
+          this.maRedrawTimer = setTimeout (() => this.ma_Redraw (), 300);
+        }
       }, // maRedraw
       ma_Redraw: function () {
         var isShown = this.offsetWidth > 0 && this.offsetHeight > 0;
@@ -883,17 +909,30 @@
 
           var computedStyle;
           var updateMarker = (markerName, propName, pos, opts) => {
-            if (!this[markerName]) {
-              // recompute!
-              computedStyle = computedStyle || getComputedStyle (this);
-              var v = computedStyle.getPropertyValue (propName) || 'none';
-
-              if (v.match (/^\s*none\s*$/)) {
-                this[markerName] = {setLatLng: () => {}};
+            if (this[markerName]) {
+              if (this[markerName].setLatLng) {
+                this[markerName].setLatLng (pos);
               } else {
-                var markerURL = null;
-                var markerSize = null;
-                var m = v.match (/^\s*("[^"]*"|'[^']*')\s+(\S+)\s+(\S+)\s*$/);
+                this[markerName].setPosition ({
+                  lat: pos.lat,
+                  lng: pos.lon,
+                });
+              }
+              return;
+            }
+              
+            // recompute!
+            computedStyle = computedStyle || getComputedStyle (this);
+            var v = computedStyle.getPropertyValue (propName) || 'none';
+
+            if (v.match (/^\s*none\s*$/)) {
+              this[markerName] = {setLatLng: () => {}};
+              return;
+            }
+
+            var markerURL = null;
+            var markerSize = null;
+            var m = v.match (/^\s*("[^"]*"|'[^']*')\s+(\S+)\s+(\S+)\s*$/);
                 if (m) {
                   var mt = document.createElement ('span');
                   var s = this.pcInternal.parseCSSString (m[1], null);
@@ -913,8 +952,8 @@
                     markerURL = m[1].replace (/\\(.)/g, (_, v) => v);
                   }
                 }
-              if (!markerURL) console.log ("Bad |"+propName+"| value: |"+v+"|");
 
+            if (markerURL) {
               if (this.pcLMap) {
                 this[markerName] = L.marker (pos, {
                   draggable: !!opts.draggable,
@@ -931,7 +970,8 @@
                     lon: p.lng,
                   });
                 });
-              } else {
+                return;
+              } else if (this.maGoogleMap) {
                 if (markerSize) markerSize = { // must be in px
                   width: parseFloat (markerSize[0]),
                   height: parseFloat (markerSize[1]),
@@ -948,26 +988,50 @@
                       url: markerURL,
                       size: markerSize,
                     },
-                  });
-                  this[markerName].addListener ('dragend', ev => {
-                    var p = ev.latLng;
-                    this.pcMarkerMoveEnd ({
-                      lat: p.lat (),
-                      lon: p.lng (),
-                    });
-                  });
-                }
-              } // !none
-            } else { // marker
-              if (this[markerName].setLatLng) {
-                this[markerName].setLatLng (pos);
-              } else {
-                this[markerName].setPosition ({
-                  lat: pos.lat,
-                  lng: pos.lon,
                 });
+                this[markerName].addListener ('dragend', ev => {
+                  var p = ev.latLng;
+                  this.pcMarkerMoveEnd ({
+                    lat: p.lat (),
+                    lon: p.lng (),
+                  });
+                });
+                return;
               }
-            } // marker
+            } // markerURL
+
+            m = v.match (/^\s*circle\s+(\S+)\s+([0-9.]+)m\s+(\S+)\s+([0-9.]+)px\s*$/);
+            if (m) {
+              var fill = m[1];
+              var radius = parseFloat (m[2]);
+              var stroke = m[3];
+              var strokeSize = parseFloat (m[4]);
+              if (this.pcLMap) {
+                this[markerName] = L.circle (pos, {
+                  fill: true,
+                  fillColor: fill,
+                  radius: radius,
+                  color: stroke,
+                  weight: strokeSize,
+                }).addTo (this.pcLMap);
+                return;
+              } else if (this.maGoogleMap) {
+                this[markerName] = new google.maps.Circle ({
+                  center: {
+                    lat: pos.lat,
+                    lng: pos.lon,
+                  },
+                  radius,
+                  fillColor: fill,
+                  strokeColor: stroke,
+                  strokeWeight: strokeSize,
+                  map: this.googleMap,
+                });
+                return;
+              }
+            } // circle
+            
+            if (!markerURL) console.log ("Bad |"+propName+"| value: |"+v+"|");
           }; // updateMarker
 
           if (updates.currentPositionMarker || updates.all) {
