@@ -78,6 +78,37 @@
     var pos = e.getMapCenter ();
     this.assert.equal (pos.lat, 20.33);
     this.assert.equal (pos.lon, -120.7013);
+
+    e.pcScroll ({center: {lat: 32.211, lon: 143.444}});
+    await this.wait ();
+
+    var pos = e.getMapCenter ();
+    this.assert.equal (pos.lat, 32.211);
+    this.assert.equal (pos.lon, 143.444);
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, -40.53);
+    this.assert.equal (v.lon, 131.122);
+
+    e.pcScroll ({center: {lat: 30.211, lon: 140.444}, setValue: true});
+    await this.wait ();
+
+    var pos = e.getMapCenter ();
+    this.assert.equal (pos.lat, 30.211);
+    this.assert.equal (pos.lon, 140.444);
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, 30.211);
+    this.assert.equal (v.lon, 140.444);
+
+    e.parentNode.style.overflow = 'scroll';
+    e.parentNode.style.height = '10em';
+    e.style.marginTop = '20em';
+    this.assert.equal (e.parentNode.scrollTop, 0);
+
+    e.pcScroll ({center: {lat: 30.211, lon: 140.444}, intoView: true});
+    await this.wait ();
+    
+    this.assert.equal (e.parentNode.scrollTop > 0, true);
+    
   </test-code>
 
   <test-code name="dynamic">

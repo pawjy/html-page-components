@@ -1583,6 +1583,34 @@ The following properties are available:
     The identifier of the GSI map type, that can be used in Google
     Maps API when the |gsi| content attribute is specified.
 
+  pcScroll ({...})
+
+    Change the area shown in the map and the position of the map
+    element.
+
+    The argument must be an object with one or more of following
+    name/value pairs:
+
+      center : {lat: float, lon: float}
+
+        Change the center of the map to the location identified by the
+        latitude and longitude.
+
+      ifNeeded : boolean
+
+        If true and |intoView| option is also specified, the map
+        element is scrolled into the view, if necessary.
+
+      intoView : boolean
+
+        If true, the map element is scrolled into the view.
+
+      setValue : boolean
+
+        If true, the "value" point coordinate of the map is set to the
+        |center| coordinate.  The |center| option must also be
+        specified.
+
   setMapType (/mapType/)
 
     Set the map type.

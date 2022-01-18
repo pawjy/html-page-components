@@ -489,7 +489,8 @@
           },
           set: function (newValue) {
             newValue = newValue || {};
-            this.pcValue = {lat: 0+newValue.lat, lon: 0+newValue.lon};
+            this.pcValue = {lat: parseFloat (newValue.lat),
+                            lon: parseFloat (newValue.lon)};
             if (!Number.isFinite (this.pcValue.lat)) this.pcValue.lat = 0;
             if (!Number.isFinite (this.pcValue.lon)) this.pcValue.lon = 0;
             this.maRedraw ({valueMarker: true});
@@ -1024,6 +1025,33 @@
         throw new DOMException ('The map engine does not support this operation', 'NotSupportedError');
       }, // getMapBounds
 
+      pcScroll: function (opts) {
+        /*
+          m.pcScroll ({center})
+          m.pcScroll ({center, setValue: true})
+          m.pcScroll ({intoView: true})
+          m.pcScroll ({intoView: true, ifNeeded: true})
+        */
+
+        if (opts.center) {
+          var p = {
+            lat: parseFloat (opts.center.lat),
+            lon: parseFloat (opts.center.lon),
+          };
+          if (!Number.isFinite (p.lat)) p.lat = 0;
+          if (!Number.isFinite (p.lon)) p.lon = 0;
+          this.maRedraw ({center: p, value: opts.setValue});
+        }
+
+        if (opts.intoView) {
+          if (opts.ifNeeded) {
+            this.scrollIntoViewIfNeeded ();
+          } else {
+            this.scrollIntoView ();
+          }
+        }
+      }, // pcScroll
+      
       maGoogleMapTypeGSI: 'GSI',
       maEnableGoogleMapGSI: function  () {
         var map = this.googleMap;
