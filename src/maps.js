@@ -290,7 +290,7 @@
       if (e.hasAttribute ('gsi')) {
         var mm = m.querySelector ('menu-main');
         var nodes = document.createElement ('div');
-        nodes.innerHTML = '<menu-item><popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-photo-standard data-false=gsi-photo><button class=paco-control-button>Photo</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><button data-true=none>None</button></menu-item><hr>';
+        nodes.innerHTML = '<menu-item><popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-photo-standard data-false=gsi-photo><button type=button class=paco-control-button>Photo</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><button type=button data-true=none>None</button></menu-item><hr>';
         var nb = nodes.querySelector ('menu-item:last-of-type button');
         
         var pms = Array.prototype.slice.call (nodes.querySelectorAll ('popup-menu'));
@@ -299,7 +299,7 @@
         if (opts.buttons) {
           var n = document.createElement ('span');
           n.className = 'paco-menu-button-container';
-          n.innerHTML = '<popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-photo-standard data-false=gsi-photo><button class=paco-control-button>Photo</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu>';
+          n.innerHTML = '<popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-photo-standard data-false=gsi-photo><button type=button class=paco-control-button>Photo</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu>';
           pms = pms.concat (Array.prototype.slice.call (n.querySelectorAll ('popup-menu')));
 
           c.insertBefore (n, c.firstChild);
@@ -642,7 +642,6 @@
           if (v.match (/^\s*set-value\s*$/)) {
             this.maGoogleMap.addListener ('click', ev => {
               var p = ev.latLng;
-              console.log("move");
               this.pcMarkerMoveEnd ({lat: p.lat (), lon: p.lng ()});
               this.maRedraw ({valueMarker: true, userActivated: true});
             });
@@ -936,38 +935,40 @@
               return;
             }
 
-            var markerURL = null;
-            var markerSize = null;
+            var icon = null;
             var m = v.match (/^\s*("[^"]*"|'[^']*')\s+(\S+)\s+(\S+)\s*$/);
-                if (m) {
-                  var mt = document.createElement ('span');
-                  var s = this.pcInternal.parseCSSString (m[1], null);
-                  if (s) {
-                    mt.textContent = s;
-                    var mc = document.createElement ('span');
-                    mc.textContent = m[2];
-                    var ms = document.createElement ('span');
-                    ms.textContent = m[3];
-                    markerSize = [m[3], m[3]];
-                    var mss = ms.innerHTML;
-                    markerURL = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+mss+' '+mss+'"><text x="calc('+mss+'/2)" y="calc('+mss+'/2)" width="'+mss+'" height="'+mss+'" font-size="'+mss+'" text-anchor="middle" alignment-baseline="central" fill="'+mc.innerHTML+'">'+mt.innerHTML+'</text></svg>');
-                  }
-                } else {
-                  m = v.match (/^\s*url\(((?:[^()"'\\]|\\[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E])+)\)\s*$/);
-                  if (m) {
-                    markerURL = m[1].replace (/\\(.)/g, (_, v) => v);
-                  }
-                }
+            if (m) {
+              var mt = document.createElement ('span');
+              var s = this.pcInternal.parseCSSString (m[1], null);
+              if (s) {
+                mt.textContent = s;
+                var mc = document.createElement ('span');
+                mc.textContent = m[2];
+                var ms = document.createElement ('span');
+                ms.textContent = m[3];
+                icon = {iconSize: [m[3], m[3]]};
+                var mss = ms.innerHTML;
+                icon.iconUrl = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+mss+' '+mss+'"><text x="calc('+mss+'/2)" y="calc('+mss+'/2)" width="'+mss+'" height="'+mss+'" font-size="'+mss+'" text-anchor="middle" alignment-baseline="central" fill="'+mc.innerHTML+'">'+mt.innerHTML+'</text></svg>');
+              }
+            } else {
+              m = v.match (/^\s*url\(((?:[^()"'\\]|\\[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E])+)\)\s*$/);
+              if (m) {
+                icon = {
+                  // XXX
+                  iconAnchor: [12, 41],
+                  popupAnchor: [1, -34],
+                  tooltipAnchor: [16, -28],
+                };
+                icon.iconUrl = m[1].replace (/\\(.)/g, (_, v) => v);
+              }
+            }
 
-            if (markerURL) {
+            if (icon) {
               if (this.pcLMap) {
                 this[markerName] = L.marker (pos, {
                   draggable: !!opts.draggable,
                   //title: "",
-                  icon: L.icon ({
-                    iconUrl: markerURL,
-                    iconSize: markerSize,
-                  }),
+                  icon: L.icon (icon),
                 }).addTo (this.pcLMap);
                 this[markerName].on ('moveend', ev => {
                   var p = this[markerName].getLatLng ();
@@ -978,9 +979,10 @@
                 });
                 return;
               } else if (this.maGoogleMap) {
-                if (markerSize) markerSize = { // must be in px
-                  width: parseFloat (markerSize[0]),
-                  height: parseFloat (markerSize[1]),
+                var size = null;
+                if (icon.iconSize) size = { // must be in px
+                  width: parseFloat (icon.iconSize[0]),
+                  height: parseFloat (icon.iconSize[1]),
                 };
                 this[markerName] = new google.maps.Marker ({
                   position: {
@@ -990,10 +992,11 @@
                   map: this.googleMap,
                   draggable: !!opts.draggable,
                   //title: "",
-                    icon: {
-                      url: markerURL,
-                      size: markerSize,
-                    },
+                  icon: {
+                    url: icon.iconUrl,
+                    size,
+                    anchor: icon.iconAnchor,
+                  },
                 });
                 this[markerName].addListener ('dragend', ev => {
                   var p = ev.latLng;
