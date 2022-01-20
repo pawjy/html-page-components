@@ -1532,6 +1532,10 @@ The following content attributes are available:
     This value is used when a timestamp is shown.  See also
     |toggleJMANowc|.
 
+  <map-area zoom=""> : integer
+
+    The zoom-level of the map.  Default is 8.
+
 The following properties are available:
 
   ready : Promise
