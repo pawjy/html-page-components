@@ -389,6 +389,39 @@
     var d = e.querySelector ('details[is=pc-map-credit-details]');
     this.assert.equal (!!d.offsetWidth, true, d.offsetWidth);
     this.assert.equal (!!d.offsetHeight, true, d.offsetHeight);
+
+    this.assert.equal (e.pcMapType, 'gsi-photo');
+
+    e.setAttribute ('maptype', 'gsi-english');
+
+    await this.wait (100);
+
+    this.assert.equal (e.pcMapType, 'gsi-english');
+  </test-code>
+  
+  <test-code name="map-area maptype=''">
+    /*
+      <map-area engine=leaflet gsi maptype=gsi-photo></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+
+    await e.ready;
+
+    var pos = e.getMapCenter ();
+    this.assert.equal (pos.lat, 0);
+    this.assert.equal (pos.lon, 0);
+
+    var d = e.querySelector ('details[is=pc-map-credit-details]');
+    this.assert.equal (!!d.offsetWidth, true, d.offsetWidth);
+    this.assert.equal (!!d.offsetHeight, true, d.offsetHeight);
+
+    this.assert.equal (e.pcMapType, 'gsi-photo');
+
+    e.setAttribute ('maptype', 'gsi-english');
+
+    await this.wait (100);
+
+    this.assert.equal (e.pcMapType, 'gsi-english');
   </test-code>
 
   <test-code name="map-controls">

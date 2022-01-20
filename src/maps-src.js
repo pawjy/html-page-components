@@ -496,6 +496,8 @@
             this.maRedraw ({valueMarker: true});
           },
         });
+
+        this.pcZoomLevel = this.maAttrFloat ('zoom', 8);
         
         this.maEngine = this.getAttribute ('engine');
         if (this.maEngine === 'googlemaps') {
@@ -523,7 +525,12 @@
           });
 
           var mapOpts = {
-            zoom: 8,
+            zoom: this.pcZoomLevel,
+            gestureHandling: "greedy",
+            styles: [
+              {featureType: "poi", elementType: "all", stylers: [{visibility: "off"}]},
+              {featureType: "landscape", elementType: "all", stylers: [{visibility: "off"}]},
+            ],
           };
           var center = {lat: this.maAttrFloat ('lat', 0),
                         lng: this.maAttrFloat ('lon', 0)};
@@ -611,7 +618,20 @@
             this.maRedrawEvent ();
           });
           var mo = new MutationObserver ((mutations) => {
-            this.maRedraw ({
+            var latlon = false;
+            mutations.forEach (mr => {
+              if (mr.attributeName === 'lat' ||
+                  mr.attributeName === 'lon') {
+                latlon = true;
+              } else if (mr.attributeName === 'readonly') {
+                this.maRedraw ({readonly: true});
+              } else if (mr.attributeName === 'zoom') {
+                this.pcZoomLevel = this.maAttrFloat ('zoom', 8);
+                this.maRedraw ({zoom: true});
+              }
+            });
+
+            if (latlon) this.maRedraw ({
               center: {
                 lat: this.maAttrFloat ('lat', 0),
                 lon: this.maAttrFloat ('lon', 0),
@@ -619,7 +639,8 @@
               value: true,
             });
           });
-          mo.observe (this, {attributeFilter: ['lat', 'lon', 'readonly']});
+          mo.observe (this, {attributeFilter: ['lat', 'lon', 'readonly',
+                                               'zoom']});
           this.maCenter = this.pcValue = {
             lat: this.maAttrFloat ('lat', 0),
             lon: this.maAttrFloat ('lon', 0),
@@ -654,7 +675,18 @@
       }, // maInitGoogleMaps
       maInitGoogleMapsEmbed: function () {
         var mo = new MutationObserver ((mutations) => {
-          this.maRedraw ({
+          var latlon = false;
+          mutations.forEach (mr => {
+            if (mr.attributeName === 'lat' ||
+                mr.attributeName === 'lon') {
+              latlon = true;
+            } else if (mr.attributeName === 'zoom') {
+              this.pcZoomLevel = this.maAttrFloat ('zoom', 8);
+              this.maRedraw ({zoom: true});
+            }
+          });
+
+          if (latlon) this.maRedraw ({
             center: {
               lat: this.maAttrFloat ('lat', 0),
               lon: this.maAttrFloat ('lon', 0),
@@ -662,7 +694,7 @@
             value: true,
           });
         });
-        mo.observe (this, {attributeFilter: ['lat', 'lon']});
+        mo.observe (this, {attributeFilter: ['lat', 'lon', 'zoom']});
         this.maCenter = this.pcValue = {
           lat: this.maAttrFloat ('lat', 0),
           lon: this.maAttrFloat ('lon', 0),
@@ -671,14 +703,30 @@
       }, // maInitGoogleMapsEmbed
       pcInitLeaflet: function () {
         (new MutationObserver ((mutations) => {
-          this.maRedraw ({
+          var latlon = false;
+          mutations.forEach (mr => {
+            if (mr.attributeName === 'lat' ||
+                mr.attributeName === 'lon') {
+              latlon = true;
+            } else if (mr.attributeName === 'readonly') {
+              this.maRedraw ({readonly: true});
+            } else if (mr.attributeName === 'zoom') {
+              this.pcZoomLevel = this.maAttrFloat ('zoom', 8);
+              this.maRedraw ({zoom: true});
+            } else if (mr.attributeName === 'maptype') {
+              this.setMapType (this.getAttribute ('maptype'));
+            }
+          });
+
+          if (latlon) this.maRedraw ({
             center: {
               lat: this.maAttrFloat ('lat', 0),
               lon: this.maAttrFloat ('lon', 0),
             },
             value: true,
           });
-        })).observe (this, {attributeFilter: ['lat', 'lon', 'readonly']});
+        })).observe (this, {attributeFilter: ['lat', 'lon', 'readonly',
+                                              'zoom', 'maptype']});
         this.maCenter = this.pcValue = {
           lat: this.maAttrFloat ('lat', 0),
           lon: this.maAttrFloat ('lon', 0),
@@ -748,7 +796,7 @@
           this.pcZoomLevel = map.getZoom ();
           this.maRedrawEvent ();
         });
-        map.setView (this.maCenter, 8);
+        map.setView (this.maCenter, this.pcZoomLevel);
 
         // recompute!
         var s = getComputedStyle (this);
@@ -761,9 +809,11 @@
           });            
         }
 
-        if (this.hasAttribute ('gsi')) {
-          this.setMapType ('gsi-lang');
+        var initialMapType = this.getAttribute ('maptype');
+        if (this.hasAttribute ('gsi') && !initialMapType) {
+          initialMapType = 'gsi-lang';
         }
+        if (initialMapType) this.setMapType (initialMapType);
         
         new MutationObserver ((mutations) => {
           this.maRedraw ({controls: true});
@@ -808,6 +858,13 @@
           delete this.maRedrawNeedUpdated.value;
           delete this.maRedrawNeedUpdated.pan;
         } // center
+
+        if (this.maRedrawNeedUpdated.zoom ||
+            this.maRedrawNeedUpdated.all) {
+          if (this.pcLMap || this.maGoogleMap) {
+            (this.pcLMap || this.maGoogleMap).setZoom (this.pcZoomLevel);
+          }
+        }
         
         if (this.maRedrawNeedUpdated.relocate) {
           if (this.maEngine === 'leaflet') {
@@ -846,7 +903,10 @@
           if (updates.size || updates.all) {
             if (this.maEngine === 'googlemaps') {
               google.maps.event.trigger (this.maGoogleMap, 'resize');
-            } else if (this.maEngine === 'googlemapsembed') {
+            }
+          }
+          if (updates.size || updates.zoom || updates.all) {
+            if (this.maEngine === 'googlemapsembed') {
               if (!this.maIframe) {
                 this.maIframe = document.createElement ('iframe');
                 this.maIframe.className = 'googlemapsembed';
@@ -855,7 +915,7 @@
                 this.maIframe.onload = () => this.maRedrawEvent ();
                 this.appendChild (this.maIframe);
               }
-              this.maIframe.src = "https://www.google.com/maps/embed/v1/view?key=" + encodeURIComponent (document.documentElement.getAttribute ('data-google-maps-key')) + "&center=" + encodeURIComponent (this.maCenter.lat) + "," + encodeURIComponent (this.maCenter.lon) + "&zoom=8";
+              this.maIframe.src = "https://www.google.com/maps/embed/v1/view?key=" + encodeURIComponent (document.documentElement.getAttribute ('data-google-maps-key')) + "&center=" + encodeURIComponent (this.maCenter.lat) + "," + encodeURIComponent (this.maCenter.lon) + "&zoom=" + encodeURIComponent (this.pcZoomLevel);
               // &maptype=satellite
             }
           }
@@ -917,6 +977,16 @@
                   lat: pos.lat,
                   lng: pos.lon,
                 });
+              }
+              if (this[markerName].dragging) {
+                if (opts.draggable) {
+                  this[markerName].dragging.enable ();
+                } else {
+                  this[markerName].dragging.disable ();
+                }
+              }
+              if (this[markerName].setOptions) {
+                this[markerName].setOptions ({draggable: opts.draggable});
               }
               return;
             }
@@ -990,7 +1060,7 @@
                   icon: {
                     url: icon.iconUrl,
                     size,
-                    anchor: icon.iconAnchor,
+                    anchor: {x: icon.iconAnchor[0], y: icon.iconAnchor[1]},
                   },
                 });
                 this[markerName].addListener ('dragend', ev => {
@@ -1044,7 +1114,7 @@
             }
           } // currentPositionMarker
 
-          if (updates.valueMarker || updates.all) {
+          if (updates.valueMarker || updates.readonly || updates.all) {
             updateMarker ('pcValueMarker', '--paco-marker-value', this.pcValue, {
               draggable: !this.hasAttribute ('readonly'),
             });

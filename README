@@ -1511,6 +1511,11 @@ The following content attributes are available:
     and /lon/ are |valueAsLatLon| property value's |lat| and |lon|
     values.
 
+  <map-area maptype=""> : string
+
+    Set the map type.  This is a declarative equivalent to the
+    |setMapType| method.
+
   <map-area noimgsrc=""> : URL
 
     The (absolute or relative) URL of the image that is used when no
@@ -1531,6 +1536,10 @@ The following content attributes are available:
 
     This value is used when a timestamp is shown.  See also
     |toggleJMANowc|.
+
+  <map-area zoom=""> : integer
+
+    The zoom-level of the map.  Default is 8.
 
 The following properties are available:
 
