@@ -713,6 +713,8 @@
             } else if (mr.attributeName === 'zoom') {
               this.pcZoomLevel = this.maAttrFloat ('zoom', 8);
               this.maRedraw ({zoom: true});
+            } else if (mr.attributeName === 'maptype') {
+              this.setMapType (this.getAttribute ('maptype'));
             }
           });
 
@@ -724,7 +726,7 @@
             value: true,
           });
         })).observe (this, {attributeFilter: ['lat', 'lon', 'readonly',
-                                              'zoom']});
+                                              'zoom', 'maptype']});
         this.maCenter = this.pcValue = {
           lat: this.maAttrFloat ('lat', 0),
           lon: this.maAttrFloat ('lon', 0),
@@ -807,9 +809,11 @@
           });            
         }
 
-        if (this.hasAttribute ('gsi')) {
-          this.setMapType ('gsi-lang');
+        var initialMapType = this.getAttribute ('maptype');
+        if (this.hasAttribute ('gsi') && !initialMapType) {
+          initialMapType = 'gsi-lang';
         }
+        if (initialMapType) this.setMapType (initialMapType);
         
         new MutationObserver ((mutations) => {
           this.maRedraw ({controls: true});
