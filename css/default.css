@@ -983,6 +983,9 @@ map-area:fullscreen button.paco-fullscreen-control-button {
   color: var(--paco-leaflet-control-selected-color);
 }
 
+map-area .leaflet-top.leaflet-left {
+  z-index: var(--paco-menu-z-index);
+}
 map-area .leaflet-control.paco-menu-container {
   z-index: var(--paco-menu-z-index);
 }
@@ -1088,12 +1091,6 @@ map-area.leaflet-container popup-menu > menu-main > menu-item > label:only-child
   cursor: pointer;
   flex: 1;
 }
-map-area popup-menu > menu-main > menu-item a:hover,
-map-area popup-menu > menu-main > menu-item a:focus,
-map-area popup-menu > menu-main > menu-item a:active {
-  background-color: var(--paco-leaflet-control-hover-background-color);
-  color: var(--paco-leaflet-control-hover-color);
-}
 
 map-area popup-menu > menu-main > menu-item > button {
   flex: 1;
@@ -1105,6 +1102,19 @@ map-area popup-menu > menu-main > menu-item > button {
   font: inherit;
   text-align: start;
   cursor: pointer;
+}
+
+map-area popup-menu > menu-main > menu-item a:hover,
+map-area popup-menu > menu-main > menu-item a:focus,
+map-area popup-menu > menu-main > menu-item a:active,
+map-area.leaflet-container popup-menu > menu-main > menu-item label:hover,
+map-area.leaflet-container popup-menu > menu-main > menu-item label:focus,
+map-area.leaflet-container popup-menu > menu-main > menu-item label:active,
+map-area popup-menu > menu-main > menu-item button:hover,
+map-area popup-menu > menu-main > menu-item button:focus,
+map-area popup-menu > menu-main > menu-item button:active {
+  background-color: var(--paco-leaflet-control-hover-background-color);
+  color: var(--paco-leaflet-control-hover-color);
 }
 
 map-area popup-menu > menu-main > menu-item > popup-menu {
