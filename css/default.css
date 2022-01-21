@@ -676,6 +676,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* page-components.js default styles */
 
 :root {
+  --paco-has-menu-z-index: 2000;
   --paco-menu-z-index: 99999999;
   --paco-leaflet-control-default-background-color: white;
   --paco-leaflet-control-default-color: black;
@@ -993,7 +994,7 @@ map-area:fullscreen button.paco-fullscreen-control-button {
 }
 
 map-area .leaflet-top.leaflet-left {
-  z-index: var(--paco-menu-z-index);
+  z-index: var(--paco-has-menu-z-index);
 }
 map-area .leaflet-control.paco-menu-container {
   z-index: var(--paco-menu-z-index);
