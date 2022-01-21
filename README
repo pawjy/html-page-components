@@ -1592,6 +1592,11 @@ The following properties are available:
     The identifier of the GSI map type, that can be used in Google
     Maps API when the |gsi| content attribute is specified.
 
+  noMapDraggable : boolean
+
+    Whether the map is not scrolled by dragging or not.  Defaulted to
+    false.
+
   pcScroll ({...})
 
     Change the area shown in the map and the position of the map

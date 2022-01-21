@@ -21,6 +21,12 @@
       });
     }) ();
     </script>
+    <button type=button onclick="
+      parentNode.querySelector ('map-area').noMapDraggable = false;
+    ">Draggable</button>
+    <button type=button onclick="
+      parentNode.querySelector ('map-area').noMapDraggable = true;
+    ">Non-draggable</button>
   </section>
   <section id=map-section-2>
     <h1>Map #2</h1>
@@ -88,6 +94,8 @@
   <map-area engine=googlemaps controls=zoom formcontrol oninput="
     var p = this.valueAsLatLon;
     parentNode.querySelector ('output').textContent = [p.lat, p.lon]; 
+  " style="
+    /*--paco-map-touch-scroll-viewport: none;*/
   "></map-area>
   <output name=marker></output>  
 </section>

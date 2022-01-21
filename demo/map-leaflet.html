@@ -13,6 +13,7 @@
   }
   map-area {
     height: 40em;
+    /*--paco-map-touch-scroll-viewport: none;*/
   }
   map-area[formcontrol] {
     /*--paco-marker-value: circle red 1000m green 2px;*/
@@ -91,6 +92,13 @@
       });
     }) ();
     </script>
+    <p>
+      <button type=button onclick="
+        parentNode.parentNode.querySelector ('map-area').noMapDraggable = false;
+      ">Draggable</button>
+      <button type=button onclick="
+        parentNode.parentNode.querySelector ('map-area').noMapDraggable = true;
+      ">Non-draggable</button>
 
     <hr style="margin-top: 10em">
 

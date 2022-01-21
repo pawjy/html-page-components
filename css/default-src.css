@@ -284,6 +284,14 @@ map-area.leaflet-container.paco-maptype-none {
   color: var(--paco-opaque-color);
 }
 
+map-area.leaflet-container.paco-touch-scroll-viewport-none {
+  touch-action: none;
+}
+map-area .leaflet-control-zoom,
+map-area .paco-button-container {
+  overflow: auto;
+}
+
 map-area button.paco-control-button {
   -webkit-appearance: none;
   width: auto;
@@ -297,6 +305,7 @@ map-area button.paco-control-button {
   line-height: 1;
   font-size: 22px;
   cursor: pointer;
+  overflow: hidden;
   user-select: none;
 }
 map-area button.paco-control-button:hover {
