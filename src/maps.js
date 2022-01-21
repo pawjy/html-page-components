@@ -207,13 +207,16 @@
         e.requestFullscreen ();
       }
     };
-    opts.element = b;
     opts.styling = b => {
       var e = b.pcMap.getContainer ();
       // recompute!
       var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-fullscreen-title'), 'Fullscreen');
       b.title = m;
     };
+    var c = document.createElement ('div');
+    c.className = 'paco-button-container';
+    c.appendChild (b);
+    opts.element = c;
     return new L.Control.ElementControl (opts);
   }; // L.control.fullscreenButton
   L.control.currentPositionButton = function (opts) {
@@ -225,13 +228,16 @@
       var e = b.pcMap.getContainer ();
       e.pcLocateCurrentPosition ({pan: true});
     };
-    opts.element = b;
     opts.styling = b => {
       var e = b.pcMap.getContainer ();
       // recompute!
       var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-currentposition-title'), 'Current position');
       b.title = m;
     };
+    var c = document.createElement ('div');
+    c.className = 'paco-button-container';
+    c.appendChild (b);
+    opts.element = c;
     return new L.Control.ElementControl (opts);
   }; // L.control.currentPositionButton
   L.control.streetViewButton = function (opts) {
@@ -244,13 +250,16 @@
       var e = b.pcMap.getContainer ();
       e.pcStartStreetViewDragMode (b);
     };
-    opts.element = b;
     opts.styling = b => {
       var e = b.pcMap.getContainer ();
       // recompute!
       var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-streetview-title'), 'Street View');
       b.title = m;
     };
+    var c = document.createElement ('div');
+    c.className = 'paco-button-container';
+    c.appendChild (b);
+    opts.element = c;
     return new L.Control.ElementControl (opts);
   }; // L.control.streetViewButton
   L.control.mapTypeMenu = function (opts) {
@@ -503,6 +512,15 @@
         });
 
         this.pcZoomLevel = this.maAttrFloat ('zoom', 8);
+
+        this.pcNoMapDraggable = !!this.noMapDraggable;
+        Object.defineProperty (this, 'noMapDraggable', {
+          get: () => this.pcNoMapDraggable,
+          set: function (newValue) {
+            this.pcNoMapDraggable = !!newValue;
+            this.maRedraw ({mapDraggable: true});
+          },
+        });
         
         this.maEngine = this.getAttribute ('engine');
         if (this.maEngine === 'googlemaps') {
@@ -536,6 +554,7 @@
               {featureType: "poi", elementType: "all", stylers: [{visibility: "off"}]},
               {featureType: "landscape", elementType: "all", stylers: [{visibility: "off"}]},
             ],
+            draggable: !this.pcNoMapDraggable,
           };
           var center = {lat: this.maAttrFloat ('lat', 0),
                         lng: this.maAttrFloat ('lon', 0)};
@@ -597,7 +616,7 @@
               };
               
               // recompute!
-              var mCP = this.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-currentposition-title'), 'Current position');
+              var mCP = this.pcInternal.parseCSSString (getComputedStyle (this).getPropertyValue ('--paco-currentposition-title'), 'Current position');
               b.title = mCP;
               
               e.appendChild (b);
@@ -660,12 +679,34 @@
           // recompute!
           var s = getComputedStyle (this);
           var v = s.getPropertyValue ('--paco-map-click-action') || 'none';
+          var w = s.getPropertyValue ('--paco-map-touch-scroll-viewport') || 'auto';
+          
           if (v.match (/^\s*set-value\s*$/)) {
             this.maGoogleMap.addListener ('click', ev => {
               var p = ev.latLng;
               this.pcMarkerMoveEnd ({lat: p.lat (), lon: p.lng ()});
               this.maRedraw ({valueMarker: true, userActivated: true});
             });
+          }
+
+          if (w.match (/^\s*none\s*$/)) {
+            // Disable viewport scrolling behavior triggerred by touch
+            // (when map scrolling is disabled)
+            this.addEventListener ('touchstart', (ev) => {
+              var t = ev.target;
+              if ({
+                'map-credit': true,
+                'label': true,
+                'a': true,
+                'button': true,
+              }[t.localName] ||
+              t.hasAttribute ('aria-label') ||
+              t.hasAttribute ('controlwidth') ||
+              (t.localName === 'img' && t.parentNode.localName === 'button')) {
+                return;
+              }
+              ev.preventDefault ();
+            }, {passive: false});
           }
           
           this.maRedraw ({all: true});
@@ -752,6 +793,7 @@
 
         var map = this.pcLMap = L.map (this, {
           zoomControl: false,
+          dragging: !this.pcNoMapDraggable,
         });
 
         if (controls.zoom) {
@@ -806,12 +848,18 @@
         // recompute!
         var s = getComputedStyle (this);
         var v = s.getPropertyValue ('--paco-map-click-action') || 'none';
+        var w = s.getPropertyValue ('--paco-map-touch-scroll-viewport') || 'auto';
+        
         if (v.match (/^\s*set-value\s*$/)) {
           map.on ('click', ev => {
             var p = ev.latlng;
             this.pcMarkerMoveEnd ({lat: p.lat, lon: p.lng});
             this.maRedraw ({valueMarker: true, userActivated: true});
           });            
+        }
+
+        if (w.match (/^\s*none\s*$/)) {
+          this.classList.toggle ('paco-touch-scroll-viewport-none', true);
         }
 
         var initialMapType = this.getAttribute ('maptype');
@@ -869,6 +917,19 @@
           if (this.pcLMap || this.maGoogleMap) {
             (this.pcLMap || this.maGoogleMap).setZoom (this.pcZoomLevel);
           }
+        }
+
+        if (this.maRedrawNeedUpdated.mapDraggable) {
+          if (this.pcLMap) {
+            if (this.pcNoMapDraggable) {
+              this.pcLMap.dragging.disable ();
+            } else {
+              this.pcLMap.dragging.enable ();
+            }
+          } else if (this.maGoogleMap) {
+            this.maGoogleMap.setOptions ({draggable: !this.pcNoMapDraggable});
+          }
+          delete this.maRedrawNeedUpdated.mapDraggable;
         }
         
         if (this.maRedrawNeedUpdated.relocate) {
@@ -1065,7 +1126,7 @@
                   icon: {
                     url: icon.iconUrl,
                     size,
-                    anchor: {x: icon.iconAnchor[0], y: icon.iconAnchor[1]},
+                    anchor: (icon.iconAnchor ? {x: icon.iconAnchor[0], y: icon.iconAnchor[1]} : undefined),
                   },
                 });
                 this[markerName].addListener ('dragend', ev => {
