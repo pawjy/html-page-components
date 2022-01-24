@@ -1517,6 +1517,86 @@
         this.dispatchEvent (new Event ('change', {bubbles: true}));
       }, // pcMarkerMoveEnd
 
+
+      setMouseHandlers: function (opts) {
+        var handlers = this.pcMouseHandlers || {};
+        handlers.mousedown = opts.mousedown || (() => {});
+        handlers.mousemove = opts.mousemove || (() => {});
+        handlers.mouseup = opts.mouseup || (() => {});
+
+        if (this.pcMouseHandlers) return;
+        this.pcMouseHandlers = handlers;
+
+        var TE = window.TouchEvent || function () {};
+        var getMouseButton = function () {
+          // this.event: Leaflet MouseEvent || Google Maps MouseEvent
+          var ev = this.event;
+          var me = ev.originalEvent; // Leaflet
+          if (!me) {
+            var x = [];
+            for (var n in ev) {
+              x.push (n);
+              if (ev[n] instanceof MouseEvent || ev[n] instanceof TE) {
+                me = ev[n];
+                break;
+              }
+            }
+          }
+          if (!me) return 'default';
+          
+          if (me instanceof TE) {
+            // me.button : undefined, me.which : 0
+            return 'left';
+          }
+          
+          // MouseEvent
+          if (me.button === 0) {
+            return 'left';
+          } else if (me.button === 2) {
+            return 'right';
+          } else {
+            return 'other';
+          }
+        }; // getMouseButton
+
+        if (this.pcLMap) {
+          var getPoint = function () {
+            var p = this.event.latlng;
+            return {lat: p.lat, lon: p.lng};
+          };
+          this.pcLMap.on ('mousedown', event => {
+            handlers.mousedown ({event, getMouseButton, getPoint});
+          });
+          this.pcLMap.on ('mousemove', event => {
+            handlers.mousemove ({event, getMouseButton, getPoint});
+          });
+          this.pcLMap.on ('mouseup', event => {
+            var obj = {event, getMouseButton, getPoint};
+            handlers.mousemove (obj);
+            handlers.mouseup (obj);
+          }); // mouseup
+        } else if (this.maGoogleMap) {
+          var getPoint = function () {
+            var p = this.event.latLng;
+            return {lat: p.lat (), lon: p.lng ()};
+          };
+          this.maGoogleMap.addListener ('mousedown', event => {
+            handlers.mousedown ({event, getMouseButton, getPoint});
+          });
+          this.maGoogleMap.addListener ('mousemove', event => {
+            handlers.mousemove ({event, getMouseButton, getPoint});
+          });
+          this.maGoogleMap.addListener ('mouseup', event => {
+            var obj = {event, getMouseButton, getPoint};
+            
+            // This is redundant but required for ChromeDriver + Google Maps :-<
+            handlers.mousemove (obj);
+            
+            handlers.mouseup (obj);
+          }); // mouseup
+        }
+      }, // setMouseHandlers
+      
       pcModifyFormData: function (fd) {
         var latname = this.getAttribute ('latname') || '';
         var lonname = this.getAttribute ('lonname') || '';

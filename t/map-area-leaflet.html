@@ -712,6 +712,55 @@
     this.assert.equal (events[1].type, 'change');
     this.assert.equal (events[1].target, e);
   </test-code>
+
+  <test-code name="setMouseHandlers">
+    /*
+      <map-area engine=leaflet></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+
+    var objs = [];
+    e.setMouseHandlers ({
+      mousedown: obj => objs.push (obj),
+      mousemove: obj => objs.push (obj),
+      mouseup: obj => objs.push (obj),
+    });
+
+    var bounds = e.getMapBounds ();
+    
+    e.dispatchEvent (new MouseEvent ('mousedown', {bubbles: true}));
+    e.dispatchEvent (new MouseEvent ('mousemove', {bubbles: true}));
+    e.dispatchEvent (new MouseEvent ('mouseup', {bubbles: true}));
+    
+    this.assert.equal (objs.length, 4);
+    this.assert.equal (objs[0].event.type, 'mousedown');
+    this.assert.equal (objs[0].getMouseButton (), 'left');
+    this.assert.equal (bounds.south - 1 <= objs[0].getPoint ().lat, true, objs[0].getPoint ().lat);
+    this.assert.equal (objs[0].getPoint ().lat <= bounds.north + 1, true);
+    this.assert.equal (bounds.west - 1 <= objs[0].getPoint ().lon, true, objs[0].getPoint ().lon);
+    this.assert.equal (objs[0].getPoint ().lon <= bounds.east + 1, true, [bounds.west, bounds.east]);
+    this.assert.equal (objs[1].event.type, 'mousemove');
+    this.assert.equal (objs[2].event.type, 'mouseup');
+    this.assert.equal (objs[3].event.type, 'mouseup');
+
+    e.setMouseHandlers ({
+      mousedown: obj => objs.push (1),
+      mousemove: obj => objs.push (2),
+      mouseup: obj => objs.push (3),
+    });
+    
+    e.dispatchEvent (new MouseEvent ('mousedown', {bubbles: true}));
+    e.dispatchEvent (new MouseEvent ('mousemove', {bubbles: true}));
+    e.dispatchEvent (new MouseEvent ('mousemove', {bubbles: true}));
+    e.dispatchEvent (new MouseEvent ('mouseup', {bubbles: true}));
+
+    this.assert.equal (objs.length, 9);
+    this.assert.equal (objs[4], 1);
+    this.assert.equal (objs[5], 2);
+    this.assert.equal (objs[6], 2);
+    this.assert.equal (objs[7], 2);
+    this.assert.equal (objs[8], 3);
+  </test-code>
   
   <script src=runtests.js data-maps></script>
 </body>
