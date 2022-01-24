@@ -13,11 +13,25 @@
     <output name=bounds></output>
     <script>
     (() => {
+      var testRenderCount = 0;
       var s = document.querySelector ('#map-section-1');
       s.querySelector ('map-area').addEventListener ('pcRedraw', (ev) => {
         var o = s.querySelector ('output');
         var b = ev.target.getMapBounds ();
         if (b) o.textContent = [b.north, b.east, b.south, b.west].join (' ');
+
+        var n = ++testRenderCount;
+        ev.target.setMouseHandlers ({
+          mousedown: obj => {
+            console.log (n, "mousedown", obj.getMouseButton (), obj.getPoint ());
+          },
+          mousemove: obj => {
+            console.log (n, "mousemove", obj.getMouseButton (), obj.getPoint ());
+          },
+          mouseup: obj => {
+            console.log (n, "mouseup", obj.getMouseButton (), obj.getPoint ());
+          },
+        });
       });
     }) ();
     </script>

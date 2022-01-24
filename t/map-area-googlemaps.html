@@ -404,6 +404,28 @@
     this.assert.equal (controls[10].offsetTop < controls[11].offsetTop, true, 'top 10<11');
     this.assert.equal (controls[11].offsetTop < controls[12].offsetTop, true, 'top 11<12');
   </test-code>
+
+  <test-code name="setMouseHandlers">
+    /*
+      <map-area engine=googlemaps></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+
+    var objs = [];
+    e.setMouseHandlers ({
+      mousedown: obj => objs.push (obj),
+      mousemove: obj => objs.push (obj),
+      mouseup: obj => objs.push (obj),
+    });
+
+    e.setMouseHandlers ({
+      mousedown: obj => objs.push (1),
+      mousemove: obj => objs.push (2),
+      mouseup: obj => objs.push (3),
+    });
+    
+    this.assert.equal (true, true);
+  </test-code>
   
   <script src=runtests.js data-maps></script>
 </body>

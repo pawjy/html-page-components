@@ -1681,6 +1681,31 @@ The following properties are available:
 
     This method is ignored unless the map's |engine| is |leaflet|.
 
+  setMouseHandler ({...})
+
+    Set a set of mouse event handlers.  The argument must be a
+    dictionary (object), where there can be these name/value pairs:
+
+      mousedown: Function
+      mousemove: Function
+      mouseup: Function
+
+    When the method is invoked for multiple times, earlier handlers
+    are removed.
+
+    The handlers are invoked with an argument, which is an object with
+    following name/value pairs:
+
+      getMouseButton () : string
+
+        Returns the button of the mouse (or equivalent).  Either
+        |left|, |right|, or |other|.
+
+      getPoint () : {lat, lon}
+
+        Returns the latitude and longitude of the point on the map
+        pointed by the mouse (or equivalent).
+
   toggleJMANowc (/flag/)
 
     Set whether the JMA map tile images should be shown over the map
