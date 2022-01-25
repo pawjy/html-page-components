@@ -761,6 +761,43 @@
     this.assert.equal (objs[7], 2);
     this.assert.equal (objs[8], 3);
   </test-code>
+
+  <test-code name="bounds">
+    /*
+      <map-area engine=leaflet controls lat=20.33 lon=-120.7013></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+
+    e.pcScroll ({
+      bounds: {
+        north: 35.335, south: 33.735,
+        east: 35.10018, west: 34.90018,
+      },
+    });
+
+    await this.wait (500);
+
+    var bounds = e.getMapBounds ();
+    this.assert.equal (bounds.north > 34.335, true);
+    this.assert.equal (bounds.east > 35.00018, true);
+    this.assert.equal (bounds.south < 34.335, true);
+    this.assert.equal (bounds.west < 35.00018, true);
+
+    e.pcScroll ({
+      includes: [
+        {lat: -34.64, lon: 120.322},
+        {lat: -33.61, lon: 120.12},
+      ],
+    });
+
+    await this.wait (500);
+
+    var bounds = e.getMapBounds ();
+    this.assert.equal (bounds.north >= -34.6, true, bounds.north);
+    this.assert.equal (bounds.east >= 120.22, true, bounds.east);
+    this.assert.equal (bounds.south <= -34.6, true, bounds.south);
+    this.assert.equal (bounds.west <= 120.22, true, bounds.west);
+  </test-code>
   
   <script src=runtests.js data-maps></script>
 </body>
