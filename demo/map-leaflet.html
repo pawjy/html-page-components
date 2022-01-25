@@ -147,6 +147,15 @@
           ifNeeded: true,
         });
       ">setCenter + scrollIntoViewIfNeeded</button>
+      <button type=button onclick="
+        document.querySelector ('map-area').pcScroll ({
+          bounds: {north: form.elements.lat.valueAsNumber,
+                   west: form.elements.lon.valueAsNumber,
+                   south: form.elements.lat.valueAsNumber + 1,
+                   east: form.elements.lon.valueAsNumber + 1,
+                   },
+        });
+      ">setBounds</button>
     </form>
 
     <hr style="margin-top: 10em">

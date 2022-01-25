@@ -1605,6 +1605,11 @@ The following properties are available:
     The argument must be an object with one or more of following
     name/value pairs:
 
+      bounds : {north: float, south: float, east: float, west: float}
+
+        Change the range of the map identified by the latitudes and
+        longitudes of the four edges.
+
       center : {lat: float, lon: float}
 
         Change the center of the map to the location identified by the
@@ -1614,6 +1619,11 @@ The following properties are available:
 
         If true and |intoView| option is also specified, the map
         element is scrolled into the view, if necessary.
+
+      includes : [{lat: float, lon: float}, ...]
+
+        Change the range of the map such that the locations identified
+        by the latitudes and longitudes are shown.
 
       intoView : boolean
 

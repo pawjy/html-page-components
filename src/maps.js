@@ -1247,6 +1247,34 @@
           this.maRedraw ({center: p, value: opts.setValue});
         }
 
+        if (opts.bounds || opts.includes) {
+          var bounds = {};
+          if (opts.bounds) {
+            bounds.north = opts.bounds.north;
+            bounds.south = opts.bounds.south;
+            bounds.east = opts.bounds.east;
+            bounds.west = opts.bounds.west;
+          }
+          if (opts.includes && opts.includes.length) {
+            bounds.north = bounds.south = opts.includes[0].lat;
+            bounds.east = bounds.west = opts.includes[0].lon;
+            opts.includes.forEach (_ => {
+              if (_.lat < bounds.south) bounds.south = _.lat;
+              if (bounds.north < _.lat) bounds.north = _.lat;
+              // XXX if _.lon ~ 180, ...
+              if (_.lon < bounds.west) bounds.west = _.lon;
+              if (bounds.east < _.lon) bounds.east = _.lon;
+            });
+          }
+          if (Number.isFinite (bounds.north)) {
+            if (this.pcLMap) this.pcLMap.fitBounds ([
+              [bounds.north, bounds.west],
+              [bounds.south, bounds.east],
+            ]);
+            if (this.maGoogleMap) this.maGoogleMap.fitBounds (bounds);
+          }
+        }
+
         if (opts.intoView) {
           if (opts.ifNeeded) {
             this.scrollIntoViewIfNeeded ();

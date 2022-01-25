@@ -326,7 +326,6 @@ map-area .leaflet-control.paco-menu-container {
 }
 
 map-area .paco-menu-button-container popup-menu,
-map-area .paco-map-type-menu,
 map-area .paco-map-type-menu popup-menu {
   --paco-hover-action: open;
 }

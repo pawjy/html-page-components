@@ -41,6 +41,19 @@
     <button type=button onclick="
       parentNode.querySelector ('map-area').noMapDraggable = true;
     ">Non-draggable</button>
+    <form>
+      <input type=number name=lat value=0 step=0.0001>
+      <input type=number name=lon value=0 step=0.0001>
+      <button type=button onclick="
+        document.querySelector ('map-area').pcScroll ({
+          bounds: {north: form.elements.lat.valueAsNumber,
+                   west: form.elements.lon.valueAsNumber,
+                   south: form.elements.lat.valueAsNumber + 1,
+                   east: form.elements.lon.valueAsNumber + 1,
+                   },
+        });
+      ">setBounds</button>
+    </form>
   </section>
   <section id=map-section-2>
     <h1>Map #2</h1>
