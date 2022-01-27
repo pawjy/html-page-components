@@ -1187,6 +1187,11 @@ map-area .paco-currentposition-container button.paco-control-button {
   user-select: none;
 }
 
+map-area .paco-zoomstart {
+  transition: opacity .3s;
+  opacity: 0;
+}
+
 template-set {
   display: none ! important;
 }
