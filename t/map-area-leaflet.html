@@ -798,6 +798,42 @@
     this.assert.equal (bounds.south <= -34.6, true, bounds.south);
     this.assert.equal (bounds.west <= 120.22, true, bounds.west);
   </test-code>
+
+  <test-code name="addElementOverlays">
+    /*
+      <map-area engine=leaflet controls lat=20.33 lon=-120.7013></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+
+        var e1 = document.createElement ('x-1');
+        var e2 = document.createElement ('x-2');
+        var e3 = document.createElement ('x-3');
+        var e4 = document.createElement ('x-4');
+        var pp = e.addElementOverlays ({
+          background: e1, foreground: e2, tooltip: e3, interactive: e4,
+        }, () => {
+          var center = e.getMapCenter ();
+          var p1 = pp.getProjection ().divPoint (center);
+          e1.style.left = p1.x + 'px';
+          e1.style.top = p1.y + 'px';
+          
+          e2.style.left = p1.x + 100 + 'px';
+          e2.style.top = p1.y + 'px';
+          
+          e3.style.left = p1.x + 'px';
+          e3.style.top = p1.y + 100 + 'px';
+          
+          e4.style.left = p1.x + 100 + 'px';
+          e4.style.top = p1.y + 100 + 'px';
+        });
+
+    await this.wait (500);
+
+    this.assert.equal (e.querySelector ('x-1'), e1);
+    this.assert.equal (e.querySelector ('x-2'), e2);
+    this.assert.equal (e.querySelector ('x-3'), e3);
+    this.assert.equal (e.querySelector ('x-4'), e4);
+  </test-code>
   
   <script src=runtests.js data-maps></script>
 </body>

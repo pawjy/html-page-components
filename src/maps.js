@@ -181,7 +181,7 @@
   L.gridLayer.gsiOverlay = function (opts) {
     return new L.GridLayer.GSIOverlay (opts);
   };
-
+  
   L.Control.ElementControl = L.Control.extend ({
     onAdd: function (map) {
       var e = this.options.element;
@@ -195,71 +195,77 @@
     return new L.Control.ElementControl (opts);
   };
   L.control.fullscreenButton = function (opts) {
+    var c = document.createElement ('div');
+    c.className = 'paco-button-container';
+    opts.element = c;
+    opts.styling = c => {
+      var e = c.pcMap.getContainer ();
+      // recompute!
+      var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-fullscreen-title'), 'Fullscreen');
+      c.title = m;
+    };
+    
     var b = document.createElement ('button');
     b.className = 'paco-control-button paco-fullscreen-control-button';
     b.type = 'button';
     b.textContent = '\u26F6';
     b.onclick = async () => {
-      var e = b.pcMap.getContainer ();
+      var e = c.pcMap.getContainer ();
       if (document.fullscreenElement) {
         document.exitFullscreen ();
       } else {
         e.requestFullscreen ();
       }
     };
-    opts.styling = b => {
-      var e = b.pcMap.getContainer ();
-      // recompute!
-      var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-fullscreen-title'), 'Fullscreen');
-      b.title = m;
-    };
-    var c = document.createElement ('div');
-    c.className = 'paco-button-container';
     c.appendChild (b);
-    opts.element = c;
+    
     return new L.Control.ElementControl (opts);
   }; // L.control.fullscreenButton
   L.control.currentPositionButton = function (opts) {
+    var c = document.createElement ('div');
+    c.className = 'paco-button-container';
+    opts.element = c;
+    opts.styling = c => {
+      var e = c.pcMap.getContainer ();
+      // recompute!
+      var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-currentposition-title'), 'Current position');
+      c.title = m;
+    };
+    
     var b = document.createElement ('button');
     b.className = 'paco-control-button paco-currentposition-control-button';
     b.type = 'button';
     b.textContent = '\u26EF';
     b.onclick = async () => {
-      var e = b.pcMap.getContainer ();
+      var e = c.pcMap.getContainer ();
       e.pcLocateCurrentPosition ({pan: true});
     };
-    opts.styling = b => {
-      var e = b.pcMap.getContainer ();
-      // recompute!
-      var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-currentposition-title'), 'Current position');
-      b.title = m;
-    };
-    var c = document.createElement ('div');
-    c.className = 'paco-button-container';
     c.appendChild (b);
-    opts.element = c;
+    
     return new L.Control.ElementControl (opts);
   }; // L.control.currentPositionButton
   L.control.streetViewButton = function (opts) {
+    var c = document.createElement ('div');
+    c.className = 'paco-button-container';
+    opts.element = c;
+    opts.styling = c => {
+      var e = c.pcMap.getContainer ();
+      // recompute!
+      var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-streetview-title'), 'Street View');
+      c.title = m;
+    };
+
     var b = document.createElement ('button');
     b.className = 'paco-control-button paco-streetview-control-button';
     b.type = 'button';
     b.textContent = '\u{1F6B6}';
     b.setAttribute ('draggable', 'true');
     b.ondragstart = () => {
-      var e = b.pcMap.getContainer ();
+      var e = c.pcMap.getContainer ();
       e.pcStartStreetViewDragMode (b);
     };
-    opts.styling = b => {
-      var e = b.pcMap.getContainer ();
-      // recompute!
-      var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-streetview-title'), 'Street View');
-      b.title = m;
-    };
-    var c = document.createElement ('div');
-    c.className = 'paco-button-container';
     c.appendChild (b);
-    opts.element = c;
+    
     return new L.Control.ElementControl (opts);
   }; // L.control.streetViewButton
   L.control.mapTypeMenu = function (opts) {
@@ -1544,6 +1550,87 @@
         this.dispatchEvent (new Event ('input', {bubbles: true, composed: true}));
         this.dispatchEvent (new Event ('change', {bubbles: true}));
       }, // pcMarkerMoveEnd
+
+      addElementOverlays: function (elements, redraw) {
+        var map = this.maGoogleMap;
+        if (map) {
+          var Overlay = function () { };
+          Overlay.prototype = new google.maps.OverlayView ();
+          Overlay.prototype.onAdd = function () {
+            var panes = this.getPanes ();
+            panes.overlayLayer.appendChild (elements.background);
+            panes.overlayLayer.appendChild (elements.foreground);
+            panes.floatPane.appendChild (elements.tooltip);
+            panes.floatPane.appendChild (elements.interactive);
+          }; // onAdd
+          Overlay.prototype.draw = redraw;
+          Overlay.prototype.onRemove = function () {
+            Object.values (elements).forEach (_ => _.remove ());
+          }; // onRemove
+
+          var overlay = new Overlay;
+          overlay.setMap (map);
+          
+          return {
+            ready: () => !!overlay.getProjection (),
+            getProjection: function () {
+              var projection = overlay.getProjection ();
+              return {
+                divPoint: p => projection.fromLatLngToDivPixel ({lat: p.lat, lng: p.lon}),
+                containerPoint: p => {
+                  // Force Google Maps API to recalc, otherwise it
+                  // sometimes return wrong result:-<
+                  projection.fromLatLngToContainerPixel ({lat: p.lat, lng: p.lon});
+
+                  return projection.fromLatLngToContainerPixel ({lat: p.lat, lng: p.lon});
+                },
+              };
+            }, // getProjection
+          };
+        } // maGoogleMap
+
+        var zoomstart = () => Object.values (elements).forEach (_ => _.classList.toggle ('paco-zoomstart', true));
+        var zoom = () => Object.values (elements).forEach (_ => _.classList.toggle ('paco-zoomstart', false));
+        
+        var Layer = L.Layer.extend ({
+          onAdd: function (map) {
+            // overlay shadow marker tooltip popup
+            var p1 = map.getPane ('overlayPane');
+            p1.appendChild (elements.background);
+            var p2 = map.getPane ('shadowPane');
+            p2.appendChild (elements.foreground);
+            var p3 = map.getPane ('tooltipPane');
+            p3.appendChild (elements.tooltip);
+            p3.appendChild (elements.interactive);
+
+            map.on ('zoomstart', zoomstart);
+            map.on ('zoom', zoom);
+            map.on ('zoomend zoom viewreset moveend', redraw);
+
+            Promise.resolve ().then (redraw);
+          }, // onAdd
+          onRemove: function(map) {
+            Object.values (elements).forEach (_ => _.remove ());
+            map.off ('zoomstart', zoomstart);
+            map.off ('zoom', zoom);
+            map.off ('zoomend zoom viewreset moveend', redraw);
+          }, // onRemove
+        }); // Layer
+
+        var map = this.pcLMap;
+        
+        var l = new Layer ({});
+        map.addLayer (l);
+        
+        var pp = {
+          divPoint: p => map.latLngToLayerPoint ({lat: p.lat, lng: p.lon}),
+          containerPoint: p => map.latLngToContainerPoint ({lat: p.lat, lng: p.lon}),
+        };
+        return {
+          ready: () => true,
+          getProjection: () => pp,
+        };
+      }, // addElementOverlays
 
 
       setMouseHandlers: function (opts) {
