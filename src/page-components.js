@@ -813,7 +813,7 @@
         this.appendChild (b);
       }, // pcInit
       pcCopy: function () {
-        var e = this.querySelector ('code, data, time');
+        var e = this.querySelector ('code, data, time, output');
         if (!e) throw new Error ('No copied data element');
 
         var text;

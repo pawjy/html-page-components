@@ -150,8 +150,8 @@ A |can-copy| element represents a data that can be copied to the
 clipboard.
 
 A |can-copy| element is expected to have a *copied data element*,
-which is a |code|, |data|, or |time| element.  The data contained by
-that element is to be copied.
+which is a |code|, |data|, |time|, or |output| element.  The data
+contained by that element is to be copied.
 
 When initialized, a copy button is appended to the |can-copy| element.
 The copy button's text content is set to the CSS
