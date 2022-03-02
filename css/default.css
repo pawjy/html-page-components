@@ -971,6 +971,7 @@ map-area .paco-button-container {
 map-area button.paco-control-button {
   -webkit-appearance: none;
   width: auto;
+  margin: 0;
   border: 2px solid rgba(0,0,0,0.2);
   border-radius: 2px;
   padding: 5px;
@@ -981,6 +982,7 @@ map-area button.paco-control-button {
   line-height: 1;
   font-size: 22px;
   cursor: pointer;
+  text-align: center;
   overflow: hidden;
   user-select: none;
 }
@@ -1019,8 +1021,10 @@ map-area popup-menu[open] > button.paco-control-button {
 
 map-area .paco-fullscreen-control-button,
 map-area .paco-currentposition-control-button,
-map-area .paco-maptype-control-button {
+map-area .paco-maptype-control-button,
+map-area .paco-streetview-control-button {
   font-family: var(--paco-symbol-font);
+  max-width: 33px;
 }
 
 map-area popup-menu > button {
