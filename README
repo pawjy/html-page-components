@@ -1356,6 +1356,7 @@ The following content attributes are available:
       |fullscreen|       "Fullscreen mode" button
       |scale|            Scale
       |streetview|       "Open Street View" button
+      |togglelegend|     A legend toggle-button control
       |type|             Map type menu (or buttons, if the map's
                          |engine| is |googlemaps|)
       |typebuttons|      Map type buttons, if |type| is also specified
@@ -1377,6 +1378,17 @@ The following content attributes are available:
     location, a toast whose message is the CSS
     '--paco-currentposition-failed-message' property value, which is a
     CSS string, is shown.
+
+    A legend toggle-button control is available when the map's
+    |engine| is |leaflet|.  When clicked, the button toggles whether
+    map legend controls are shown or not.  For the purpose of the
+    button, the followings are legends:
+
+      - A scale (|controls=scale|).
+
+      - The timestamp label of a JMA map (<map-area jma>).
+
+      - A |map-controls| element with a |legend| attribute specified.
 
   <map-area engine="">
 
@@ -1795,6 +1807,10 @@ Element content.  A |map-area| element can contain zero or more
   If a |map-controls| element does not have any |position| content
   attribute, it is placed as if the value |bottom-right| were
   specified.
+
+  A |map-controls| element can have a |legend| attribute.  If
+  specified, the element is a legend for the purpose of legend
+  toggle-button controls.
 
   Note that |map-controls| elements might be reparented whenever
   necessary.
