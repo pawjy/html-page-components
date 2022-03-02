@@ -214,14 +214,8 @@
       var e = c.pcMap.getContainer ();
       if (document.fullscreenElement) {
         document.exitFullscreen ();
-      } else if (document.webkitFullscreenElement) { // Safari
-        document.webkitExitFullscreen ();
       } else {
-        if (e.requestFullscreen) {
-          e.requestFullscreen ();
-        } else { // Safari
-          e.webkitRequestFullscreen ();
-        }
+        e.requestFullscreen ();
       }
     };
     c.appendChild (b);
@@ -881,7 +875,7 @@
             buttons: controls.typebuttons,
           }).addTo (map);
         }
-        if (controls.fullscreen) L.control.fullscreenButton ({}).addTo (map);
+        if (controls.fullscreen && this.requestFullscreen) L.control.fullscreenButton ({}).addTo (map);
 
         if (controls.streetview) {
           L.control.streetViewButton ({
