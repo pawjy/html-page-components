@@ -4,6 +4,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel=stylesheet href=../css/default.css>
 <style>
+  body {
+    margin: 1em;
+  }
   p {
     margin: 0;
   }
@@ -34,11 +37,13 @@
 <script src=https://wiki.suikawiki.org/scripts/time async data-time-selector=time></script>
 
   <section id=map-section-1 lang=ja>
-    <map-area engine=leaflet controls="type typebuttons scale fullscreen currentposition zoom streetview" gsi jma lat=35.2 lon=135.4 formcontrol>
+    <map-area engine=leaflet controls="type typebuttons scale fullscreen currentposition zoom streetview togglelegend" gsi jma lat=35.2 lon=135.4 formcontrol>
       <map-controls>ABC</map-controls>
       <map-controls position=top-left>XYZ</map-controls>
       <map-controls position=top-left><button>xyz</button></map-controls>
       <map-controls position=top-center>123</map-controls>
+      <map-controls position=bottom-left legend>A legend</map-controls>
+      <map-controls position=bottom-left>Not a legend</map-controls>
     </map-area>
 
     <p class=buttons>
