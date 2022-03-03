@@ -504,6 +504,11 @@ map-area popup-menu > menu-main > menu-item > popup-menu > menu-main {
   left: 100% !important;
 }
 
+map-area .paco-timestamp-control {
+  padding: 2px;
+  font-feature-settings: "palt";
+}
+
 map-area .paco-timestamp-control a {
   text-decoration: none;
 }
@@ -518,6 +523,15 @@ map-area .paco-jma-timestamp-control time:not([hidden]) {
 }
 map-area .paco-jma-timestamp-control time {
   --timejs-serialization: dtsjp2;
+}
+
+@media (max-width: 500px) {
+  map-area .paco-jma-timestamp-control a:first-child:not([hidden]) {
+    display: block;
+  }
+  map-area .paco-jma-timestamp-control time {
+    width: min-content;
+  }
 }
 
 map-area .paco-currentposition-container {
