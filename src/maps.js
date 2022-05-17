@@ -1152,6 +1152,16 @@
                   tooltipAnchor: [16, -28],
                 };
                 icon.iconUrl = m[1].replace (/\\(.)/g, (_, v) => v);
+              } else {
+                m = v.match (/^\s*circle\s+(\S+)\s+([0-9.]+)px\s*$/);
+                if (m) {
+                  var c = m[1];
+                  var s = document.createElement ('span');
+                  s.textContent = c;
+                  var r = parseFloat (m[2]);
+                  icon = {iconSize: [r*2, r*2]};
+                  icon.iconUrl = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+r*2+' '+r*2+'"><circle cx="'+r+'" cy="'+r+'" r="'+r+'" fill="'+s.innerHTML+'"/></svg>');
+                }
               }
             }
 
