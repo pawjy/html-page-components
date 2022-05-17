@@ -1155,7 +1155,7 @@
                   s.textContent = c;
                   var r = parseFloat (m[2]);
                   icon = {iconSize: [r*2, r*2]};
-                  icon.iconUrl = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+r*2+' '+r*2+'"><circle cx="'+r+'" cy="'+r+'" r="'+r+'" fill="'+s.innerHTML+'"/></svg>');
+                  icon.iconUrl = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+r*2+'px '+r*2+'px"><circle cx="'+r+'" cy="'+r+'" r="'+r+'" fill="'+s.innerHTML+'"/></svg>');
                 }
               }
             }
