@@ -844,10 +844,18 @@
           }
         }
 
-        var map = this.pcLMap = L.map (this, {
+        // recompute!
+        var s = getComputedStyle (this);
+        var v = s.getPropertyValue ('--paco-map-click-action') || 'none';
+        var w = s.getPropertyValue ('--paco-map-touch-scroll-viewport') || 'auto';
+        var za = s.getPropertyValue ('--paco-map-zoom-animation') || 'auto';
+
+        var opts = {
           zoomControl: false,
           dragging: !this.pcNoMapDraggable,
-        });
+        };
+        if (za.match (/^\s*none\s*$/)) opts.zoomAnimation = false;
+        var map = this.pcLMap = L.map (this, opts);
 
         if (controls.zoom) {
           // recompute!
@@ -904,11 +912,6 @@
           this.maRedrawEvent ();
         });
         map.setView (this.maCenter, this.pcZoomLevel);
-
-        // recompute!
-        var s = getComputedStyle (this);
-        var v = s.getPropertyValue ('--paco-map-click-action') || 'none';
-        var w = s.getPropertyValue ('--paco-map-touch-scroll-viewport') || 'auto';
         
         if (v.match (/^\s*set-value\s*$/)) {
           map.on ('click', ev => {
