@@ -1022,15 +1022,24 @@
         }
       }, // pcInit
       pcTabElements: function () {
-        var tabMenu = null;
         var tabSections = [];
+        var tabMenu = null;
         Array.prototype.forEach.call (this.children, function (f) {
           if (f.localName === 'section') {
             tabSections.push (f);
           } else if (f.localName === 'tab-menu') {
-            tabMenu = f;
+            tabMenu = tabMenu || f;
           }
         });
+        var tms = this.getAttribute ('menu-selector');
+        if (tms) {
+          var e = document.querySelector (tms);
+          if (e && e.localName === 'tab-menu') {
+            tabMenu = e;
+          } else {
+            tabMenu = null;
+          }
+        }
         return {tabMenu, tabSections};
       }, // pcTabElements
       tsInit: function (opts) {
