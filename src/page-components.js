@@ -1145,6 +1145,10 @@
         tabMenu.querySelectorAll ('a').forEach ((g) => {
           g.classList.toggle ('active', g.tsSection === f);
         });
+        tabMenu.querySelectorAll ('tab-menu-current').forEach (_ => {
+          var header = f.querySelector ('h1');
+          _.textContent = header ? header.textContent : '§';
+        });
         tabSections.forEach ((g) => {
           g.classList.toggle ('active', f === g);
         });
