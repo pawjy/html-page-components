@@ -493,6 +493,52 @@
     this.assert.equal (s2.className, 'active');
   </test-code>
   
+  <test-code name="menu-selector">
+    /*
+      <tab-set menu-selector="test-menu-selector tab-menu">
+        <section><h1>A</h1>a</section>
+        <section data-tab-button-class="ab yX"><h1>B</h1>b</section>
+      </tab-set>
+      <test-menu-selector><tab-menu></tab-menu></test-menu-selector>
+    */
+
+    var url0 = location.href;
+      
+    var e = this.currentScript.querySelector ('tab-set');
+    var menu = document.querySelector ('test-menu-selector tab-menu');
+    var s1 = e.querySelector ('section:nth-of-type(1)');
+    var s2 = e.querySelector ('section:nth-of-type(2)');
+    this.assert.equal (menu.children.length, 2);
+    this.assert.equal (menu.children[0].localName, 'a');
+    this.assert.equal (menu.children[0].href, 'javascript:');
+    this.assert.equal (menu.children[0].className, 'active');
+    this.assert.equal (menu.children[0].textContent, 'A');
+    this.assert.equal (menu.children[1].localName, 'a');
+    this.assert.equal (menu.children[1].href, 'javascript:');
+    this.assert.equal (menu.children[1].className, 'ab yX');
+    this.assert.equal (menu.children[1].textContent, 'B');
+    this.assert.equal (getComputedStyle (s1).display, 'block', 'browser default style');
+    this.assert.equal (s1.className, 'active');
+    this.assert.equal (getComputedStyle (s2).display, 'none', 'default style');
+    this.assert.equal (s2.className, '');
+
+    menu.children[1].click ();
+    await this.wait ();
+    this.assert.equal (menu.children.length, 2);
+    this.assert.equal (menu.children[0].localName, 'a');
+    this.assert.equal (menu.children[0].href, 'javascript:');
+    this.assert.equal (menu.children[0].className, '');
+    this.assert.equal (menu.children[1].localName, 'a');
+    this.assert.equal (menu.children[1].href, 'javascript:');
+    this.assert.equal (menu.children[1].className, 'ab yX active');
+    this.assert.equal (getComputedStyle (s1).display, 'none', 'default style');
+    this.assert.equal (s1.className, '');
+    this.assert.equal (getComputedStyle (s2).display, 'block', 'browser default style');
+    this.assert.equal (s2.className, 'active');
+    
+    this.assert.equal (location.href, url0);
+  </test-code>
+  
   <script src=runtests.js></script>
 </body>
 </html>
