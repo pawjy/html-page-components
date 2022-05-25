@@ -1021,7 +1021,7 @@
           });
         }
       }, // pcInit
-      tsInit: function (opts) {
+      pcTabElements: function () {
         var tabMenu = null;
         var tabSections = [];
         Array.prototype.forEach.call (this.children, function (f) {
@@ -1031,6 +1031,10 @@
             tabMenu = f;
           }
         });
+        return {tabMenu, tabSections};
+      }, // pcTabElements
+      tsInit: function (opts) {
+        var {tabMenu, tabSections} = this.pcTabElements ();
       
         if (!tabMenu) return;
 
@@ -1070,12 +1074,7 @@
       }, // tsInit
       tsShowTabByURL: function (opts) {
         if (opts.initiator === this) return;
-        var tabSections = [];
-        Array.prototype.forEach.call (this.children, function (f) {
-          if (f.localName === 'section') {
-            tabSections.push (f);
-          }
-        });
+        var {tabMenu, tabSections} = this.pcTabElements ();
         var currentURL = location.href;
         var currentPageURL = currentURL.replace (/#.+$/, '');
         var initial = null;
@@ -1132,15 +1131,7 @@
         if (initial) this.tsShowTab (initial, {initiatorType: opts.initiatorType});
       }, // tsShowTabByURL
       tsShowTab: function (f, opts) {
-        var tabMenu = null;
-        var tabSections = [];
-        Array.prototype.forEach.call (this.children, function (f) {
-          if (f.localName === 'section') {
-            tabSections.push (f);
-          } else if (f.localName === 'tab-menu') {
-            tabMenu = f;
-          }
-        });
+        var {tabMenu, tabSections} = this.pcTabElements ();
 
         tabMenu.querySelectorAll ('a').forEach ((g) => {
           g.classList.toggle ('active', g.tsSection === f);
