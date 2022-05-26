@@ -76,7 +76,7 @@
 '></iframe>
 
 <section>
-  <h1>Remote tab menu</h1>
+  <h1>Remote tab menu 1</h1>
 
   <tab-set menu-selector="p tab-menu">
     <section>
@@ -90,6 +90,33 @@
     </section>
   </tab-set>
 
-  <p>Tab menu: <tab-menu></tab-menu>
+  <p>Tab menu: <tab-menu><tab-menu-extras>
+    (<tab-menu-active></tab-menu-active>)
+  </tab-menu-extras></tab-menu>
+</section>
+
+<section>
+  <h1>Remote tab menu 2</h1>
+
+  <tab-set menu-selector="popup-menu">
+    <section>
+      <h1>Tab 1</h1>
+    </section>
+    <section>
+      <h1>Tab 2</h1>
+    </section>
+    <section>
+      <h1>Tab 3</h1>
+    </section>
+  </tab-set>
+
+  <popup-menu>
+    <button type=button>
+      <tab-menu-active></tab-menu-active>
+    </button>
+    <menu-main>
+      <tab-menu></tab-menu>
+    </menu-main>
+  </popup-menu>
 </section>
 

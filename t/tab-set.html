@@ -538,6 +538,108 @@
     
     this.assert.equal (location.href, url0);
   </test-code>
+    
+  <test-code name="menu-selector with container">
+    /*
+      <tab-set menu-selector="test-menu-selector-2">
+        <section><h1>A</h1>a</section>
+        <section data-tab-button-class="ab yX"><h1>B</h1>b</section>
+      </tab-set>
+      <test-menu-selector-2>
+        <tab-menu></tab-menu>
+        <tab-menu-active></tab-menu-active>
+      </test-menu-selector-2>
+    */
+
+    var url0 = location.href;
+      
+    var e = this.currentScript.querySelector ('tab-set');
+    var menu = document.querySelector ('test-menu-selector-2 tab-menu');
+    var s1 = e.querySelector ('section:nth-of-type(1)');
+    var s2 = e.querySelector ('section:nth-of-type(2)');
+    this.assert.equal (menu.children.length, 2);
+    this.assert.equal (menu.children[0].localName, 'a');
+    this.assert.equal (menu.children[0].href, 'javascript:');
+    this.assert.equal (menu.children[0].className, 'active');
+    this.assert.equal (menu.children[0].textContent, 'A');
+    this.assert.equal (menu.children[1].localName, 'a');
+    this.assert.equal (menu.children[1].href, 'javascript:');
+    this.assert.equal (menu.children[1].className, 'ab yX');
+    this.assert.equal (menu.children[1].textContent, 'B');
+    this.assert.equal (getComputedStyle (s1).display, 'block', 'browser default style');
+    this.assert.equal (s1.className, 'active');
+    this.assert.equal (getComputedStyle (s2).display, 'none', 'default style');
+    this.assert.equal (s2.className, '');
+    var c = document.querySelector ('test-menu-selector-2 tab-menu-active');
+    this.assert.equal (c.textContent, 'A');
+
+    menu.children[1].click ();
+    await this.wait ();
+    this.assert.equal (menu.children.length, 2);
+    this.assert.equal (menu.children[0].localName, 'a');
+    this.assert.equal (menu.children[0].href, 'javascript:');
+    this.assert.equal (menu.children[0].className, '');
+    this.assert.equal (menu.children[1].localName, 'a');
+    this.assert.equal (menu.children[1].href, 'javascript:');
+    this.assert.equal (menu.children[1].className, 'ab yX active');
+    this.assert.equal (getComputedStyle (s1).display, 'none', 'default style');
+    this.assert.equal (s1.className, '');
+    this.assert.equal (getComputedStyle (s2).display, 'block', 'browser default style');
+    this.assert.equal (s2.className, 'active');
+    this.assert.equal (c.textContent, 'B');
+    
+    this.assert.equal (location.href, url0);
+  </test-code>
+  
+  <test-code name="tab-menu-active">
+    /*
+      <tab-set>
+        <tab-menu><tab-menu-extras><tab-menu-active></tab-menu-active></tab-menu-extras></tab-menu>
+        <section><h1>A</h1>a</section>
+        <section data-tab-button-class="ab yX"><h1>B</h1>b</section>
+      </tab-set>
+    */
+
+    var url0 = location.href;
+      
+    var e = this.currentScript.querySelector ('tab-set');
+    var menu = e.querySelector ('tab-menu');
+    var s1 = e.querySelector ('section:nth-of-type(1)');
+    var s2 = e.querySelector ('section:nth-of-type(2)');
+    this.assert.equal (menu.children.length, 3);
+    this.assert.equal (menu.children[0].localName, 'a');
+    this.assert.equal (menu.children[0].href, 'javascript:');
+    this.assert.equal (menu.children[0].className, 'active');
+    this.assert.equal (menu.children[0].textContent, 'A');
+    this.assert.equal (menu.children[1].localName, 'a');
+    this.assert.equal (menu.children[1].href, 'javascript:');
+    this.assert.equal (menu.children[1].className, 'ab yX');
+    this.assert.equal (menu.children[1].textContent, 'B');
+    this.assert.equal (getComputedStyle (s1).display, 'block', 'browser default style');
+    this.assert.equal (s1.className, 'active');
+    this.assert.equal (getComputedStyle (s2).display, 'none', 'default style');
+    this.assert.equal (s2.className, '');
+    var c = e.querySelector ('tab-menu-active');
+    this.assert.equal (c.textContent, 'A');
+
+    menu.children[1].click ();
+    await this.wait ();
+    this.assert.equal (menu.children.length, 3);
+    this.assert.equal (menu.children[0].localName, 'a');
+    this.assert.equal (menu.children[0].href, 'javascript:');
+    this.assert.equal (menu.children[0].className, '');
+    this.assert.equal (menu.children[1].localName, 'a');
+    this.assert.equal (menu.children[1].href, 'javascript:');
+    this.assert.equal (menu.children[1].className, 'ab yX active');
+    this.assert.equal (getComputedStyle (s1).display, 'none', 'default style');
+    this.assert.equal (s1.className, '');
+    this.assert.equal (getComputedStyle (s2).display, 'block', 'browser default style');
+    this.assert.equal (s2.className, 'active');
+    var c = e.querySelector ('tab-menu-active');
+    this.assert.equal (c.textContent, 'B');
+    
+    this.assert.equal (location.href, url0);
+  </test-code>
   
   <script src=runtests.js></script>
 </body>

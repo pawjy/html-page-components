@@ -1031,16 +1031,22 @@
             tabMenu = tabMenu || f;
           }
         });
+        var tabMenuContainer = tabMenu;
         var tms = this.getAttribute ('menu-selector');
         if (tms) {
           var e = document.querySelector (tms);
-          if (e && e.localName === 'tab-menu') {
-            tabMenu = e;
+          if (e) {
+            if (e.localName === 'tab-menu') {
+              tabMenu = tabMenuContainer = e;
+            } else {
+              tabMenuContainer = e;
+              tabMenu = e.querySelector ('tab-menu'); // or null
+            }
           } else {
-            tabMenu = null;
+            tabMenu = tabMenuContainer = null;
           }
         }
-        return {tabMenu, tabSections};
+        return {tabMenu, tabMenuContainer, tabSections};
       }, // pcTabElements
       tsInit: function (opts) {
         var {tabMenu, tabSections} = this.pcTabElements ();
@@ -1140,10 +1146,14 @@
         if (initial) this.tsShowTab (initial, {initiatorType: opts.initiatorType});
       }, // tsShowTabByURL
       tsShowTab: function (f, opts) {
-        var {tabMenu, tabSections} = this.pcTabElements ();
+        var {tabMenu, tabMenuContainer, tabSections} = this.pcTabElements ();
 
         tabMenu.querySelectorAll ('a').forEach ((g) => {
           g.classList.toggle ('active', g.tsSection === f);
+        });
+        tabMenuContainer.querySelectorAll ('tab-menu-active').forEach (_ => {
+          var header = f.querySelector ('h1');
+          _.textContent = header ? header.textContent : '§';
         });
         tabSections.forEach ((g) => {
           g.classList.toggle ('active', f === g);
