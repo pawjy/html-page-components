@@ -228,17 +228,30 @@ Its content model is an optional |tab-menu| element followed by one or
 more |section| elements.
 
 A |tab-menu| element represents the menu the user can select the
-section to show.  It can be a child element of the |tab-set| element,
-or an element of document pointed by the |<tab-set menu-selector="">|
-attribute, whose value is a selector.  The element content is set to
-the list of the anchors corresponding to the sections in the set.
+section to show.  The element content is set to the list of the
+anchors corresponding to the sections in the set.  It can be either:
+
+  - A |tab-menu| element child of the |tab-set| element,
+
+  - A |tab-menu| element in the document, pointed by the |<tab-set
+    menu-selector="">| attribute, or
+
+  - A |tab-menu| element descendant of the element pointed by the
+    |<tab-set menu-selector="">| attribute,
+
+... where |menu-selector=""| attribute value is a selector.
 
 A |tab-menu| element may also contain zero or more |tab-menu-extras|
 element children, which can be used to insert additional content to
 tab menu.  Any "real" tab menu item is always inserted before the
-"extra" elements.  It can contain a |tab-menu-current| element
-descendant.  Whenever a tab section is shown, its text content is
-updated to the section's label.
+"extra" elements.
+
+There can be a |tab-menu-active| element.  Whenever a tab section is
+shown, its text content is updated to the section's label.  If
+|<tab-set menu-selector="">| attribute points a non-|tab-menu|
+element, the |tab-menu-active| element can be its descendant.
+Otherwise, the |menu-active| element can be a descendant of the
+|tab-menu| element.
 
 The |section| child elements represent the sections of the set.  A
 |section| element should have a |h1| element descendant, which labels
