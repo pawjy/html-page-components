@@ -1651,6 +1651,11 @@ The following properties are available:
         If true and |intoView| option is also specified, the map
         element is scrolled into the view, if necessary.
 
+        If true and |center| option is also specified, the center of
+        the map is not changed when the location identified by the
+        |center|'s latitude and longitude is shown in the current view
+        of the map.
+
       includes : [{lat: float, lon: float}, ...]
 
         Change the range of the map such that the locations identified

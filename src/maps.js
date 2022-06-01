@@ -1306,6 +1306,7 @@
       pcScroll: function (opts) {
         /*
           m.pcScroll ({center})
+          m.pcScroll ({center, ifNeeded: true})
           m.pcScroll ({center, setValue: true})
           m.pcScroll ({intoView: true})
           m.pcScroll ({intoView: true, ifNeeded: true})
@@ -1318,7 +1319,19 @@
           };
           if (!Number.isFinite (p.lat)) p.lat = 0;
           if (!Number.isFinite (p.lon)) p.lon = 0;
-          this.maRedraw ({center: p, value: opts.setValue});
+          if (opts.ifNeeded) {
+            var bounds = this.getMapBounds ();
+            var h = bounds.north - bounds.south;
+            var w = bounds.east - bounds.west;
+            if (bounds.north - h/4 > p.lat && p.lat > bounds.south + h/4 &&
+                bounds.east - w/4 > p.lon && p.lon > bounds.west + w/4) {
+              //
+            } else {
+              this.maRedraw ({center: p, value: opts.setValue});
+            }
+          } else {
+            this.maRedraw ({center: p, value: opts.setValue});
+          }
         }
 
         if (opts.bounds || opts.includes) {
