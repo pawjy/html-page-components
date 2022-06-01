@@ -78,8 +78,60 @@
     this.assert.equal (e.getAttribute ('lon'), -120.7013);
 
     var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 20.33);
+    this.assert.equal (pos.lat, 20.33, 'gmc 1 lat');
     this.assert.equal (pos.lon, -120.7013);
+
+    e.pcScroll ({center: {lat: 32.211, lon: 143.444}});
+    await this.wait ();
+
+    var pos = e.getMapCenter ();
+    this.assert.equal (Math.abs (pos.lat - 32.211) < 0.01, true, 'gmc 2 lat');
+    this.assert.equal (Math.abs (pos.lon - 143.444) < 0.01, true, pos.lat + ' ' + pos.lon);
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, -40.3);
+    this.assert.equal (v.lon, 51.122);
+
+    e.pcScroll ({center: {lat: 30.211, lon: 140.444}, setValue: true});
+    await this.wait ();
+
+    var pos = e.getMapCenter ();
+    this.assert.equal (Math.abs (pos.lat - 30.211) < 0.01, true, pos.lat);
+    this.assert.equal (Math.abs (pos.lon - 140.444) < 0.01, true, pos.lon);
+    var v = e.valueAsLatLon;
+    this.assert.equal (v.lat, 30.211, 'valueAsLatLon lat');
+    this.assert.equal (v.lon, 140.444);
+
+    e.parentNode.style.overflow = 'scroll';
+    e.parentNode.style.height = '10em';
+    e.style.marginTop = '20em';
+    this.assert.equal (e.parentNode.scrollTop, 0);
+
+    e.pcScroll ({center: {lat: 30.211, lon: 140.444}, intoView: true});
+    await this.wait ();
+    
+    this.assert.equal (e.parentNode.scrollTop > 0, true);
+
+    e.pcScroll ({center: {lat: 30.214, lon: 140.444}, ifNeeded: true});
+    await this.wait (1000);
+
+    var v = e.getMapCenter ();
+    this.assert.equal (Math.abs (v.lat - 30.211) < 0.01, true, v.lat);
+    this.assert.equal (Math.abs (v.lon - 140.444) < 0.01, true, v.lon);
+
+    e.pcScroll ({center: {lat: 30.214, lon: 140.444}});
+    await this.wait (1000);
+
+    var v = e.getMapCenter ();
+    this.assert.equal ((v.lat - 30.211) === 0, false, v.lat);
+    this.assert.equal (Math.abs (v.lon - 140.444) < 0.01, true, v.lon);
+
+    e.pcScroll ({center: {lat: 31, lon: 140.444}, ifNeeded: true});
+    await this.wait (1000);
+
+    var v = e.getMapCenter ();
+    this.assert.equal (Math.abs (v.lat - 31) < 0.1, true, v.lat);
+    this.assert.equal (Math.abs (v.lon - 140.444) < 0.01, true, v.lon);
+    
   </test-code>
 
   <test-code name="initially hidden">
@@ -466,7 +518,8 @@
 
   <test-code name="addElementOverlays">
     /*
-      <map-area engine=googlemaps controls lat=20.33 lon=-120.7013></map-area>
+      <map-area engine=googlemaps controls lat=20.33 lon=-120.7013>
+      </map-area>
     */
     var e = this.currentScript.querySelector ('map-area');
 
@@ -498,6 +551,8 @@
     this.assert.equal (e.querySelector ('x-2'), e2);
     this.assert.equal (e.querySelector ('x-3'), e3);
     this.assert.equal (e.querySelector ('x-4'), e4);
+
+    pp.clickable (document.createElement ('x'));
   </test-code>
   
   <script src=runtests.js data-maps></script>

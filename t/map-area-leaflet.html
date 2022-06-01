@@ -822,7 +822,8 @@
 
   <test-code name="addElementOverlays">
     /*
-      <map-area engine=leaflet controls lat=20.33 lon=-120.7013></map-area>
+      <map-area engine=leaflet controls lat=20.33 lon=-120.7013>
+      </map-area>
     */
     var e = this.currentScript.querySelector ('map-area');
 
@@ -854,6 +855,8 @@
     this.assert.equal (e.querySelector ('x-2'), e2);
     this.assert.equal (e.querySelector ('x-3'), e3);
     this.assert.equal (e.querySelector ('x-4'), e4);
+
+    pp.clickable (document.createElement ('x'));
   </test-code>
   
   <script src=runtests.js data-maps></script>

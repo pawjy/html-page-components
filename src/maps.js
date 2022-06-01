@@ -692,6 +692,9 @@
               lat: v.lat (),
               lon: v.lng (),
             };
+            if (this.maCenter.lon < -180) {
+              this.maCenter.lon += 360;
+            }
             this.maRedrawEvent ();
           });
           var mo = new MutationObserver ((mutations) => {
@@ -1667,6 +1670,7 @@
                 },
               };
             }, // getProjection
+            clickable: (e) => L.DomEvent.disableClickPropagation (e),
           };
         } // maGoogleMap
 
@@ -1710,6 +1714,7 @@
         return {
           ready: () => true,
           getProjection: () => pp,
+          clickable: (e) => L.DomEvent.disableClickPropagation (e),
         };
       }, // addElementOverlays
 
