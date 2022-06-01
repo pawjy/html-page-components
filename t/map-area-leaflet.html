@@ -108,6 +108,27 @@
     await this.wait ();
     
     this.assert.equal (e.parentNode.scrollTop > 0, true);
+
+    e.pcScroll ({center: {lat: 30.214, lon: 140.444}, ifNeeded: true});
+    await this.wait (1000);
+
+    var v = e.getMapCenter ();
+    this.assert.equal (v.lat, 30.211);
+    this.assert.equal (v.lon, 140.444);
+
+    e.pcScroll ({center: {lat: 30.214, lon: 140.444}});
+    await this.wait (1000);
+
+    var v = e.getMapCenter ();
+    this.assert.equal ((v.lat - 30.211) === 0, false, v.lat);
+    this.assert.equal (Math.abs (v.lon - 140.444) < 0.01, true, v.lon);
+
+    e.pcScroll ({center: {lat: 31, lon: 140.444}, ifNeeded: true});
+    await this.wait (1000);
+
+    var v = e.getMapCenter ();
+    this.assert.equal (Math.abs (v.lat - 31) < 0.1, true, v.lat);
+    this.assert.equal (Math.abs (v.lon - 140.444) < 0.01, true, v.lon);
     
   </test-code>
 
