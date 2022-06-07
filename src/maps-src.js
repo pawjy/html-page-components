@@ -454,6 +454,7 @@
       errorTileUrl: opts.errorTileUrl,
       maxNativeZoom: 10,
       minNativeZoom: 4,
+      maxZoom: opts.maxZoom,
       opacity: 0.8,
       urlTimestamp: time.prevFormatted,
     });
@@ -690,6 +691,7 @@
             if (this.maCenter.lon < -180) {
               this.maCenter.lon += 360;
             }
+            this.pcZoomLevel = this.maGoogleMap.getZoom ();
             this.maRedrawEvent ();
           });
           var mo = new MutationObserver ((mutations) => {
@@ -1433,6 +1435,7 @@
           }
         }
 
+        var maxZoom = 21;
         var errorTileUrl = this.getAttribute ('noimgsrc') || noImageURL;
         if (type === 'gsi-standard') {
           var lStd = L.tileLayer
@@ -1441,6 +1444,7 @@
                 errorTileUrl,
                 maxNativeZoom: 18,
                 minNativeZoom: 2,
+                maxZoom,
               });
           layers.push (lStd);
         } else if (type === 'gsi-english') {
@@ -1450,6 +1454,7 @@
                 errorTileUrl,
                 maxNativeZoom: 11,
                 minNativeZoom: 5,
+                maxZoom,
               });
           layers.push (lEng);
         } else if (type === 'gsi-hillshade') {
@@ -1459,6 +1464,7 @@
                 errorTileUrl,
                 maxNativeZoom: 16,
                 minNativeZoom: 2,
+                maxZoom,
               });
           layers.push (lShade);
         } else if (type === 'gsi-photo') {
@@ -1468,6 +1474,7 @@
                 errorTileUrl,
                 maxNativeZoom: 18,
                 minNativeZoom: 2,
+                maxZoom,
               });
           layers.push (lPhoto);
         } else if (type === 'gsi-standard-hillshade') {
@@ -1477,6 +1484,7 @@
                 errorTileUrl,
                 maxNativeZoom: 16,
                 minNativeZoom: 2,
+                maxZoom,
                 opacity: 0.8,
               });
           layers.push (lShade);
@@ -1486,6 +1494,7 @@
                 errorTileUrl,
                 maxNativeZoom: 18,
                 minNativeZoom: 2,
+                maxZoom,
                 opacity: 0.8,
               });
           layers.push (lStd);
@@ -1495,6 +1504,7 @@
             errorTileUrl,
             maxNativeZoom: 18,
             minNativeZoom: 2,
+            maxZoom,
           });
           var lShade = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
@@ -1502,6 +1512,7 @@
                 errorTileUrl,
                 maxNativeZoom: 16,
                 minNativeZoom: 2,
+                maxZoom,
                 opacity: 0.6,
               });
           layers.push (lShade);
@@ -1512,6 +1523,7 @@
             errorTileUrl,
             maxNativeZoom: 18,
             minNativeZoom: 2,
+            maxZoom,
           });
           var lPhoto = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
@@ -1519,6 +1531,7 @@
                 errorTileUrl,
                 maxNativeZoom: 18,
                 minNativeZoom: 2,
+                maxZoom,
              });
           layers.push (lPhoto);
           layers.push (lGSI);
@@ -1540,6 +1553,7 @@
             errorTileUrl,
             maxNativeZoom: 18,
             minNativeZoom: 5,
+            maxZoom,
           });
           layers.push (lGSI);
         } else if (type === 'none') {
@@ -1548,6 +1562,7 @@
 
         if (this.pcJMANowc) {
           var lNowc = L.tileLayer.jmaNowc ({
+            maxZoom,
             errorTileUrl,
           });
           layers.push (lNowc);
