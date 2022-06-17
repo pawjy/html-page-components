@@ -2237,11 +2237,17 @@ There is a predefined filter: |default|.  It replaces the input's
 
 There are predefined formsaved handlers:
 
+  fill:{selector}
+
+    Run the |$fill| function for the first descendant element
+    identified by the selector specified as the first argument, with
+    the response returned by the form's saver (i.e. the server's
+    response in case of the default saver) interpreted as a JSON data.
+
   focus:{selector}
 
     Focus the first descendant element identified by the selector
-    specified as the first argument /selector/, using the
-    |pcSendFocus| method.
+    specified as the first argument, using the |pcSendFocus| method.
 
   go:{templateOfURL}
 
