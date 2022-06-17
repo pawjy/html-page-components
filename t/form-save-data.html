@@ -912,6 +912,44 @@
     this.assert.equal (form.querySelector ('action-status-message').textContent, 'Saved');
   </test-code>
   
+  <test-code name="data-next=fill">
+    /*
+      <form is=save-data data-saver=saverFill1 data-next="fill:.result formsavedFill1" method=post>
+        <input name=text1 value=avc>
+        <button type=submit>OK</button>
+        <output class=result>[<span data-field=t1Value></span>]</output>
+      </form>
+    */
+    
+    var e = document.createElementNS ('data:,pc', 'saver');
+    e.setAttribute ('name', 'saverFill1');
+    e.pcHandler = (fd) => {
+      return {
+        json: async () => { return {t1Value: fd.get ('text1')} },
+      };
+    };
+    document.head.appendChild (e);
+    
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'formsaved');
+      handler.setAttribute ('name', 'formsavedFill1');
+      handler.pcHandler = function (args) {
+        ok (args);
+      };
+      document.head.appendChild (handler);
+    });
+    
+    var e = this.currentScript.querySelector ('form');
+    var f = e.querySelector ('form [name=text1]');
+    var r = f.value = Math.random ();
+    e.querySelector ('form button[type=submit]').click ();
+    
+    await promise;
+
+    var o = e.querySelector ('output');
+    this.assert.equal (o.textContent, '[' + r + ']');
+  </test-code>
+  
   <!-- XXX data-confirm -->
 
   <script src=runtests.js></script>
