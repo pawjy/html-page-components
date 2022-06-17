@@ -1828,6 +1828,7 @@
       var e = this.querySelector (args.args[1]);
       if (!e) throw new Error ('Element |'+args.args[1]+'| not found');
       $fill (e, json);
+      e.hidden = false;
     });
   }; // fill
 
