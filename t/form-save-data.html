@@ -917,7 +917,7 @@
       <form is=save-data data-saver=saverFill1 data-next="fill:.result formsavedFill1" method=post>
         <input name=text1 value=avc>
         <button type=submit>OK</button>
-        <output class=result>[<span data-field=t1Value></span>]</output>
+        <output class=result hidden>[<span data-field=t1Value></span>]</output>
       </form>
     */
     
@@ -948,6 +948,7 @@
 
     var o = e.querySelector ('output');
     this.assert.equal (o.textContent, '[' + r + ']');
+    this.assert.equal (o.hidden, false);
   </test-code>
   
   <!-- XXX data-confirm -->
