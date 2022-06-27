@@ -191,18 +191,26 @@
     } : upgradedElementProps[def.name][def.is || null].pcInit || function () { };
     upgrader[def.name][def.is || null] = function () {
       var e = this;
-      if (e.nextSibling ||
-          document.readyState === 'interactive' ||
+      vat lc = undefined;
+      if (document.readyState === 'interactive' ||
           document.readyState === 'complete') {
         return init.call (e);
+      } else if (e.nextSibling) {
+        lc = e.lastChild;
       }
       return new Promise (function (ok) {
         var timer = setInterval (function () {
-          if (e.nextSibling ||
-              document.readyState === 'interactive' ||
+          if (document.readyState === 'interactive' ||
               document.readyState === 'complete') {
             ok ();
             clearInterval (timer);
+          } else if (e.nextSibling) {
+            if (lc === e.lastChild) { // unchanged
+              ok ();
+              clearInterval (timer);
+            } else {
+              lc = e.lastChild;
+            }
           }
         }, 100);
       }).then (function () {
