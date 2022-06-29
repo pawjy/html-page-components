@@ -191,7 +191,7 @@
     } : upgradedElementProps[def.name][def.is || null].pcInit || function () { };
     upgrader[def.name][def.is || null] = function () {
       var e = this;
-      vat lc = undefined;
+      var lc = undefined;
       if (document.readyState === 'interactive' ||
           document.readyState === 'complete') {
         return init.call (e);
