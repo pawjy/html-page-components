@@ -998,6 +998,33 @@
           }
         }
 
+        var mc = this.getAttribute ('menucontainer');
+        if (mc) {
+          var menuContainer = this;
+          while (menuContainer && !menuContainer.matches (mc)) {
+            menuContainer = menuContainer.parentElement;
+          }
+          if (menuContainer) {
+            var bop = button;
+            var l = 0;
+            var t = 0;
+            while (bop && bop !== menuContainer) {
+              l += bop.offsetLeft;
+              t += bop.offsetTop;
+              bop = bop.offsetParent;
+            }
+            menu.style.setProperty ('--paco-menu-button-left', l + 'px');
+            menu.style.setProperty ('--paco-menu-button-right', l + button.offsetWidth + 'px');
+            menu.style.setProperty ('--paco-menu-button-top', t + 'px');
+            menu.style.setProperty ('--paco-menu-button-bottom', t + button.offsetHeight + 'px');
+            
+            menu.style.setProperty ('--paco-avail-height', menuContainer.offsetHeight + 'px');
+            menu.style.setProperty ('--paco-avail-width', menuContainer.offsetWidth + 'px');
+          } else {
+            console.log ("Element |"+mc+"| not found");
+          }
+        }
+
         var ev = new Event ('toggle', {bubbles: true});
         this.dispatchEvent (ev);
       }, // pmLayout

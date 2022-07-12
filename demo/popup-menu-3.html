@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<title>popup-menu</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js></script>
+
+<style>
+  d-container {
+    display: block;
+    background: green;
+    color: black;
+    width: 20em;
+    height: 20em;
+    margin: 0 auto;
+    position: relative;
+  }
+  popup-menu {
+    background: gray;
+    color: black;
+  }
+
+  menu-main {
+    box-sizing: border-box;
+    border: 3px solid blue;
+    overflow: auto;
+  }
+  menu-main p {
+    margin-bottom: 5em;
+  }
+</style>
+
+<p>Component:</p>
+
+<d-container>
+  <div>
+    MENU:
+    <popup-menu menucontainer=d-container>
+      <button type=button>Button</button>
+      <menu-main>
+        <p>Menu 1
+        <p>Menu 2
+        <p>Menu 3
+        <p>Menu 4
+      </menu-main>
+    </popup-menu>
+  </div>
+</d-container>
