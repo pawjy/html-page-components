@@ -191,18 +191,26 @@
     } : upgradedElementProps[def.name][def.is || null].pcInit || function () { };
     upgrader[def.name][def.is || null] = function () {
       var e = this;
-      if (e.nextSibling ||
-          document.readyState === 'interactive' ||
+      var lc = undefined;
+      if (document.readyState === 'interactive' ||
           document.readyState === 'complete') {
         return init.call (e);
+      } else if (e.nextSibling) {
+        lc = e.lastChild;
       }
       return new Promise (function (ok) {
         var timer = setInterval (function () {
-          if (e.nextSibling ||
-              document.readyState === 'interactive' ||
+          if (document.readyState === 'interactive' ||
               document.readyState === 'complete') {
             ok ();
             clearInterval (timer);
+          } else if (e.nextSibling) {
+            if (lc === e.lastChild) { // unchanged
+              ok ();
+              clearInterval (timer);
+            } else {
+              lc = e.lastChild;
+            }
           }
         }, 100);
       }).then (function () {
@@ -987,6 +995,33 @@
             menu.style.left = (right - menuWidth) + 'px';
           } else {
             menu.style.left = 'auto';
+          }
+        }
+
+        var mc = this.getAttribute ('menucontainer');
+        if (mc) {
+          var menuContainer = this;
+          while (menuContainer && !menuContainer.matches (mc)) {
+            menuContainer = menuContainer.parentElement;
+          }
+          if (menuContainer) {
+            var bop = button;
+            var l = 0;
+            var t = 0;
+            while (bop && bop !== menuContainer) {
+              l += bop.offsetLeft;
+              t += bop.offsetTop;
+              bop = bop.offsetParent;
+            }
+            menu.style.setProperty ('--paco-menu-button-left', l + 'px');
+            menu.style.setProperty ('--paco-menu-button-right', l + button.offsetWidth + 'px');
+            menu.style.setProperty ('--paco-menu-button-top', t + 'px');
+            menu.style.setProperty ('--paco-menu-button-bottom', t + button.offsetHeight + 'px');
+            
+            menu.style.setProperty ('--paco-avail-height', menuContainer.offsetHeight + 'px');
+            menu.style.setProperty ('--paco-avail-width', menuContainer.offsetWidth + 'px');
+          } else {
+            console.log ("Element |"+mc+"| not found");
           }
         }
 
