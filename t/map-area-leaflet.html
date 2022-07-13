@@ -545,6 +545,23 @@
     this.assert.equal (m.querySelector ('menu-item:nth-of-type(1) popup-menu').classList.contains ('selected'), false);
     this.assert.equal (m.querySelector ('menu-item:nth-of-type(2) popup-menu').classList.contains ('selected'), false);
     this.assert.equal (m.querySelector ('menu-item:nth-of-type(3) popup-menu').classList.contains ('selected'), true);
+
+    m.querySelector ('button').click ();
+    
+    e.pcScroll ({center: {lat: 31, lon: 140.444}});
+    await this.wait (1000);
+
+    var pos = e.getMapCenter ();
+    this.assert.equal (pos.lat, 31);
+    this.assert.equal (pos.lon, 140.444);
+
+    var m = e.querySelector ('popup-menu');
+    m.querySelector ('button').click ();
+
+    await this.wait ();
+    var a = e.querySelector ('a[href^="geo:"]');
+    this.assert.equal (a.href, 'geo:31,140.444');
+      
   </test-code>
 
   <test-code name="map-area controls='type typebuttons'">
