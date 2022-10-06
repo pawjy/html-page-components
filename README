@@ -2049,6 +2049,10 @@ scope.  The following functions are available:
 
   |$paco| namespace
 
+    as = $paco.actionStatus (element)
+
+      Create a new action status object with the specified element.
+
     $paco.showToast ({...})
 
       Show a toast, i.e. inserting a |toast-box| element into the

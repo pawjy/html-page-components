@@ -609,14 +609,18 @@
   }; // end
 
   commonMethods.pcActionStatus = function () {
-    var elements = this.querySelectorAll ('action-status');
+    return exportable.$paco.actionStatus (this);
+  }; // pcActionStatus
+
+  exportable.$paco.actionStatus = function (c) {
+    var elements = c.querySelectorAll ('action-status');
     elements.forEach (function (e) {
       if (e.hasChildNodes ()) return;
       e.hidden = true;
       e.innerHTML = '<action-status-message></action-status-message> <progress></progress>';
     });
     return new ActionStatus (elements);
-  }; // pcActionStatus
+  }; // $paco.actionStatus
 
   defineElement ({
     name: 'template-set',
@@ -1204,7 +1208,9 @@
             if (x.hash && y.hash === '') y += x.hash;
             
             if (x.href !== y.href) {
-              history.replaceState (null, null, y);
+              if (opts.initiatorType !== 'url') {
+                history.replaceState (null, null, y);
+              }
               var evc = new Event ('pcLocationChange', {bubbles: true});
               evc.pcInitiator = this;
               Promise.resolve ().then (() => window.dispatchEvent (evc));

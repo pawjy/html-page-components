@@ -76,6 +76,33 @@
     this.assert.equal (e.testUpgradedCount, 1);
   </test-code>
 
+  <test-code name="$paco.actionStatus">
+    /*
+      <test-foo>
+        <action-status></action-status>
+        <action-status></action-status>
+      </test-foo>
+    */
+
+    var e = this.currentScript;
+    var as = $paco.actionStatus (e);
+
+    var a1 = e.querySelectorAll ('action-status')[0];
+    var a2 = e.querySelectorAll ('action-status')[1];
+    this.assert.equal (a1.hidden, true);
+    this.assert.equal (a2.hidden, true);
+
+    as.start (['foo']);
+    this.assert.equal (a1.hidden, false);
+    this.assert.equal (a2.hidden, false);
+    this.assert.equal (a1.querySelector ('progress').hidden, false);
+    this.assert.equal (a2.querySelector ('progress').hidden, false);
+
+    as.end ({ok: true});
+    this.assert.equal (a1.hidden, true);
+    this.assert.equal (a2.hidden, true);
+  </test-code>
+
   <script src=runtests.js data-export=$paco></script>
 </body>
 </html>
