@@ -429,7 +429,9 @@
       }
       var e = document.createElement (localName);
       e.appendChild (template.content.cloneNode (true));
-      ['class', 'title', 'id'].forEach (_ => {
+      var attrs = (template.getAttribute ('data-filled') || '').split (/\s+/);
+      attrs.push ('class', 'title', 'id');
+      attrs.forEach (_ => {
         if (template.hasAttribute (_)) {
           e.setAttribute (_, template.getAttribute (_));
         }
@@ -1483,7 +1485,8 @@
           return 'tbody';
         } else if (type === 'tab-set') {
           return 'tab-set';
-        } else if (type === 'ul' || type === 'ol') {
+        } else if (type === 'ul' || type === 'ol' ||
+                   type === 'select' || type === 'datalist') {
           return type;
         } else {
           return 'list-main';
@@ -1644,6 +1647,8 @@
           'tab-set': 'section',
           ul: 'li',
           ol: 'li',
+          select: 'option',
+          datalist: 'option',
         }[listContainer.localName] || 'list-item';
       return Promise.resolve ().then (() => {
         if (changes.changed) {

@@ -475,6 +475,24 @@ and list item element depend on the |type| attribute value of the
 
     List item element: An |li| element.
 
+  type=option
+
+    List item insertion point: The first |select| element descendant
+    of the |list-container| element.
+
+    Fixed content: None.
+
+    List item element: An |option| element.
+
+  type=datalist
+
+    List item insertion point: The first |datalist| element descendant
+    of the |list-container| element.
+
+    Fixed content: None.
+
+    List item element: An |option| element.
+
   type=tab-set
 
     List item insertion point: The first |tab-set| element descendant
@@ -1331,7 +1349,8 @@ When a /name/ element is created from an /object/ using /template/,
 
   - Its |class|, |title|, and |id| attribute values are set by
     attributes of /template/, in the same way as the |$fill| function
-    (e.g. |data-title-template| attributes are applicable).
+    (e.g. |data-title-template| attributes are applicable).  The set
+    of attributes can be extended by the |data-filled| attribute.
 
   - Its content is set to a deep clone of the template content of
     /template/.

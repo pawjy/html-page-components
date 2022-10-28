@@ -715,6 +715,88 @@
     this.assert.equal (menu.children.length, 2);
   </test-code>
 
+  <test-code name="type=select">
+    /*
+      <list-container loader=localLoader type=select>
+        <loader-data>
+          {"data": [{"name": "a"}, {"name": "b"}]}
+        </loader-data>
+        <template><span data-field=name></span></template>
+        <list-main></list-main>
+        <table>
+          <thead>
+            <tr>
+              <th>Name
+          <tbody>
+          <tbody>
+        </table>
+        <ul></ul>
+        <ol></ol>
+        <ul></ul>
+        <ol></ol>
+        <select></select>
+        <datalist></datalist>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    this.assert.equal (e.querySelector ('list-main').children.length, 0);
+    this.assert.equal (e.querySelector ('tbody:nth-of-type(1)').children.length, 0);
+    this.assert.equal (e.querySelector ('tbody:nth-of-type(2)').children.length, 0);
+    this.assert.equal (e.querySelector ('ul').children.length, 0);
+    this.assert.equal (e.querySelector ('ol').children.length, 0);
+    this.assert.equal (e.querySelector ('ul:nth-of-type(2)').children.length, 0);
+    this.assert.equal (e.querySelector ('ol:nth-of-type(2)').children.length, 0);
+    this.assert.equal (e.querySelector ('select').children.length, 2);
+    this.assert.equal (e.querySelector ('datalist').children.length, 0);
+    var row1 = e.querySelector ('select > :nth-child(1)');
+    this.assert.equal (row1.localName, 'option');
+    this.assert.equal (row1.innerHTML, '&lt;span data-field="name">a&lt;/span>');
+    var row2 = e.querySelector ('select > :nth-child(2)');
+    this.assert.equal (row2.localName, 'option');
+    this.assert.equal (row2.innerHTML, '&lt;span data-field="name">b&lt;/span>');
+  </test-code>
+
+  <test-code name="type=datalist">
+    /*
+      <list-container loader=localLoader type=datalist>
+        <loader-data>
+          {"data": [{"name": "a","text":"A"}, {"name": "b","text":"B"}]}
+        </loader-data>
+        <template data-filled=label data-label-field=text><span data-field=name></span></template>
+        <list-main></list-main>
+        <table>
+          <thead>
+            <tr>
+              <th>Name
+          <tbody>
+          <tbody>
+        </table>
+        <ul></ul>
+        <ol></ol>
+        <ul></ul>
+        <ol></ol>
+        <select></select>
+        <datalist></datalist>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    this.assert.equal (e.querySelector ('list-main').children.length, 0);
+    this.assert.equal (e.querySelector ('tbody:nth-of-type(1)').children.length, 0);
+    this.assert.equal (e.querySelector ('tbody:nth-of-type(2)').children.length, 0);
+    this.assert.equal (e.querySelector ('ul').children.length, 0);
+    this.assert.equal (e.querySelector ('ol').children.length, 0);
+    this.assert.equal (e.querySelector ('ul:nth-of-type(2)').children.length, 0);
+    this.assert.equal (e.querySelector ('ol:nth-of-type(2)').children.length, 0);
+    this.assert.equal (e.querySelector ('datalist').children.length, 2);
+    this.assert.equal (e.querySelector ('select').children.length, 0);
+    var row1 = e.querySelector ('datalist > :nth-child(1)');
+    this.assert.equal (row1.localName, 'option');
+    this.assert.equal (row1.outerHTML, '&lt;option label="A">&lt;span data-field="name">a&lt;/span>&lt;/option>');
+    var row2 = e.querySelector ('datalist > :nth-child(2)');
+    this.assert.equal (row2.localName, 'option');
+    this.assert.equal (row2.outerHTML, '&lt;option label="B">&lt;span data-field="name">b&lt;/span>&lt;/option>');
+  </test-code>
+
   <test-code name="filter">
     /*
       <list-container loader=localLoader filter=testFilter1>
@@ -1136,6 +1218,26 @@
     this.assert.equal (list.children.length, 2);
     this.assert.equal (list.children[0].textContent, 'x');
     this.assert.equal (list.children[1].textContent, 'y');
+  </test-code>
+
+  <test-code name="template data-filled zero">
+    /*
+      <list-container loader=localLoader type=datalist>
+        <loader-data>
+          {"data": [{"name": "a","text":"A"}, {"name": "b","text":"B"}]}
+        </loader-data>
+        <template data-filled=label data-id-field=text><span data-field=name></span></template>
+        <datalist></datalist>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    this.assert.equal (e.querySelector ('datalist').children.length, 2);
+    var row1 = e.querySelector ('datalist > :nth-child(1)');
+    this.assert.equal (row1.localName, 'option');
+    this.assert.equal (row1.outerHTML, '&lt;option id="A">&lt;span data-field="name">a&lt;/span>&lt;/option>');
+    var row2 = e.querySelector ('datalist > :nth-child(2)');
+    this.assert.equal (row2.localName, 'option');
+    this.assert.equal (row2.outerHTML, '&lt;option id="B">&lt;span data-field="name">b&lt;/span>&lt;/option>');
   </test-code>
 
   <script src=runtests.js></script>
