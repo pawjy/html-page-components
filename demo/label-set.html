@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>label-set</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js async></script>
+<style>
+  label-set[name=ls1] {
+    --label-foo: "フー";
+  }
+  label-set[name=ls2] {
+    --label-foo: "フー??";
+  }
+</style>
+
+<p>
+  Foo: <enum-value labelset=ls1 value=foo></enum-value>,
+  Bar: <enum-value labelset=ls1 value=bar></enum-value>,
+  ab: c: <enum-value labelset=ls1 value="ab: c"></enum-value>
+
+<p>
+  Foo: <enum-value labelset=ls2 value=foo></enum-value>,
+
+
+<label-set name=ls1></label-set>
+<label-set name=ls2></label-set>
