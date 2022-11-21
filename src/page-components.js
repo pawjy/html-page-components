@@ -35,6 +35,7 @@
     formvalidator: {type: 'handler'},
     filltype: {type: 'map'},
     templateSet: {type: 'element'},
+    labelSet: {type: 'element'},
     element: {type: 'customElement'},
   };
   var defs = {};
@@ -643,6 +644,26 @@
     return templates[""];
   }; // empty
 
+  // XXX experimental undocumented feature
+  defineElement ({
+    name: 'label-set',
+    props: {
+      pcInit: function () {
+        var name = this.getAttribute ('name');
+        if (!name) {
+          throw new Error
+          ('|label-set| element does not have |name| attribute');
+        }
+        addElementDef ('labelSet', name, this);
+      }, // pcInit
+      getLabel: function (key) {
+        var cs = getComputedStyle (this);
+        var label = parseCSSString (cs.getPropertyValue ('--label-' + key), key);
+        return label;
+      }, // getLabel
+    },
+  }); // <label-set>
+
   defs.filltype["enum-value"] = 'contentattribute';
   defineElement ({
     name: 'enum-value',
@@ -658,11 +679,19 @@
           this.hidden = true;
         } else {
           this.hidden = false;
-          var label = this.getAttribute ('label-' + value);
-          if (label === null) {
-            this.textContent = value;
+          var ls = this.getAttribute ('labelset');
+          if (ls) {
+            this.textContent = '';
+            return getDef ('labelSet', ls).then (ls => {
+              this.textContent = ls.getLabel (value);
+            });
           } else {
-            this.textContent = label;
+            var label = this.getAttribute ('label-' + value);
+            if (label === null) {
+              this.textContent = value;
+            } else {
+              this.textContent = label;
+            }
           }
         }
       }, // evRender
