@@ -55,6 +55,16 @@
     var b = e.querySelector ('button');
     this.assert.equal (b.textContent, 'あいうえお');
   </test-code>
+
+  <test-code name="can-copy button label escape">
+    /*
+      <can-copy style="--paco-copy-button-label:'あいう\aえ\a お\000A'"><code>xyz</code></can-copy>
+    */
+    var e = this.currentScript.querySelector ('can-copy');
+
+    var b = e.querySelector ('button');
+    this.assert.equal (b.textContent, 'あいう\nえ\nお\n');
+  </test-code>
   
   <script src=runtests.js data-export=$paco></script>
 </body>
