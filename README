@@ -1601,6 +1601,13 @@ The following properties are available:
     Note that the initial drawing of the element might not be finished
     yet.
 
+  explicitTime : integer?
+
+    The timestamp for the map, in Unix time (in seconds).  If no
+    explicit timestamp is specified, the |null| value.
+
+    The timestamp is used for the JMA map tile images.
+
   getMapCenter ()
 
     Returns the center of the map of the element at the time of the
@@ -1787,7 +1794,7 @@ The following properties are available:
     <https://www.jma.go.jp/jma/kishou/info/coment.html>.
 
     The tile images are reloaded whenever the new image data is
-    available.
+    available, unless the |explicitTime| property is set.
 
     When the JMA map is shown, a map control that contains the
     timestamp of the map is shown.  Its formatting should be handled
