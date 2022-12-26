@@ -154,6 +154,16 @@
         });
       ">addElementOverlays</button>
 
+    <p>
+      <input-datetime oninput="
+        var map = document.querySelector ('map-area');
+        map.explicitTime = querySelector ('input[type=checkbox]').checked ? this.value : null;
+      ">
+        <input type=checkbox>
+        <input type=date>
+        <input type=time>
+      </input-datetime>
+      
     <hr style="margin-top: 10em">
 
     <form>

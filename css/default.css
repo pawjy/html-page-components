@@ -1267,7 +1267,8 @@ map-area.paco-legend-hidden .paco-legend-control {
   display: none;
 }
 
-template-set {
+template-set,
+label-set {
   display: none ! important;
 }
 

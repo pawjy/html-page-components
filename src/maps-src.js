@@ -443,9 +443,11 @@
     return new L.Control.ElementControl (opts);
   }; // L.control.timestampControl
   L.tileLayer.jmaNowc = function (opts) {
+    var explicitTime;
     var getTime = () => {
       var realNow = (new Date).valueOf ();
       var now = realNow - 100*1000;
+      if (explicitTime) rewlNow = now = explicitTime * 1000;
       var prev = Math.floor (now / (5*60*1000)) * 5*60*1000;
       var next = prev + 5*60*1000;
       var delta = next - now;
@@ -471,11 +473,16 @@
     });
     
     var needReload = false;
+    var needUpdate = false;
     var timeout;
     var timeElement;
+    var prevTimePrev = null;
     var requestReload = (layer, time) => {
       if (!needReload) return;
       time = time || getTime ();
+      if (prevTimePrev === time.prev) return;
+      prevTimePrev = time.prev;
+      if (needUpdate) clearTimeout (timeout);
       timeout = setTimeout (() => {
         if (!needReload) return;
         var time = getTime ();
@@ -483,8 +490,10 @@
         layer.setUrl (u, false);
         timeElement.textContent = time.prevHTML;
         timeElement.removeAttribute ('datetime');
+        if (!explicitTime) needReload = false;
         requestReload (layer, time);
-      }, time.delta);
+      }, needUpdate ? 0 : time.delta);
+      needUpdate = false;
     }; // requestReload
 
     var ts = L.control.timestampControl ({
@@ -504,15 +513,24 @@
       return ba.apply (this, arguments);
     };
 
+    var timeSetter = (newTime) => {
+      explicitTime = newTime; // or null
+      needReload = true;
+      needUpdate = true;
+      requestReload (layer, null);
+    }; // timeSetter
+    
     layer.on ('add', ev => {
       needReload = true;
       requestReload (ev.target, null);
       ts.addTo (map);
+      map.pcAddTimeSetter (timeSetter);
     });
     layer.on ('remove', ev => {
       needReload = false;
       clearTimeout (timeout);
       ts.remove ();
+      map.pcRemoveTimeSetter (timeSetter);
     });
 
     return layer;
@@ -572,6 +590,18 @@
         });
 
         this.pcZoomLevel = this.maAttrFloat ('zoom', 8);
+
+        this.pcExplicitTime = null;
+        this.pcTimeSetters = [];
+        Object.defineProperty (this, 'explicitTime', {
+          get: () => this.pcExplicitTime,
+          set: function (newValue) {
+            this.pcExplicitTime = parseFloat (newValue) || null;
+            Promise.resolve ().then (() => {
+              this.pcTimeSetters.forEach (_ => _ (this.pcExplicitTime));
+            });
+          },
+        });
 
         this.pcNoMapDraggable = !!this.noMapDraggable;
         Object.defineProperty (this, 'noMapDraggable', {
@@ -941,6 +971,13 @@
           initialMapType = 'gsi-lang';
         }
         if (initialMapType) this.setMapType (initialMapType);
+
+        map.pcAddTimeSetter = (code) => {
+          this.pcTimeSetters.push (code);
+        }; // addTimeSetter
+        map.pcRemoveTimeSetter = (code) => {
+          this.pcTimeSetters = this.pcTimeSetters.filter (_ => _ !== code);
+        }; // removeTimeSetter
         
         new MutationObserver ((mutations) => {
           this.maRedraw ({controls: true});
@@ -1828,7 +1865,6 @@
           if (lonname) fd.set (lonname, v.lon);
         }
       }, // pcModifyFormData
-      
     },
   }); // <map-area>
 
