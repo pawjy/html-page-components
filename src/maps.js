@@ -307,10 +307,18 @@
       if (e.hasAttribute ('jma')) {
         var mm = m.querySelector ('menu-main');
         var nodes = document.createElement ('div');
-        nodes.innerHTML = '<menu-item><label><input type=checkbox> <span>Rain</span></label></menu-item><hr>';
-        nodes.querySelector ('input').onchange = (ev) => e.toggleJMANowc (ev.target.checked);
+        nodes.innerHTML = '<menu-item><label><input type=checkbox> <span>Rain</span></label></menu-item><menu-item><label><input type=checkbox> <span>Thunder</span></label></menu-item><menu-item><label><input type=checkbox> <span>Tornado</span></label></menu-item><hr>';
+        var ins = nodes.querySelectorAll ('input');
+        ins[0].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'rain');
+        ins[1].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'thns');
+        ins[2].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'trns');
         var sRain = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jmanowc-current-text'), 'Rain');
-        nodes.querySelector ('label span').textContent = sRain;
+        var sThns = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jmanowc-thns-current-text'), 'Thunder');
+        var sTrns = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jmanowc-trns-current-text'), 'Tornado');
+        var lbs = nodes.querySelectorAll ('label span');
+        lbs[0].textContent = sRain;
+        lbs[1].textContent = sThns;
+        lbs[2].textContent = sTrns;
         Array.prototype.slice.call (nodes.childNodes).reverse ().forEach (_ => mm.insertBefore (_, mm.firstChild));
       } // jma=""
 
@@ -436,7 +444,7 @@
   L.control.timestampControl = function (opts) {
     var t = document.createElement ('map-controls');
     t.className = 'paco-timestamp-control paco-jma-timestamp-control';
-    t.innerHTML = '<a href=https://www.jma.go.jp/ target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a>\u300C<a href=https://www.jma.go.jp/bosai/nowc/ target=_blank rel=noreferrer>\u96E8\u96F2\u306E\u52D5\u304D</a>\u300D <time data-format=abstime></time>';
+    t.innerHTML = '<a href=https://www.jma.go.jp/ target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a><a href=https://www.jma.go.jp/bosai/nowc/ target=_blank rel=noreferrer>\u30CA\u30A6\u30AD\u30E3\u30B9\u30C8</a><a href=https://www.jma.go.jp/bosai/kaikotan/ target=_blank rel=noreferrer>\u4ED6</a> <time data-format=abstime></time>';
     opts.element = t;
     opts.styling = b => {
       var e = b.pcMap.getContainer ();
@@ -447,14 +455,86 @@
     opts.setTimeElement (t.querySelector ('time'));
     return new L.Control.ElementControl (opts);
   }; // L.control.timestampControl
+
+  var JMAMaps = {
+    hrpns: {
+      type: ['nowc', 'none', 'hrpns'],
+      nextDelta: 5,
+      currentDelta: 5,
+      nowDelta: 2,
+      maxNativeZoom: 10,
+      opacity: 0.8,
+    },
+    thns: {
+      type: ['nowc', 'none', 'thns'],
+      nextDelta: 10,
+      currentDelta: 10,
+      nowDelta: 5,
+      maxNativeZoom: 9,
+      opacity: 0.5,
+    },
+    trns: {
+      type: ['nowc', 'none', 'trns'],
+      nextDelta: 10,
+      currentDelta: 10,
+      nowDelta: 5,
+      maxNativeZoom: 9,
+      opacity: 0.5,
+    },
+    rasrf: {
+      type: ['rasrf', 'none', 'rasrf'],
+      nextDelta: 60,
+      currentDelta: 60,
+      nowDelta: 5,
+      maxNativeZoom: 9,
+      opacity: 0.5,
+    },
+    rasrfimmed: {
+      type: ['rasrf', 'immed', 'rasrf'],
+      nextDelta: 10,
+      currentDelta: 10,
+      nowDelta: 5,
+      maxNativeZoom: 9,
+      opacity: 0.5,
+    },
+  };
+  
   L.tileLayer.jmaNowc = function (opts) {
+    // https://www.jma.go.jp/bosai/jmatile/data/map/none/none/none/surf/mask/8/222/99.png
+    // https://www.jma.go.jp/bosai/jmatile/data/nowc/20221226045500/none/20221226045500/surf/hrpns/8/223/101.png
+    // https://www.jma.go.jp/bosai/jmatile/data/map/none/none/none/surf/mask/9/452/201.png
+    // https://www.jma.go.jp/bosai/jmatile/data/nowc/20221226051000/none/20221226051000/surf/thns/8/227/100.png
+    // https://www.jma.go.jp/bosai/jmatile/data/nowc/20221226051000/none/20221226051000/surf/trns/6/57/24.png
+    // https://www.jma.go.jp/bosai/jmatile/data/rasrf/20221227020000/none/20221227110000/surf/rasrf/10/909/389.png
+    // https://www.jma.go.jp/bosai/jmatile/data/rasrf/20221227020000/immed/20221227050000/surf/rasrf/8/226/98.png
+    // https://www.jma.go.jp/bosai/jmatile/data/rasrf/20221227021000/immed/20221227051000/surf/rasrf/8/226/98.png
+    var type = opts.type || 'rain'; // rain thns trns [hrpns rasrf rasrfimmed]
+    var mapDef = type === 'rain' ? JMAMaps.hrpns : JMAMaps[type];
+    if (!mapDef) throw new Error ("Bad type |"+type+"|");
+    
     var explicitTime;
     var getTime = () => {
+      var md = mapDef;
       var realNow = (new Date).valueOf ();
-      var now = realNow - 100*1000;
-      if (explicitTime) rewlNow = now = explicitTime * 1000;
-      var prev = Math.floor (now / (5*60*1000)) * 5*60*1000;
-      var next = prev + 5*60*1000;
+      var now = realNow - md.nowDelta*60*1000;
+      var cur;
+      var urlTimestamp0 = null;
+      if (explicitTime) {
+        if (now < explicitTime) {
+          if (type === 'rain') {
+            if (now + 6*60*60*1000 <= explicitTime) {
+              md = JMAMaps.rasrf;
+            } else if (now + 1*60*60*1000 <= explicitTime) {
+              md = JMAMaps.rasrfimmed;
+            }
+          }
+          cur = md.currentDelta * 60*1000;
+        }
+        rewlNow = now = explicitTime;
+      }
+      var nextDelta = md.nextDelta;
+      var prev = Math.floor (now / (nextDelta*60*1000)) * nextDelta*60*1000;
+      var next = prev + nextDelta*60*1000;
       var delta = next - now;
           // next + 100*1000 - realNow
           // = next + 100*1000 - (now + 100*1000)
@@ -462,18 +542,34 @@
       var prevHTML = new Date (prev).toISOString ();
       var prevFormatted = prevHTML
           .replace (/(?:\.[0-9]+|)Z$/, '').replace (/[-:T]/g, '');
-      return {realNow, prev, prevFormatted, prevHTML, next, delta};
+      if (cur) {
+        var ct = Math.floor (realNow / cur) * cur;
+        if (md.type[0] === 'rasrf') {
+          var f = 60*60*1000;
+          var x = (prev - ct) % f;
+          ct -= f - x;
+        }
+        urlTimestamp0 = new Date (ct).toISOString ()
+            .replace (/(?:\.[0-9]+|)Z$/, '').replace (/[-:T]/g, '');
+      }
+      return {realNow, prev, prevFormatted, prevHTML, next, delta,
+              urlTimestamp0: urlTimestamp0 || prevFormatted,
+              mapDef: md};
     }; // getTime
-
+    
     var time = getTime ();
-    var u = 'https://www.jma.go.jp/bosai/jmatile/data/nowc/{urlTimestamp}/none/{urlTimestamp}/surf/hrpns/{z}/{x}/{y}.png';
+    var u = 'https://www.jma.go.jp/bosai/jmatile/data/{type0}/{urlTimestamp0}/{type1}/{urlTimestamp}/surf/{type2}/{z}/{x}/{y}.png';
     var layer = L.tileLayer (u, {
       attribution: '<a href=https://www.jma.go.jp/jma/kishou/info/coment.html target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a>',
       errorTileUrl: opts.errorTileUrl,
-      maxNativeZoom: 10,
+      maxNativeZoom: mapDef.maxNativeZoom,
       minNativeZoom: 4,
       maxZoom: opts.maxZoom,
-      opacity: 0.8,
+      opacity: mapDef.opacity,
+      type0: mapDef.type[0],
+      type1: mapDef.type[1],
+      type2: mapDef.type[2],
+      urlTimestamp0: time.urlTimestamp0,
       urlTimestamp: time.prevFormatted,
     });
     
@@ -492,16 +588,23 @@
         if (!needReload) return;
         var time = getTime ();
         layer.options.urlTimestamp = time.prevFormatted;
+        layer.options.urlTimestamp0 = time.urlTimestamp0;
+        layer.options.type0 = time.mapDef.type[0];
+        layer.options.type1 = time.mapDef.type[1];
+        layer.options.type2 = time.mapDef.type[2];
         layer.setUrl (u, false);
-        timeElement.textContent = time.prevHTML;
-        timeElement.removeAttribute ('datetime');
-        if (!explicitTime) needReload = false;
+        if (timeElement) {
+          timeElement.textContent = time.prevHTML;
+          timeElement.removeAttribute ('datetime');
+        }
+        if (explicitTime) needReload = false;
         requestReload (layer, time);
       }, needUpdate ? 0 : time.delta);
       needUpdate = false;
     }; // requestReload
 
-    var ts = L.control.timestampControl ({
+    var ts;
+    if (!opts.noTimestamp) ts = L.control.timestampControl ({
       position: 'bottomleft',
       setTimeElement: _ => {
         timeElement = _;
@@ -519,22 +622,22 @@
     };
 
     var timeSetter = (newTime) => {
-      explicitTime = newTime; // or null
+      explicitTime = newTime * 1000; // or NaN
       needReload = true;
       needUpdate = true;
       requestReload (layer, null);
     }; // timeSetter
-    
+
     layer.on ('add', ev => {
       needReload = true;
       requestReload (ev.target, null);
-      ts.addTo (map);
+      if (ts) ts.addTo (map);
       map.pcAddTimeSetter (timeSetter);
     });
     layer.on ('remove', ev => {
       needReload = false;
       clearTimeout (timeout);
-      ts.remove ();
+      if (ts) ts.remove ();
       map.pcRemoveTimeSetter (timeSetter);
     });
 
@@ -1466,8 +1569,9 @@
           this.maRedraw ({mapType: true});
         }
       }, // setMapType
-      toggleJMANowc: function (_) {
-        this.pcJMANowc = !!_;
+      toggleJMANowc: function (_, type) {
+        type = type || 'rain';
+        this["pcJMANowc_" + type] = !!_;
         this.maRedraw ({mapType: true});
       }, // toggleJMANowc
       pcChangeMapType: function () {
@@ -1613,12 +1717,36 @@
           //
         }
 
-        if (this.pcJMANowc) {
+        var noTimestamp = false;
+        if (this.pcJMANowc_rain) {
           var lNowc = L.tileLayer.jmaNowc ({
             maxZoom,
             errorTileUrl,
+            type: 'rain',
+            noTimestamp,
           });
           layers.push (lNowc);
+          noTimestamp = true;
+        }
+        if (this.pcJMANowc_thns) {
+          var lNowc = L.tileLayer.jmaNowc ({
+            maxZoom,
+            errorTileUrl,
+            type: 'thns',
+            noTimestamp,
+          });
+          layers.push (lNowc);
+          noTimestamp = true;
+        }
+        if (this.pcJMANowc_trns) {
+          var lNowc = L.tileLayer.jmaNowc ({
+            maxZoom,
+            errorTileUrl,
+            type: 'trns',
+            noTimestamp,
+          });
+          layers.push (lNowc);
+          noTimestamp = true;
         }
 
         layers.forEach (l => l.pcIsMapTypeLayer = true);

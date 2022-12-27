@@ -1778,19 +1778,44 @@ The following properties are available:
         Returns the latitude and longitude of the point on the map
         pointed by the mouse (or equivalent).
 
-  toggleJMANowc (/flag/)
+  toggleJMANowc (flag, type)
 
     Set whether the JMA map tile images should be shown over the map
     or not.
 
-    The argument must be a boolean value.  If true, it's shown.
+    The first argument, /flag/, is a boolean value.  If true, it's
+    shown.
 
-    The tile images shown are the most recent 速報版解析雨量タイル画像,
-    which is generated every 10 minutes
-    <https://www.data.jma.go.jp/add/suishin/cgi-bin/catalogue/make_product_page.cgi?id=KaisekiU>.
-    See also:
-    <https://www.jma.go.jp/jma/kishou/know/kurashi/kaiseki.html>,
-    <https://www.jma.go.jp/jma/kishou/know/kurashi/kotan_nowcast.html>,
+    The second argument, /type/, identifies the map image type.
+
+    The following /type/ values are available:
+
+      hrpns
+
+        The 速報版解析雨量タイル画像, which is generated every 10
+        minutes.  See:
+        <https://www.data.jma.go.jp/add/suishin/cgi-bin/catalogue/make_product_page.cgi?id=KaisekiU>,
+        <https://www.jma.go.jp/jma/kishou/know/kurashi/kaiseki.html>,
+        <https://www.jma.go.jp/jma/kishou/know/kurashi/kotan_nowcast.html>.
+
+      rain (Default)
+
+        Same as |hrpns|, except that the 降水短時間・15時間予報タイル
+        画像 and the 速報版降水短時間予報タイル画像 are used for
+        future timestamps. See:
+        <https://www.data.jma.go.jp/add/suishin/cgi-bin/catalogue/make_product_page.cgi?id=KosuiTan>.
+
+      thns
+
+        The 雷ナウキャスト画像.  See:
+        <https://www.data.jma.go.jp/add/suishin/cgi-bin/catalogue/make_product_page.cgi?id=Nowcast>.
+
+      trns
+
+        The 竜巻発生確度ナウキャスト画像.  See:
+        <https://www.data.jma.go.jp/add/suishin/cgi-bin/catalogue/make_product_page.cgi?id=Nowcast>.
+
+    See also: <https://www.jma.go.jp/bosai/nowc/>,
     <https://www.jma.go.jp/jma/kishou/info/coment.html>.
 
     The tile images are reloaded whenever the new image data is

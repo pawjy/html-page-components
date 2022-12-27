@@ -907,6 +907,8 @@ map-area {
   --paco-maptype-photo-text: 'Photo';
   --paco-maptype-none-text: 'None';
   --paco-maptype-jmanowc-current-text: 'Rain';
+  --paco-maptype-jmanowc-thns-current-text: 'Thunder';
+  --paco-maptype-jmanowc-trns-current-text: 'Tornado';
   --paco-maptype-none-text: 'None';
   --paco-marker-currentposition: "\25CF" purple 24px;
   --paco-marker-value: none;
@@ -936,6 +938,8 @@ map-area:lang(ja) {
   --paco-maptype-photo-text: '\822A\7A7A\5199\771F';
   --paco-maptype-none-text: '\306A\3057';
   --paco-maptype-jmanowc-current-text: '\96E8\96F2\306E\52D5\304D';
+  --paco-maptype-jmanowc-thns-current-text: '\96F7\6D3B\52D5\5EA6';
+  --paco-maptype-jmanowc-trns-current-text: '\7ADC\5DFB\767A\751F\78BA\5EA6';
   --paco-legend-show-text: "\51E1\4F8B\3092\8868\793A";
   --paco-legend-hide-text: "\51E1\4F8B\3092\96A0\3059";
   --paco-map-click-action: none;
