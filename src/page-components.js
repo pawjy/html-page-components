@@ -681,7 +681,6 @@
           this.hidden = false;
           var ls = this.getAttribute ('labelset');
           if (ls) {
-            this.textContent = '';
             return getDef ('labelSet', ls).then (ls => {
               this.textContent = ls.getLabel (value);
             });
@@ -1376,7 +1375,7 @@
   }); // <toast-box>
   
   defs.loader.src = function (opts) {
-    if (!this.hasAttribute ('src')) return {};
+    if (!this.hasAttribute ('src')) return {data: []};
     var url = this.getAttribute ('src');
     if (opts.ref) {
       url += /\?/.test (url) ? '&' : '?';
