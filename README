@@ -381,20 +381,46 @@ objects.  The list is constructed by the following steps:
 
   1. Loader.  The loader whose name is equal to the |loader| attribute
      value, whose default is |src|, is invoked for the element with
-     the argument of the load options.  A *loader* is a definition of
-     type |loader|.  A loader is expected to prepare the list data
-     (e.g. by fetching from the server).  Note that a loader might
-     depend on the content attributes of the |list-container| element
-     (e.g. the |src| loader depends on the |src| and |key|
-     attributes).  While a loader is running, the action status stage
-     is set to |loader|.
+     the argument of a load options.  A *loader* is a definition of
+     type |loader|.
+
+     A loader is expected to prepare the list data (e.g. by fetching
+     from the server).  Note that a loader may change its behaviours
+     based on the content attributes of the |list-container| element
+     (e.g. the built-in |src| loader depends on the |src| and |key|
+     content attributes of the list).
+
+     A *load options* is a dictionary of the following values:
+
+       signal : AbortSignal
+
+         The signal that is notified when the current loading
+         operation should be cancelled (e.g. when a new loading
+         operation is invoked).  The loader may ignore this signal,
+         but its result will be discarded.
+
+     While a loader is running, the action status stage is set to
+     |loader|.
 
   2. Filter.  The filter whose name is equal to the |filter| attribute
      value, whose default is |default|, is invoked for the element
-     with the argument of the result of the loader.  A *filter* is a
-     definition of type |filter|.  A filter is expected to mutate the
-     loaded data to the structure interpretable as list data.  While a
-     filter is running, the action status stage is set to |filter|.
+     with the arguments of the result of the loader and a filter
+     options.  A *filter* is a definition of type |filter|.
+
+     A filter is expected to mutate the loaded data to the structure
+     interpretable as list data.
+
+     A *filter options* is a dictionary of the following values:
+
+       signal : AbortSignal
+
+         The signal that is notified when the current loading
+         operation should be cancelled (e.g. when a new loading
+         operation is invoked).  The filter may ignore this signal,
+         but its result will be discarded.
+
+     While a filter is running, the action status stage is set to
+     |filter|.
 
   3. The result of the filter is expected to be a *list description
      object*, which is a JavaScript object with following name/value

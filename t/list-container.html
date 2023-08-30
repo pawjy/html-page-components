@@ -1239,6 +1239,112 @@
     this.assert.equal (row2.localName, 'option');
     this.assert.equal (row2.outerHTML, '&lt;option id="B">&lt;span data-field="name">b&lt;/span>&lt;/option>');
   </test-code>
+  
+  <test-code name="loader abort 1">
+    /*
+      <list-container loader=abortTestLoader1>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+
+    var signals = [];
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'abortTestLoader1');
+    handler.pcHandler = async (opts) => {
+      signals.push (opts.signal);
+      await this.wait (opts.wait);
+      return {data: [{name: "item1:" + opts.wait}]};
+    };
+    document.head.appendChild (handler);
+
+    e.load ({wait: 3000});
+    e.load ({wait: 2000});
+    e.load ({wait: 1000});
+    
+    await this.wait (4000);
+
+    var lm = this.currentScript.querySelector ('list-main');
+    this.assert.equal (lm.textContent, 'item1:1000');
+    this.assert.equal (signals.length >= 1, true);
+    this.assert.equal (signals[signals.length-1].aborted, false);
+  </test-code>
+  
+  <test-code name="loader abort 2">
+    /*
+      <list-container loader=abortTestLoader2>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+
+    var signals = [];
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'abortTestLoader2');
+    handler.pcHandler = async (opts) => {
+      signals.push (opts.signal);
+      await this.wait (opts.wait);
+      return {data: [{name: "item1:" + opts.wait}]};
+    };
+    document.head.appendChild (handler);
+
+    e.load ({wait: 3000});
+    await this.wait (1000);
+    e.load ({wait: 2000});
+    await this.wait (1000);
+    e.load ({wait: 1000});
+    await this.wait (2000);
+
+    var lm = this.currentScript.querySelector ('list-main');
+    this.assert.equal (lm.textContent, 'item1:1000');
+    this.assert.equal (signals.length >= 3, true);
+    this.assert.equal (signals[signals.length-3].aborted, true);
+    this.assert.equal (signals[signals.length-2].aborted, true);
+    this.assert.equal (signals[signals.length-1].aborted, false);
+  </test-code>
+  
+  <test-code name="loader abort 3">
+    /*
+      <list-container loader=abortTestLoader3 filter=abortTestFilter3>
+        <template><p data-field=name></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+
+    var handler = document.createElementNS ('data:,pc', 'loader');
+    handler.setAttribute ('name', 'abortTestLoader3');
+    handler.pcHandler = async (opts) => {
+      return {data: [{name: "item1:" + opts.wait}]};
+    };
+    document.head.appendChild (handler);
+    
+    var signals = [];
+    var handler = document.createElementNS ('data:,pc', 'filter');
+    handler.setAttribute ('name', 'abortTestFilter3');
+    handler.pcHandler = async (results, opts) => {
+      signals.push (opts.signal);
+      await this.wait (opts.wait);
+      return results;
+    };
+    document.head.appendChild (handler);
+
+    e.load ({wait: 3000});
+    await this.wait (1000);
+    e.load ({wait: 2000});
+    await this.wait (1000);
+    e.load ({wait: 1000});
+    await this.wait (2000);
+
+    var lm = this.currentScript.querySelector ('list-main');
+    this.assert.equal (lm.textContent, 'item1:1000');
+    this.assert.equal (signals.length >= 3, true);
+    this.assert.equal (signals[signals.length-3].aborted, true);
+    this.assert.equal (signals[signals.length-2].aborted, true);
+    this.assert.equal (signals[signals.length-1].aborted, false);
+  </test-code>
 
   <script src=runtests.js></script>
 </body>
