@@ -317,7 +317,7 @@
     this.assert.equal (center.lon > 0, true, center.lon);
   </test-code>
 
-  <test-code name="lat/lon race">
+  <test-code name="lat/lon race 1">
     var e = document.createElement ('map-area');
     e.setAttribute ('engine', 'googlemaps');
     e.setAttribute ('lat', 42);
@@ -337,7 +337,7 @@
     this.assert.equal (center.lon, -10);
   </test-code>
 
-  <test-code name="lat/lon race">
+  <test-code name="lat/lon race 2">
     var e = document.createElement ('map-area');
     e.setAttribute ('engine', 'googlemaps');
     e.setAttribute ('lat', 42);
@@ -354,7 +354,7 @@
     
     e.hidden = false;
     
-    await this.wait (500);
+    await this.wait (1000);
     
     var center = e.getMapCenter ();
     this.assert.equal (center.lat < 0, true, center.lat);
