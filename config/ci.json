@@ -1,11 +1,8 @@
 {
-  "circleci": {
+  "github": {
+    "gaa": true,
     "merger": 1,
     "gaa": 1,
-    "required_docker_images": [
-      "quay.io/wakaba/firefoxdriver:stable",
-      "quay.io/wakaba/chromedriver:chromium"
-    ],
 
     "build": ["make test-deps"],
     "tests": [

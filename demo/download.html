@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>toast</title>
+<link rel=stylesheet href=../css/default.css>
+<script src=../src/page-components.js async data-export=$paco></script>
+
+<p>
+  <button onclick="
+    $paco.download ({string: Math.random ()});
+  ">String</button>
+  <button onclick="
+    $paco.download ({string: Math.random (), fileName: 'hoge.txt'});
+  ">String (<code>hoge.txt</code>)</button>
+<p>
+  <button onclick="
+    $paco.download ({
+      json: {'foo': 'bar', a: [1, 2, 10.2, true, null]},
+    });
+  ">JSON</button>
+<p>
+  <button onclick="
+    $paco.download ({
+      blob: new Blob ([[0x61, 0x62, 0x63]]),
+    });
+  ">Blob</button>
+  <button onclick="
+    $paco.download ({
+      blob: new File ([[0x61, 0x62, 0x63]], 'foo.txt'),
+    });
+  ">File</button>
+<p>  
+  <button onclick="
+    $paco.download ({
+      url: 'copy.html',
+    });
+  ">URL</button>

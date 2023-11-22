@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+</head>
+<body>
+
+  <test-code name="string">
+    let downloads = [];
+    $paco.ondownload = (opts) => {
+      downloads.push (opts);
+    };
+
+    $paco.download ({string: "ABC\u4e00"});
+
+    this.assert.equal (downloads.length, 1);
+    this.assert.equal (downloads[0].fileName, 'file.txt');
+    this.assert.equal (downloads[0].url, 'data:,ABC%E4%B8%80');
+  </test-code>
+
+  <test-code name="json">
+    let downloads = [];
+    $paco.ondownload = (opts) => {
+      downloads.push (opts);
+    };
+
+    $paco.download ({json: ["ABC\u4e00", {foo: [1,2,null]}]});
+
+    this.assert.equal (downloads.length, 1);
+    this.assert.equal (downloads[0].fileName, 'file.json');
+    this.assert.equal (downloads[0].url, 'data:application%2Fjson,%5B%22ABC%E4%B8%80%22%2C%7B%22foo%22%3A%5B1%2C2%2Cnull%5D%7D%5D');
+  </test-code>
+
+  <test-code name="url">
+    let downloads = [];
+    $paco.ondownload = (opts) => {
+      downloads.push (opts);
+    };
+
+    $paco.download ({url: "ABC\u4e00"});
+
+    this.assert.equal (downloads.length, 1);
+    this.assert.equal (downloads[0].fileName, 'file.dat');
+    this.assert.equal (downloads[0].url, new URL ('ABC%E4%B8%80', location));
+  </test-code>
+
+  <test-code name="blob">
+    let downloads = [];
+    $paco.ondownload = (opts) => {
+      downloads.push (opts);
+    };
+
+    $paco.download ({blob: new Blob ([[0x61, 0x62, 0xA1, 0x80, 0x00, 0x01]])});
+
+    this.assert.equal (downloads.length, 1);
+    this.assert.equal (downloads[0].fileName, 'file.dat');
+    this.assert.equal (!! downloads[0].url.match (/^blob:/), true);
+  </test-code>
+
+  <test-code name="file">
+    let downloads = [];
+    $paco.ondownload = (opts) => {
+      downloads.push (opts);
+    };
+
+    $paco.download ({blob: new File ([[0x61, 0x62, 0xA1, 0x80, 0x00, 0x01]], 'hoge.csv')});
+
+    this.assert.equal (downloads.length, 1);
+    this.assert.equal (downloads[0].fileName, 'hoge.csv');
+    this.assert.equal (!! downloads[0].url.match (/^blob:/), true);
+  </test-code>
+
+  <test-code name="fileName">
+    let downloads = [];
+    $paco.ondownload = (opts) => {
+      downloads.push (opts);
+    };
+
+    $paco.download ({string: "ABC\u4e00", fileName: "hoge.csv"});
+
+    this.assert.equal (downloads.length, 1);
+    this.assert.equal (downloads[0].fileName, 'hoge.csv');
+    this.assert.equal (downloads[0].url, 'data:,ABC%E4%B8%80');
+  </test-code>
+
+  <test-code name="mime">
+    let downloads = [];
+    $paco.ondownload = (opts) => {
+      downloads.push (opts);
+    };
+
+    $paco.download ({string: "ABC\u4e00", mime: "text/csv; charset=utf-8"});
+
+    this.assert.equal (downloads.length, 1);
+    this.assert.equal (downloads[0].fileName, 'file.txt');
+    this.assert.equal (downloads[0].url, 'data:text%2Fcsv%3B%20charset%3Dutf-8,ABC%E4%B8%80');
+  </test-code>
+
+  <script src=runtests.js data-export=$paco></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->
