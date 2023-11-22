@@ -1,4 +1,7 @@
 {
+  "github": {
+    "gaa": true
+  },
   "circleci": {
     "merger": 1,
     "gaa": 1,
