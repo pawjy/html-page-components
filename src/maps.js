@@ -1188,6 +1188,8 @@
           if (updates.size || updates.all) {
             if (this.maEngine === 'googlemaps') {
               google.maps.event.trigger (this.maGoogleMap, 'resize');
+            } else if (this.maEngine === 'leaflet') {
+              this.pcLMap.invalidateSize ();
             }
           }
           if (updates.size || updates.zoom || updates.all) {
