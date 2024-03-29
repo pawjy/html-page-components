@@ -1001,6 +1001,7 @@
 
         var opts = {
           zoomControl: false,
+          wheelPxPerZoomLevel: 60 * 3,
           dragging: !this.pcNoMapDraggable,
         };
         if (za.match (/^\s*none\s*$/)) opts.zoomAnimation = false;
