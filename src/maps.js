@@ -444,7 +444,7 @@
   L.control.timestampControl = function (opts) {
     var t = document.createElement ('map-controls');
     t.className = 'paco-timestamp-control paco-jma-timestamp-control';
-    t.innerHTML = '<a href=https://www.jma.go.jp/ target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a><a href=https://www.jma.go.jp/bosai/nowc/ target=_blank rel=noreferrer>\u30CA\u30A6\u30AD\u30E3\u30B9\u30C8</a><a href=https://www.jma.go.jp/bosai/kaikotan/ target=_blank rel=noreferrer>\u4ED6</a> <time data-format=abstime></time>';
+    t.innerHTML = '<a href=https://www.jma.go.jp/ target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a><a href=https://www.jma.go.jp/bosai/nowc/ target=_blank rel=noreferrer>\u30CA\u30A6\u30AD\u30E3\u30B9\u30C8</a>\u7B49 <time data-format=abstime></time>';
     opts.element = t;
     opts.styling = b => {
       var e = b.pcMap.getContainer ();
@@ -458,48 +458,84 @@
 
   var JMAMaps = {
     hrpns: {
-      type: ['nowc', 'none', 'hrpns'],
+      pattern: 'https://www.jma.go.jp/bosai/jmatile/data/nowc/{urlTimestamp0}/none/{urlTimestamp}/surf/hrpns/{z}/{x}/{y}.png',
       nextDelta: 5,
       currentDelta: 5,
       nowDelta: 2,
       maxNativeZoom: 10,
       opacity: 0.8,
+      zooms: [],
     },
     thns: {
-      type: ['nowc', 'none', 'thns'],
+      pattern: 'https://www.jma.go.jp/bosai/jmatile/data/nowc/{urlTimestamp0}/none/{urlTimestamp}/surf/thns/{z}/{x}/{y}.png',
       nextDelta: 10,
       currentDelta: 10,
       nowDelta: 5,
       maxNativeZoom: 9,
       opacity: 0.5,
+      zooms: [],
     },
     trns: {
-      type: ['nowc', 'none', 'trns'],
+      pattern: 'https://www.jma.go.jp/bosai/jmatile/data/nowc/{urlTimestamp0}/none/{urlTimestamp}/surf/trns/{z}/{x}/{y}.png',
       nextDelta: 10,
       currentDelta: 10,
       nowDelta: 5,
       maxNativeZoom: 9,
       opacity: 0.5,
+      zooms: [],
     },
     rasrf: {
-      type: ['rasrf', 'none', 'rasrf'],
+      pattern: 'https://www.jma.go.jp/bosai/jmatile/data/rasrf/{urlTimestamp0}/none/{urlTimestamp}/surf/rasrf/{z}/{x}/{y}.png',
+      isRasrf: true,
       nextDelta: 60,
       currentDelta: 60,
       nowDelta: 5,
       maxNativeZoom: 9,
       opacity: 0.5,
+      zooms: [],
     },
     rasrfimmed: {
-      type: ['rasrf', 'immed', 'rasrf'],
+      pattern: 'https://www.jma.go.jp/bosai/jmatile/data/rasrf/{urlTimestamp0}/immed/{urlTimestamp}/surf/rasrf/{z}/{x}/{y}.png',
+      isRasrf: true,
       nextDelta: 10,
       currentDelta: 10,
       nowDelta: 5,
       maxNativeZoom: 9,
       opacity: 0.5,
+      zooms: [],
     },
+    himawari: {
+      // https://www.jma.go.jp/bosai/himawari/data/satimg/20240902070000/jp/20240902070000/B13/TBB/6/57/24.jpg
+      pattern: 'https://www.jma.go.jp/bosai/himawari/data/satimg/{urlTimestamp}/jp/{urlTimestamp}/{param1}/{z}/{x}/{y}.jpg',
+      params: "B13/TBB", // B13/TBB B03/ALBD B08/TBB REP/ETC SND/ETC
+      nextDelta: 2.5,
+      currentDelta: 2.5,
+      nowDelta: 11, // 17:00 -> 17:03, 17:03:30 -> 17:13, 17:07:30 -> 17:13
+      noFuture: true,
+      minNativeZoom: 3, // 6,
+      maxNativeZoom: 6,
+      opacity: 1,
+      zooms: [],
+    },
+  }; // JMAMaps
+
+  JMAMaps.himawari.zooms[6] = JMAMaps.himawari;
+  JMAMaps.himawari.zooms[3] = 
+  JMAMaps.himawari.zooms[4] = 
+  JMAMaps.himawari.zooms[5] = {
+    pattern: 'https://www.jma.go.jp/bosai/himawari/data/satimg/{urlTimestamp}/fd/{urlTimestamp}/{param1}/{z}/{x}/{y}.jpg',
+    params: "B13/TBB", // B13/TBB B03/ALBD B08/TBB REP/ETC SND/ETC
+    nextDelta: 10,
+    currentDelta: 10,
+    nowDelta: 11,
+    noFuture: true,
+    minNativeZoom: 3,
+    maxNativeZoom: 5,
+    opacity: 1,
+    zooms: [],
   };
   
-  L.tileLayer.jmaNowc = function (opts) {
+  L.tileLayer.jma = function (opts) {
     // https://www.jma.go.jp/bosai/jmatile/data/map/none/none/none/surf/mask/8/222/99.png
     // https://www.jma.go.jp/bosai/jmatile/data/nowc/20221226045500/none/20221226045500/surf/hrpns/8/223/101.png
     // https://www.jma.go.jp/bosai/jmatile/data/map/none/none/none/surf/mask/9/452/201.png
@@ -512,9 +548,11 @@
     var mapDef = type === 'rain' ? JMAMaps.hrpns : JMAMaps[type];
     if (!mapDef) throw new Error ("Bad type |"+type+"|");
     
+    let currentZ = null;
     var explicitTime;
     var getTime = () => {
-      var md = mapDef;
+      let md = mapDef;
+      md = md.zooms[currentZ] || md;
       var realNow = (new Date).valueOf ();
       var now = realNow - md.nowDelta*60*1000;
       var cur;
@@ -528,9 +566,13 @@
               md = JMAMaps.rasrfimmed;
             }
           }
-          cur = md.currentDelta * 60*1000;
+          if (!md.noFuture) {
+            cur = md.currentDelta * 60*1000;
+            rewlNow = now = explicitTime;
+          }
+        } else {
+          rewlNow = now = explicitTime;
         }
-        rewlNow = now = explicitTime;
       }
       var nextDelta = md.nextDelta;
       var prev = Math.floor (now / (nextDelta*60*1000)) * nextDelta*60*1000;
@@ -544,7 +586,7 @@
           .replace (/(?:\.[0-9]+|)Z$/, '').replace (/[-:T]/g, '');
       if (cur) {
         var ct = Math.floor (realNow / cur) * cur;
-        if (md.type[0] === 'rasrf') {
+        if (md.isRasrf) {
           var f = 60*60*1000;
           var x = (prev - ct) % f;
           ct -= f - x;
@@ -558,19 +600,16 @@
     }; // getTime
     
     var time = getTime ();
-    var u = 'https://www.jma.go.jp/bosai/jmatile/data/{type0}/{urlTimestamp0}/{type1}/{urlTimestamp}/surf/{type2}/{z}/{x}/{y}.png';
-    var layer = L.tileLayer (u, {
+    let layer = L.tileLayer (mapDef.pattern, {
       attribution: '<a href=https://www.jma.go.jp/jma/kishou/info/coment.html target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a>',
       errorTileUrl: opts.errorTileUrl,
       maxNativeZoom: mapDef.maxNativeZoom,
-      minNativeZoom: 4,
+      minNativeZoom: mapDef.minNativeZoom || 4,
       maxZoom: opts.maxZoom,
       opacity: mapDef.opacity,
-      type0: mapDef.type[0],
-      type1: mapDef.type[1],
-      type2: mapDef.type[2],
       urlTimestamp0: time.urlTimestamp0,
       urlTimestamp: time.prevFormatted,
+      param1: opts.param1 || mapDef.param1,
     });
     
     var needReload = false;
@@ -589,10 +628,8 @@
         var time = getTime ();
         layer.options.urlTimestamp = time.prevFormatted;
         layer.options.urlTimestamp0 = time.urlTimestamp0;
-        layer.options.type0 = time.mapDef.type[0];
-        layer.options.type1 = time.mapDef.type[1];
-        layer.options.type2 = time.mapDef.type[2];
-        layer.setUrl (u, false);
+        layer.options.param1 = opts.param1 || time.mapDef.param1;
+        layer.setUrl (time.mapDef.pattern, false);
         if (timeElement) {
           timeElement.textContent = time.prevHTML;
           timeElement.removeAttribute ('datetime');
@@ -623,26 +660,39 @@
 
     var timeSetter = (newTime) => {
       explicitTime = newTime * 1000; // or NaN
-      needReload = true;
-      needUpdate = true;
+      needReload = needUpdate = true;
       requestReload (layer, null);
     }; // timeSetter
 
+    let zoomChanged = null;
+    if (mapDef.zooms.length) {
+      zoomChanged = () => {
+        let newZ = map.getZoom ();
+        if (mapDef.zooms[newZ] !== mapDef.zooms[currentZ]) {
+          needReload = needUpdate = true;
+        }
+        currentZ = newZ;
+        requestReload (layer, null);
+      }; // zoomChanged
+    }
+    
     layer.on ('add', ev => {
       needReload = true;
       requestReload (ev.target, null);
       if (ts) ts.addTo (map);
       map.pcAddTimeSetter (timeSetter);
+      if (zoomChanged) map.on ('zoomend', zoomChanged);
     });
     layer.on ('remove', ev => {
       needReload = false;
       clearTimeout (timeout);
       if (ts) ts.remove ();
       map.pcRemoveTimeSetter (timeSetter);
+      if (zoomChanged) map.off ('zoomend', zoomChanged);
     });
 
     return layer;
-  }; // L.tileLayer.jmaNowc
+  }; // L.tileLayer.jma
   
   var gmPromise;
   var loadGoogleMaps = () => {
@@ -1568,7 +1618,7 @@
 
       setMapType: function (type) {
         if (this.pcMapType !== type) {
-          this.pcMapType = type;
+          [this.pcMapType, this.pcMapTypeParam1] = type.split (/:/);
           this.maRedraw ({mapType: true});
         }
       }, // setMapType
@@ -1578,8 +1628,9 @@
         this.maRedraw ({mapType: true});
       }, // toggleJMANowc
       pcChangeMapType: function () {
-        var sType = this.pcMapType;
-        var map = this.pcLMap;
+        let sType = this.pcMapType;
+        let sTypeParam1 = this.pcMapTypeParam1;
+        let map = this.pcLMap;
 
         var layers = [];
 
@@ -1678,13 +1729,6 @@
           layers.push (lShade);
           layers.push (lGSI);
         } else if (type === 'gsi-photo-standard') {
-          var lGSI = L.gridLayer.gsiOverlay ({
-            //attribution: gsiCreditHTML,
-            errorTileUrl,
-            maxNativeZoom: 18,
-            minNativeZoom: 2,
-            maxZoom,
-          });
           var lPhoto = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
                 attribution: gsiPhotoCreditHTML,
@@ -1694,6 +1738,13 @@
                 maxZoom,
              });
           layers.push (lPhoto);
+          let lGSI = L.gridLayer.gsiOverlay ({
+            //attribution: gsiCreditHTML,
+            errorTileUrl,
+            maxNativeZoom: 18,
+            minNativeZoom: 2,
+            maxZoom,
+          });
           layers.push (lGSI);
         } else if (type === 'gsi-english-standard') {
           var lGSI = L.gridLayer.tileImages ({
@@ -1716,13 +1767,41 @@
             maxZoom,
           });
           layers.push (lGSI);
+        } else if (type === 'himawari') {
+          let lHimawari = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'himawari',
+            param1: sTypeParam1,
+            noTimestamp,
+          });
+          layers.push (lHimawari);
+          noTimestamp = true;
+        } else if (type === 'himawari+gsi-standard') {
+          let lHimawari = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'himawari',
+            param1: sTypeParam1,
+            noTimestamp,
+          });
+          layers.push (lHimawari);
+          noTimestamp = true;
+          let lGSI = L.gridLayer.gsiOverlay ({
+            attribution: gsiCreditHTML,
+            errorTileUrl,
+            maxNativeZoom: 18,
+            minNativeZoom: 2,
+            maxZoom,
+          });
+          layers.push (lGSI);
         } else if (type === 'none') {
           //
         }
 
         var noTimestamp = false;
         if (this.pcJMANowc_rain) {
-          var lNowc = L.tileLayer.jmaNowc ({
+          var lNowc = L.tileLayer.jma ({
             maxZoom,
             errorTileUrl,
             type: 'rain',
@@ -1732,7 +1811,7 @@
           noTimestamp = true;
         }
         if (this.pcJMANowc_thns) {
-          var lNowc = L.tileLayer.jmaNowc ({
+          var lNowc = L.tileLayer.jma ({
             maxZoom,
             errorTileUrl,
             type: 'thns',
@@ -1742,7 +1821,7 @@
           noTimestamp = true;
         }
         if (this.pcJMANowc_trns) {
-          var lNowc = L.tileLayer.jmaNowc ({
+          var lNowc = L.tileLayer.jma ({
             maxZoom,
             errorTileUrl,
             type: 'trns',
