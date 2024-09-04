@@ -1023,10 +1023,10 @@
           
           this.maGoogleMap.addListener ('bounds_changed', () => {
             var v = this.maGoogleMap.getCenter ();
-            this.maCenter = {
+            this.maCenter = v ? {
               lat: v.lat (),
               lon: v.lng (),
-            };
+            } : {lat: 0, lon: 0};
             if (this.maCenter.lon < -180) {
               this.maCenter.lon += 360;
             }

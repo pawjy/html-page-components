@@ -104,7 +104,8 @@
     e.parentNode.style.overflow = 'scroll';
     e.parentNode.style.height = '10em';
     e.style.marginTop = '20em';
-    this.assert.equal (e.parentNode.scrollTop, 0);
+    e.parentNode.scrollTop = 0;
+    this.assert.equal (e.parentNode.scrollTop, 0, "scrollTop");
 
     e.pcScroll ({center: {lat: 30.211, lon: 140.444}, intoView: true});
     await this.wait ();
