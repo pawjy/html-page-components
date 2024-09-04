@@ -553,6 +553,21 @@
       opacity: 1,
       zooms: [],
     },
+    umimeshwind: {
+      // https://www.jma.go.jp/bosai/umimesh/#lat:36.341678/lon:136.842957/zoom:8/colordepth:deep/elements:wind
+      // https://www.jma.go.jp/bosai/jmatile/data/umimesh/20240904000000/none/20240904060000/surf/ws/8/223/100.png
+      pattern: 'https://www.jma.go.jp/bosai/jmatile/data/umimesh/{urlTimestamp0}/none/{urlTimestamp}/surf/ws/{z}/{x}/{y}.png',
+      nextDelta: 60*6,
+      currentDelta: 60*6,
+      now0Delta: 60*3+600,
+      nowDelta: 0,
+      noCurrent: true,
+      minNativeZoom: 4,
+      maxNativeZoom: 8,
+      opacity: 1,
+      zooms: [],
+      isUmiWind: true,
+    },
   }; // JMAMaps
 
   JMAMaps.himawari.zooms[6] = JMAMaps.himawari;
@@ -590,7 +605,7 @@
       let md = mapDef;
       md = md.zooms[currentZ] || md;
       var realNow = (new Date).valueOf ();
-      var now = realNow - md.nowDelta*60*1000;
+      let now = realNow - md.nowDelta*60*1000;
       var cur;
       var urlTimestamp0 = null;
       if (explicitTime) {
@@ -604,10 +619,10 @@
           }
           if (!md.noFuture) {
             cur = md.currentDelta * 60*1000;
-            rewlNow = now = explicitTime;
+            now = explicitTime;
           }
         } else {
-          rewlNow = now = explicitTime;
+          now = explicitTime;
         }
       }
       var nextDelta = md.nextDelta;
@@ -620,8 +635,14 @@
       var prevHTML = new Date (prev).toISOString ();
       var prevFormatted = prevHTML
           .replace (/(?:\.[0-9]+|)Z$/, '').replace (/[-:T]/g, '');
+      if (md.noCurrent) cur = md.currentDelta * 60*1000;
       if (cur) {
-        var ct = Math.floor (realNow / cur) * cur;
+        let ct = Math.floor (realNow / cur) * cur;
+        if (md.noCurrent) {
+          let now0 = realNow - md.now0Delta*60*1000;
+          ct = Math.floor (now0 / cur) * cur;
+          while (prev <= ct) ct -= nextDelta*60*1000;
+        }
         if (md.isRasrf) {
           var f = 60*60*1000;
           var x = (prev - ct) % f;
@@ -676,16 +697,31 @@
       needUpdate = false;
     }; // requestReload
 
-    var ts;
-    if (!opts.noTimestamp) ts = L.control.timestampControl ({
-      position: 'bottomleft',
-      setTimeElement: _ => {
-        timeElement = _;
-        timeElement.textContent = time.prevHTML;
-        timeElement.removeAttribute ('datetime');
-      },
-      isLegend: true,
-    });
+    let legends = [];
+    if (!opts.noTimestamp) {
+      let ts = L.control.timestampControl ({
+        position: 'bottomleft',
+        setTimeElement: _ => {
+          timeElement = _;
+          timeElement.textContent = time.prevHTML;
+          timeElement.removeAttribute ('datetime');
+        },
+        isLegend: true,
+      });
+      legends.push (ts);
+    }
+
+    if (mapDef.isUmiWind) {
+      let t = document.createElement ('map-controls');
+      t.className = 'paco-timestamp-control paco-jma-timestamp-control';
+      t.innerHTML = '<img src=https://www.jma.go.jp/bosai/umimesh/images/legend_deep_ws.svg>';
+      let ec = new L.Control.ElementControl ({
+        element: t,
+        position: 'bottomleft',
+        isLegend: true,
+      });
+      legends.push (ec);
+    }
 
     var map;
     var ba = layer.beforeAdd;
@@ -715,14 +751,14 @@
     layer.on ('add', ev => {
       needReload = true;
       requestReload (ev.target, null);
-      if (ts) ts.addTo (map);
+      legends.forEach (_ => _.addTo (map));
       map.pcAddTimeSetter (timeSetter);
       if (zoomChanged) map.on ('zoomend', zoomChanged);
     });
     layer.on ('remove', ev => {
       needReload = false;
       clearTimeout (timeout);
-      if (ts) ts.remove ();
+      legends.forEach (_ => _.remove ());
       map.pcRemoveTimeSetter (timeSetter);
       if (zoomChanged) map.off ('zoomend', zoomChanged);
     });
@@ -1822,6 +1858,33 @@
             noTimestamp,
           });
           layers.push (lHimawari);
+          noTimestamp = true;
+          let lGSI = L.gridLayer.gsiOverlay ({
+            attribution: gsiCreditHTML,
+            errorTileUrl,
+            maxNativeZoom: 18,
+            minNativeZoom: 2,
+            maxZoom,
+          });
+          layers.push (lGSI);
+        } else if (type === 'jma-umimesh-wind') {
+          let layer = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'umimeshwind',
+            noTimestamp,
+          });
+          layers.push (layer);
+          noTimestamp = true;
+        } else if (type === 'jma-umimesh-wind+gsi-standard') {
+          let layer = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'umimeshwind',
+            noTimestamp,
+          });
+          layers.push (layer);
+          noTimestamp = true;
           noTimestamp = true;
           let lGSI = L.gridLayer.gsiOverlay ({
             attribution: gsiCreditHTML,

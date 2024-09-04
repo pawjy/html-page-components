@@ -108,6 +108,12 @@
       <button value=SND/ETC onclick="
         document.querySelector('map-area').setMapType('himawari+gsi-standard:'+this.value);
       ">himawari+gsi-standard (SND/ETC)</button>
+      <button value=jma-umimesh-wind onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">jma-umimesh-wind</button>
+      <button value=jma-umimesh-wind+gsi-standard onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">jma-umimesh-wind+gsi-standard</button>
 
       <input id=latlon onfocus=this.select() onchange="
         var [lat, lon] = this.value.split (/,/);
