@@ -554,7 +554,7 @@
       pattern: 'https://www.jma.go.jp/bosai/jmatile/data/umimesh/{urlTimestamp0}/none/{urlTimestamp}/surf/ws/{z}/{x}/{y}.png',
       nextDelta: 60*6,
       currentDelta: 60*6,
-      now0Delta: 60*3+600,
+      now0Delta: 60*3+5,
       nowDelta: 0,
       noCurrent: true,
       minNativeZoom: 4,
@@ -562,6 +562,20 @@
       opacity: 1,
       zooms: [],
       isUmiWind: true,
+    },
+    umimeshwinddir: {
+      //https://www.jma.go.jp/bosai/jmatile/data/umimesh/20240904000000/none/20240904060000/surf/wd/data.geojson?id=wd
+      pattern: 'https://www.jma.go.jp/bosai/jmatile/data/umimesh/{urlTimestamp0}/none/{urlTimestamp}/surf/wd/data.geojson?id=wd',
+      nextDelta: 60*6,
+      currentDelta: 60*6,
+      now0Delta: 60*3+5,
+      nowDelta: 0,
+      noCurrent: true,
+      minNativeZoom: 4,
+      maxNativeZoom: 8,
+      opacity: 1,
+      zooms: [],
+      isGeoJSON: true,
     },
   }; // JMAMaps
 
@@ -652,17 +666,70 @@
     }; // getTime
     
     var time = getTime ();
-    let layer = L.tileLayer (mapDef.pattern, {
-      attribution: '<a href=https://www.jma.go.jp/jma/kishou/info/coment.html target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a>',
-      errorTileUrl: opts.errorTileUrl,
-      maxNativeZoom: mapDef.maxNativeZoom,
-      minNativeZoom: mapDef.minNativeZoom || 4,
-      maxZoom: opts.maxZoom,
-      opacity: mapDef.opacity,
-      urlTimestamp0: time.urlTimestamp0,
-      urlTimestamp: time.prevFormatted,
-      param1: opts.param1 || mapDef.param1,
-    });
+    let layer;
+    let refetch = () => {};
+    if (mapDef.isGeoJSON) {
+      layer = L.geoJSON ({type: "FeatureCollection", features: []}, {
+        pointToLayer: function (feature, latlng) {
+          let wd = feature.properties.windDir;
+          let html = {
+            S: '&#x2191;',
+            SW: '&#x2197;',
+            W: '&#x2192;',
+            NW: '&#x2198;',
+            N: '&#x2193;',
+            NE: '&#x2199;',
+            E: '&#x2190;',
+            SE: '&#x2196;',
+          }[wd];
+          let icon = L.divIcon ({
+            html,
+            className: 'paco-map-wind-dir',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
+          });
+          return L.marker (latlng, {icon});
+        }
+      });
+      let prevU = null;
+      refetch = (time, layer) => {
+        let u = L.Util.template (mapDef.pattern, {
+          urlTimestamp0: time.urlTimestamp0,
+          urlTimestamp: time.prevFormatted,
+        });
+        if (u === prevU) return;
+        prevU = u;
+        fetch (u).then (res => {
+          if (res.status !== 200) throw res;
+          return res.json ();
+        }).then (json => {
+          layer.clearLayers ();
+          layer.addData (json);
+        }).catch (e => {
+          prevU = null;
+          throw e;
+        });
+      };
+      refetch (time, layer);
+    } else {
+      layer = L.tileLayer (mapDef.pattern, {
+        attribution: '<a href=https://www.jma.go.jp/jma/kishou/info/coment.html target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a>',
+        errorTileUrl: opts.errorTileUrl,
+        maxNativeZoom: mapDef.maxNativeZoom,
+        minNativeZoom: mapDef.minNativeZoom || 4,
+        maxZoom: opts.maxZoom,
+        opacity: mapDef.opacity,
+        urlTimestamp0: time.urlTimestamp0,
+        urlTimestamp: time.prevFormatted,
+        param1: opts.param1 || mapDef.param1,
+      });
+      refetch = (time, layer) => {
+        layer.options.urlTimestamp = time.prevFormatted;
+        layer.options.urlTimestamp0 = time.urlTimestamp0;
+        layer.options.param1 = opts.param1 || time.mapDef.param1;
+        layer.setUrl (time.mapDef.pattern, false);
+      };
+    }
     
     var needReload = false;
     var needUpdate = false;
@@ -678,10 +745,7 @@
       timeout = setTimeout (() => {
         if (!needReload) return;
         var time = getTime ();
-        layer.options.urlTimestamp = time.prevFormatted;
-        layer.options.urlTimestamp0 = time.urlTimestamp0;
-        layer.options.param1 = opts.param1 || time.mapDef.param1;
-        layer.setUrl (time.mapDef.pattern, false);
+        refetch (time, layer);
         if (timeElement) {
           timeElement.textContent = time.prevHTML;
           timeElement.removeAttribute ('datetime');
@@ -708,8 +772,8 @@
 
     if (mapDef.isUmiWind) {
       let t = document.createElement ('map-controls');
-      t.className = 'paco-timestamp-control paco-jma-timestamp-control';
-      t.innerHTML = '<img src=https://www.jma.go.jp/bosai/umimesh/images/legend_deep_ws.svg>';
+      t.className = 'paco-jma-legend-control';
+      t.innerHTML = '<img src=https://www.jma.go.jp/bosai/umimesh/images/legend_deep_ws.svg referrerpolicy=no-referrer>';
       let ec = new L.Control.ElementControl ({
         element: t,
         position: 'bottomleft',
@@ -718,12 +782,16 @@
       legends.push (ec);
     }
 
-    var map;
-    var ba = layer.beforeAdd;
-    layer.beforeAdd = function (_) {
-      map = _;
-      return ba.apply (this, arguments);
-    };
+    let map;
+    let ba = layer.beforeAdd;
+    if (ba) {
+      layer.beforeAdd = function (_) {
+        map = _;
+        return ba.apply (this, arguments);
+      };
+    } else {
+      map = opts.map;
+    }
 
     var timeSetter = (newTime) => {
       explicitTime = newTime * 1000; // or NaN
@@ -1870,6 +1938,13 @@
             noTimestamp,
           });
           layers.push (layer);
+          let layerD = L.tileLayer.jma ({
+            maxZoom,
+            type: 'umimeshwinddir',
+            noTimestamp,
+            map,
+          });
+          layers.push (layerD);
           noTimestamp = true;
         } else if (type === 'jma-umimesh-wind+gsi-standard') {
           let layer = L.tileLayer.jma ({
@@ -1879,7 +1954,13 @@
             noTimestamp,
           });
           layers.push (layer);
-          noTimestamp = true;
+          let layerD = L.tileLayer.jma ({
+            maxZoom,
+            type: 'umimeshwinddir',
+            noTimestamp,
+            map,
+          });
+          layers.push (layerD);
           noTimestamp = true;
           let lGSI = L.gridLayer.gsiOverlay ({
             attribution: gsiCreditHTML,

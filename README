@@ -1736,7 +1736,7 @@ The following properties are available:
       himawari:REP/ETC
       himawari:SND/ETC
 
-        Himawari photo
+        The Himawari photo
         <https://www.jma.go.jp/bosai/map.html#contents=himawari>.
 
         B13/TBB    赤外画像
@@ -1751,27 +1751,37 @@ The following properties are available:
       himawari+gsi-standard:REP/ETC
       himawari+gsi-standard:SND/ETC
 
-        GSI's standard map, rendered on Himawari photo.
+        The GSI's standard map, rendered on Himawari photo.
+
+      jma-umimesh-wind
+
+        The wind map of the 海上分布予報
+        <https://www.jma.go.jp/bosai/umimesh/> of JMA.
+
+      jma-umimesh-wind+gsi-standard
+
+        The GSI's standard map, rendered on the |jma-umimesh-wind|
+        map.
 
       gsi-english
 
-        GSI's English map
+        The GSI's English map
         <https://maps.gsi.go.jp/development/ichiran.html#english>.
 
       gsi-english-standard
 
-        GSI's English map, if available for the zoom level, or
+        The GSI's English map, if available for the zoom level, or
         fallbacked to GSI's standard map
         <https://maps.gsi.go.jp/development/ichiran.html#std>.
 
       gsi-hillshade
 
-        GSI's hillshade map
+        The GSI's hillshade map
         <https://maps.gsi.go.jp/development/ichiran.html#hillshademap>.
 
       gsi-hillshade-standard
 
-        GSI's standard map, rendered on the GSI's hillshade map.
+        The GSI's standard map, rendered on the GSI's hillshade map.
 
       gsi-lang
 
@@ -1781,20 +1791,20 @@ The following properties are available:
 
       gsi-photo
 
-        GSI's photo
+        The GSI's photo
         <https://maps.gsi.go.jp/development/ichiran.html#seamlessphoto>.
 
       gsi-photo-standard
 
-        GSI's standard map, rendered on the GSI's photo.
+        The GSI's standard map, rendered on the GSI's photo.
 
       gsi-standard
 
-        GSI's standard map.
+        The GSI's standard map.
 
       gsi-standard-hillshade
 
-        GSI's standard map, overlayed on the GSI's hillshade map.
+        The GSI's standard map, overlayed on the GSI's hillshade map.
 
       none
 

@@ -1242,6 +1242,11 @@ map-area .paco-jma-timestamp-control time {
   }
 }
 
+map-area .paco-map-wind-dir {
+  font-size: 24px;
+  font-weight: bolder;
+}
+
 map-area .paco-currentposition-container {
   margin-right: 10px;
 }
