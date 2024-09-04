@@ -78,6 +78,42 @@
       <button value=none onclick="
         document.querySelector('map-area').setMapType(this.value);
       ">none</button>
+      <button value=B13/TBB onclick="
+        document.querySelector('map-area').setMapType('himawari:'+this.value);
+      ">himawari (B13/TBB)</button>
+      <button value=B03/ALBD onclick="
+        document.querySelector('map-area').setMapType('himawari:'+this.value);
+      ">himawari (B03/ALBD)</button>
+      <button value=B08/TBB onclick="
+        document.querySelector('map-area').setMapType('himawari:'+this.value);
+      ">himawari (B08/TBB)</button>
+      <button value=REP/ETC onclick="
+        document.querySelector('map-area').setMapType('himawari:'+this.value);
+      ">himawari (REP/ETC)</button>
+      <button value=SND/ETC onclick="
+        document.querySelector('map-area').setMapType('himawari:'+this.value);
+      ">himawari (SND/ETC)</button>
+      <button value=B13/TBB onclick="
+        document.querySelector('map-area').setMapType('himawari+gsi-standard:'+this.value);
+      ">himawari+gsi-standard (B13/TBB)</button>
+      <button value=B03/ALBD onclick="
+        document.querySelector('map-area').setMapType('himawari+gsi-standard:'+this.value);
+      ">himawari+gsi-standard (B03/ALBD)</button>
+      <button value=B08/TBB onclick="
+        document.querySelector('map-area').setMapType('himawari+gsi-standard:'+this.value);
+      ">himawari+gsi-standard (B08/TBB)</button>
+      <button value=REP/ETC onclick="
+        document.querySelector('map-area').setMapType('himawari+gsi-standard:'+this.value);
+      ">himawari+gsi-standard (REP/ETC)</button>
+      <button value=SND/ETC onclick="
+        document.querySelector('map-area').setMapType('himawari+gsi-standard:'+this.value);
+      ">himawari+gsi-standard (SND/ETC)</button>
+      <button value=jma-umimesh-wind onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">jma-umimesh-wind</button>
+      <button value=jma-umimesh-wind+gsi-standard onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">jma-umimesh-wind+gsi-standard</button>
 
       <input id=latlon onfocus=this.select() onchange="
         var [lat, lon] = this.value.split (/,/);

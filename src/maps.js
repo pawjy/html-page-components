@@ -325,8 +325,9 @@
       if (e.hasAttribute ('gsi')) {
         var mm = m.querySelector ('menu-main');
         var nodes = document.createElement ('div');
-        nodes.innerHTML = '<menu-item><popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-photo-standard data-false=gsi-photo><button type=button class=paco-control-button>Photo</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><button type=button data-true=none>None</button></menu-item><hr>';
-        var nb = nodes.querySelector ('menu-item:last-of-type button');
+        nodes.innerHTML = '<menu-item><popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-photo-standard data-false=gsi-photo data-label=photo><button type=button class=paco-control-button>Photo</button><menu-main class=paco-photo-menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><button type=button class=paco-maptype-button data-true=none>None</button></menu-item><hr>';
+        let nb = nodes.querySelector ('menu-item:last-of-type button');
+        let nps = [nodes.querySelector ('.paco-photo-menu-main')];
         
         var pms = Array.prototype.slice.call (nodes.querySelectorAll ('popup-menu'));
         Array.prototype.slice.call (nodes.childNodes).reverse ().forEach (_ => mm.insertBefore (_, mm.firstChild));
@@ -334,37 +335,54 @@
         if (opts.buttons) {
           var n = document.createElement ('span');
           n.className = 'paco-menu-button-container';
-          n.innerHTML = '<popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-photo-standard data-false=gsi-photo><button type=button class=paco-control-button>Photo</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu>';
+          n.innerHTML = '<popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-photo-standard data-false=gsi-photo data-label=photo><button type=button class=paco-control-button>Photo</button><menu-main class=paco-photo-menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu>';
           pms = pms.concat (Array.prototype.slice.call (n.querySelectorAll ('popup-menu')));
 
           c.insertBefore (n, c.firstChild);
           m.firstChild.textContent = '\u22EF';
+          nps.push (n.querySelector ('.paco-photo-menu-main'));
         } // controls=typebuttons
 
         var sMap = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-map-text'), 'Map');
         var sMapLabel = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-maplabel-text'), 'Labels');
         var sHillshade = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-hillshade-text'), 'Hillshade');
-        var sPhoto = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-photo-text'), 'Photo');
         var sNone = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-none-text'), 'None');
         var buttonLabels = {
           'gsi-lang': sMap,
-          'gsi-photo': sPhoto,
+          'photo': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-photo-text'), 'Photo'),
+          'gsi-photo': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-gsi-photo-text'), 'Photo'),
           'gsi-hillshade': sHillshade,
           'gsi-standard-hillshade': sHillshade,
           'gsi-photo-standard': sMapLabel,
           'gsi-hillshade-standard': sMapLabel,
+          'himawari:B13/TBB': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-B13-TBB-text'), 'Himawari (B13/TBB)'),
+          'himawari:B03/ALBD': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-B03-ALBD-text'), 'Himawari (B03/ALBD)'),
+          'himawari:B08/TBB': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-B08-TBB-text'), 'Himawari (B08/TBB)'),
+          'himawari:REP/ETC': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-REP-ETC-text'), 'Himawari (REP/ETC)'),
+          'himawari:SND/ETC': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-SND-ETC-text'), 'Himawari (SND/ETC)'),
         };
+
+        if (e.hasAttribute ('jma')) {
+          nps.forEach (p => {
+            let m = document.createElement ('menu-item');
+            p.appendChild (m);
+            m.outerHTML = '<menu-item><button type=button data-false=gsi-photo data-true=gsi-photo-standard>Photo</button></menu-item><menu-item><button type=button data-false=himawari:B13/TBB data-true=himawari+gsi-standard:B13/TBB>Himawari (B13/TBB)</button></menu-item><menu-item><button type=button data-false=himawari:B03/ALBD data-true=himawari+gsi-standard:B03/ALBD>Himawari (B03/ALBD)</button></menu-item><menu-item><button type=button data-false=himawari:B08/TBB data-true=himawari+gsi-standard:B08/TBB>Himawari (B08/TBB)</button></menu-item><menu-item><button type=button data-false=himawari:REP/ETC data-true=himawari+gsi-standard:REP/ETC>Himawari (REP/ETC)</button></menu-item><menu-item><button type=button data-false=himawari:SND/ETC data-true=himawari+gsi-standard:SND/ETC>Himawari (SND/ETC)</button></menu-item>';
+          });
+        }
         
         pms.forEach (pm => {
-          var button = pm.querySelector ('button');
-          button.addEventListener ('click', function () {
-            var checked = pm.querySelector ('input[type=checkbox]').checked;
-            e.setMapType (pm.getAttribute ('data-' + checked));
+          let buttons = pm.querySelectorAll ('button');
+          buttons.forEach (button => {
+            button.addEventListener ('click', function () {
+              let checked = pm.querySelector ('input[type=checkbox]').checked;
+              let newType = button.getAttribute ('data-' + checked) || pm.getAttribute ('data-' + checked);
+              e.setMapType (newType);
+            });
+            button.textContent = buttonLabels[button.getAttribute ('data-false') || pm.getAttribute ('data-label') || pm.getAttribute ('data-false')];
           });
-          button.textContent = buttonLabels[pm.getAttribute ('data-false')];
-
           pm.querySelector ('input[type=checkbox]').onclick = function () {
-            e.setMapType (pm.getAttribute ('data-' + this.checked));
+            let newType = (this.checked ? this.trueMapType : this.falseMapType) || pm.getAttribute ('data-' + this.checked);
+            e.setMapType (newType);
           };
           pm.querySelector ('span').textContent = buttonLabels[pm.getAttribute ('data-true')];
         });
@@ -376,13 +394,31 @@
       } // gsi=""
 
       e.addEventListener ('pcMapTypeChange', () => {
-        var mt = e.pcMapType;
-        c.querySelectorAll ('popup-menu[data-true], button[data-true]').forEach (pm => {
-          var tt = mt === pm.getAttribute ('data-true');
-          var ff = mt === pm.getAttribute ('data-false');
+        let mt = e.pcMapType;
+        if (e.pcMapTypeParam1) mt += ":" + e.pcMapTypeParam1;
+        c.querySelectorAll ('popup-menu[data-true], .paco-maptype-button[data-true]').forEach (pm => {
+          let trueType = pm.getAttribute ('data-true');
+          let falseType = pm.getAttribute ('data-false');
+          let tt = mt === trueType;
+          let ff = mt === falseType;
+          let hasTrue = tt;
           pm.classList.toggle ('selected', tt || ff);
+          pm.querySelectorAll ('button[data-true]').forEach (b => {
+            let tType = b.getAttribute ('data-true');
+            let fType = b.getAttribute ('data-false');
+            let tt = mt === tType;
+            let ff = mt === fType;
+            b.classList.toggle ('selected', tt || ff);
+            if (tt) hasTrue = true;
+            if (tt || ff) {
+              trueType = tType;
+              falseType = fType;
+            }
+          });
           pm.querySelectorAll ('input[type=checkbox]').forEach (_ => {
-            _.checked = tt;
+            _.checked = hasTrue;
+            _.trueMapType = trueType;
+            _.falseMapType = falseType;
           });
         });
         e.pcInternal.$fill (c, {
@@ -444,7 +480,7 @@
   L.control.timestampControl = function (opts) {
     var t = document.createElement ('map-controls');
     t.className = 'paco-timestamp-control paco-jma-timestamp-control';
-    t.innerHTML = '<a href=https://www.jma.go.jp/ target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a><a href=https://www.jma.go.jp/bosai/nowc/ target=_blank rel=noreferrer>\u30CA\u30A6\u30AD\u30E3\u30B9\u30C8</a><a href=https://www.jma.go.jp/bosai/kaikotan/ target=_blank rel=noreferrer>\u4ED6</a> <time data-format=abstime></time>';
+    t.innerHTML = '<a href=https://www.jma.go.jp/ target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a><a href=https://www.jma.go.jp/bosai/nowc/ target=_blank rel=noreferrer>\u30CA\u30A6\u30AD\u30E3\u30B9\u30C8</a>\u7B49 <time data-format=abstime></time>';
     opts.element = t;
     opts.styling = b => {
       var e = b.pcMap.getContainer ();
@@ -458,48 +494,113 @@
 
   var JMAMaps = {
     hrpns: {
-      type: ['nowc', 'none', 'hrpns'],
+      pattern: 'https://www.jma.go.jp/bosai/jmatile/data/nowc/{urlTimestamp0}/none/{urlTimestamp}/surf/hrpns/{z}/{x}/{y}.png',
       nextDelta: 5,
       currentDelta: 5,
       nowDelta: 2,
       maxNativeZoom: 10,
       opacity: 0.8,
+      zooms: [],
     },
     thns: {
-      type: ['nowc', 'none', 'thns'],
+      pattern: 'https://www.jma.go.jp/bosai/jmatile/data/nowc/{urlTimestamp0}/none/{urlTimestamp}/surf/thns/{z}/{x}/{y}.png',
       nextDelta: 10,
       currentDelta: 10,
       nowDelta: 5,
       maxNativeZoom: 9,
       opacity: 0.5,
+      zooms: [],
     },
     trns: {
-      type: ['nowc', 'none', 'trns'],
+      pattern: 'https://www.jma.go.jp/bosai/jmatile/data/nowc/{urlTimestamp0}/none/{urlTimestamp}/surf/trns/{z}/{x}/{y}.png',
       nextDelta: 10,
       currentDelta: 10,
       nowDelta: 5,
       maxNativeZoom: 9,
       opacity: 0.5,
+      zooms: [],
     },
     rasrf: {
-      type: ['rasrf', 'none', 'rasrf'],
+      pattern: 'https://www.jma.go.jp/bosai/jmatile/data/rasrf/{urlTimestamp0}/none/{urlTimestamp}/surf/rasrf/{z}/{x}/{y}.png',
+      isRasrf: true,
       nextDelta: 60,
       currentDelta: 60,
       nowDelta: 5,
       maxNativeZoom: 9,
       opacity: 0.5,
+      zooms: [],
     },
     rasrfimmed: {
-      type: ['rasrf', 'immed', 'rasrf'],
+      pattern: 'https://www.jma.go.jp/bosai/jmatile/data/rasrf/{urlTimestamp0}/immed/{urlTimestamp}/surf/rasrf/{z}/{x}/{y}.png',
+      isRasrf: true,
       nextDelta: 10,
       currentDelta: 10,
       nowDelta: 5,
       maxNativeZoom: 9,
       opacity: 0.5,
+      zooms: [],
     },
+    himawari: {
+      // https://www.jma.go.jp/bosai/himawari/data/satimg/20240902070000/jp/20240902070000/B13/TBB/6/57/24.jpg
+      pattern: 'https://www.jma.go.jp/bosai/himawari/data/satimg/{urlTimestamp}/jp/{urlTimestamp}/{param1}/{z}/{x}/{y}.jpg',
+      params: "B13/TBB", // B13/TBB B03/ALBD B08/TBB REP/ETC SND/ETC
+      nextDelta: 2.5,
+      currentDelta: 2.5,
+      nowDelta: 11, // 17:00 -> 17:03, 17:03:30 -> 17:13, 17:07:30 -> 17:13
+      noFuture: true,
+      minNativeZoom: 3, // 6,
+      maxNativeZoom: 6,
+      opacity: 1,
+      zooms: [],
+    },
+    umimeshwind: {
+      // https://www.jma.go.jp/bosai/umimesh/#lat:36.341678/lon:136.842957/zoom:8/colordepth:deep/elements:wind
+      // https://www.jma.go.jp/bosai/jmatile/data/umimesh/20240904000000/none/20240904060000/surf/ws/8/223/100.png
+      pattern: 'https://www.jma.go.jp/bosai/jmatile/data/umimesh/{urlTimestamp0}/none/{urlTimestamp}/surf/ws/{z}/{x}/{y}.png',
+      nextDelta: 60*6,
+      currentDelta: 60*6,
+      now0Delta: 60*3+5,
+      nowDelta: 0,
+      noCurrent: true,
+      minNativeZoom: 4,
+      maxNativeZoom: 8,
+      opacity: 1,
+      zooms: [],
+      isUmiWind: true,
+    },
+    umimeshwinddir: {
+      //https://www.jma.go.jp/bosai/jmatile/data/umimesh/20240904000000/none/20240904060000/surf/wd/data.geojson?id=wd
+      pattern: 'https://www.jma.go.jp/bosai/jmatile/data/umimesh/{urlTimestamp0}/none/{urlTimestamp}/surf/wd/data.geojson?id=wd',
+      nextDelta: 60*6,
+      currentDelta: 60*6,
+      now0Delta: 60*3+5,
+      nowDelta: 0,
+      noCurrent: true,
+      minNativeZoom: 4,
+      maxNativeZoom: 8,
+      opacity: 1,
+      zooms: [],
+      isGeoJSON: true,
+    },
+  }; // JMAMaps
+
+  JMAMaps.himawari.zooms[6] = JMAMaps.himawari;
+  JMAMaps.himawari.zooms[3] = 
+  JMAMaps.himawari.zooms[4] = 
+  JMAMaps.himawari.zooms[5] = {
+    pattern: 'https://www.jma.go.jp/bosai/himawari/data/satimg/{urlTimestamp}/fd/{urlTimestamp}/{param1}/{z}/{x}/{y}.jpg',
+    params: "B13/TBB", // B13/TBB B03/ALBD B08/TBB REP/ETC SND/ETC
+    nextDelta: 10,
+    currentDelta: 10,
+    nowDelta: 11,
+    noFuture: true,
+    minNativeZoom: 3,
+    maxNativeZoom: 5,
+    opacity: 1,
+    zooms: [],
   };
   
-  L.tileLayer.jmaNowc = function (opts) {
+  L.tileLayer.jma = function (opts) {
     // https://www.jma.go.jp/bosai/jmatile/data/map/none/none/none/surf/mask/8/222/99.png
     // https://www.jma.go.jp/bosai/jmatile/data/nowc/20221226045500/none/20221226045500/surf/hrpns/8/223/101.png
     // https://www.jma.go.jp/bosai/jmatile/data/map/none/none/none/surf/mask/9/452/201.png
@@ -512,11 +613,13 @@
     var mapDef = type === 'rain' ? JMAMaps.hrpns : JMAMaps[type];
     if (!mapDef) throw new Error ("Bad type |"+type+"|");
     
+    let currentZ = null;
     var explicitTime;
     var getTime = () => {
-      var md = mapDef;
+      let md = mapDef;
+      md = md.zooms[currentZ] || md;
       var realNow = (new Date).valueOf ();
-      var now = realNow - md.nowDelta*60*1000;
+      let now = realNow - md.nowDelta*60*1000;
       var cur;
       var urlTimestamp0 = null;
       if (explicitTime) {
@@ -528,9 +631,13 @@
               md = JMAMaps.rasrfimmed;
             }
           }
-          cur = md.currentDelta * 60*1000;
+          if (!md.noFuture) {
+            cur = md.currentDelta * 60*1000;
+            now = explicitTime;
+          }
+        } else {
+          now = explicitTime;
         }
-        rewlNow = now = explicitTime;
       }
       var nextDelta = md.nextDelta;
       var prev = Math.floor (now / (nextDelta*60*1000)) * nextDelta*60*1000;
@@ -542,9 +649,15 @@
       var prevHTML = new Date (prev).toISOString ();
       var prevFormatted = prevHTML
           .replace (/(?:\.[0-9]+|)Z$/, '').replace (/[-:T]/g, '');
+      if (md.noCurrent) cur = md.currentDelta * 60*1000;
       if (cur) {
-        var ct = Math.floor (realNow / cur) * cur;
-        if (md.type[0] === 'rasrf') {
+        let ct = Math.floor (realNow / cur) * cur;
+        if (md.noCurrent) {
+          let now0 = realNow - md.now0Delta*60*1000;
+          ct = Math.floor (now0 / cur) * cur;
+          while (prev <= ct) ct -= nextDelta*60*1000;
+        }
+        if (md.isRasrf) {
           var f = 60*60*1000;
           var x = (prev - ct) % f;
           ct -= f - x;
@@ -558,20 +671,70 @@
     }; // getTime
     
     var time = getTime ();
-    var u = 'https://www.jma.go.jp/bosai/jmatile/data/{type0}/{urlTimestamp0}/{type1}/{urlTimestamp}/surf/{type2}/{z}/{x}/{y}.png';
-    var layer = L.tileLayer (u, {
-      attribution: '<a href=https://www.jma.go.jp/jma/kishou/info/coment.html target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a>',
-      errorTileUrl: opts.errorTileUrl,
-      maxNativeZoom: mapDef.maxNativeZoom,
-      minNativeZoom: 4,
-      maxZoom: opts.maxZoom,
-      opacity: mapDef.opacity,
-      type0: mapDef.type[0],
-      type1: mapDef.type[1],
-      type2: mapDef.type[2],
-      urlTimestamp0: time.urlTimestamp0,
-      urlTimestamp: time.prevFormatted,
-    });
+    let layer;
+    let refetch = () => {};
+    if (mapDef.isGeoJSON) {
+      layer = L.geoJSON ({type: "FeatureCollection", features: []}, {
+        pointToLayer: function (feature, latlng) {
+          let wd = feature.properties.windDir;
+          let html = {
+            S: '&#x2191;',
+            SW: '&#x2197;',
+            W: '&#x2192;',
+            NW: '&#x2198;',
+            N: '&#x2193;',
+            NE: '&#x2199;',
+            E: '&#x2190;',
+            SE: '&#x2196;',
+          }[wd];
+          let icon = L.divIcon ({
+            html,
+            className: 'paco-map-wind-dir',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
+          });
+          return L.marker (latlng, {icon});
+        }
+      });
+      let prevU = null;
+      refetch = (time, layer) => {
+        let u = L.Util.template (mapDef.pattern, {
+          urlTimestamp0: time.urlTimestamp0,
+          urlTimestamp: time.prevFormatted,
+        });
+        if (u === prevU) return;
+        prevU = u;
+        fetch (u).then (res => {
+          if (res.status !== 200) throw res;
+          return res.json ();
+        }).then (json => {
+          layer.clearLayers ();
+          layer.addData (json);
+        }).catch (e => {
+          prevU = null;
+          throw e;
+        });
+      };
+      refetch (time, layer);
+    } else {
+      layer = L.tileLayer (mapDef.pattern, {
+        attribution: '<a href=https://www.jma.go.jp/jma/kishou/info/coment.html target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a>',
+        errorTileUrl: opts.errorTileUrl,
+        maxNativeZoom: mapDef.maxNativeZoom,
+        minNativeZoom: mapDef.minNativeZoom || 4,
+        maxZoom: opts.maxZoom,
+        opacity: mapDef.opacity,
+        urlTimestamp0: time.urlTimestamp0,
+        urlTimestamp: time.prevFormatted,
+        param1: opts.param1 || mapDef.param1,
+      });
+      refetch = (time, layer) => {
+        layer.options.urlTimestamp = time.prevFormatted;
+        layer.options.urlTimestamp0 = time.urlTimestamp0;
+        layer.options.param1 = opts.param1 || time.mapDef.param1;
+        layer.setUrl (time.mapDef.pattern, false);
+      };
+    }
     
     var needReload = false;
     var needUpdate = false;
@@ -587,12 +750,7 @@
       timeout = setTimeout (() => {
         if (!needReload) return;
         var time = getTime ();
-        layer.options.urlTimestamp = time.prevFormatted;
-        layer.options.urlTimestamp0 = time.urlTimestamp0;
-        layer.options.type0 = time.mapDef.type[0];
-        layer.options.type1 = time.mapDef.type[1];
-        layer.options.type2 = time.mapDef.type[2];
-        layer.setUrl (u, false);
+        refetch (time, layer);
         if (timeElement) {
           timeElement.textContent = time.prevHTML;
           timeElement.removeAttribute ('datetime');
@@ -603,46 +761,78 @@
       needUpdate = false;
     }; // requestReload
 
-    var ts;
-    if (!opts.noTimestamp) ts = L.control.timestampControl ({
-      position: 'bottomleft',
-      setTimeElement: _ => {
-        timeElement = _;
-        timeElement.textContent = time.prevHTML;
-        timeElement.removeAttribute ('datetime');
-      },
-      isLegend: true,
-    });
+    let legends = [];
+    if (!opts.noTimestamp) {
+      let ts = L.control.timestampControl ({
+        position: 'bottomleft',
+        setTimeElement: _ => {
+          timeElement = _;
+          timeElement.textContent = time.prevHTML;
+          timeElement.removeAttribute ('datetime');
+        },
+        isLegend: true,
+      });
+      legends.push (ts);
+    }
 
-    var map;
-    var ba = layer.beforeAdd;
-    layer.beforeAdd = function (_) {
-      map = _;
-      return ba.apply (this, arguments);
-    };
+    if (mapDef.isUmiWind) {
+      let t = document.createElement ('map-controls');
+      t.className = 'paco-jma-legend-control';
+      t.innerHTML = '<img src=https://www.jma.go.jp/bosai/umimesh/images/legend_deep_ws.svg referrerpolicy=no-referrer>';
+      let ec = new L.Control.ElementControl ({
+        element: t,
+        position: 'bottomleft',
+        isLegend: true,
+      });
+      legends.push (ec);
+    }
+
+    let map;
+    let ba = layer.beforeAdd;
+    if (ba) {
+      layer.beforeAdd = function (_) {
+        map = _;
+        return ba.apply (this, arguments);
+      };
+    } else {
+      map = opts.map;
+    }
 
     var timeSetter = (newTime) => {
       explicitTime = newTime * 1000; // or NaN
-      needReload = true;
-      needUpdate = true;
+      needReload = needUpdate = true;
       requestReload (layer, null);
     }; // timeSetter
 
+    let zoomChanged = null;
+    if (mapDef.zooms.length) {
+      zoomChanged = () => {
+        let newZ = map.getZoom ();
+        if (mapDef.zooms[newZ] !== mapDef.zooms[currentZ]) {
+          needReload = needUpdate = true;
+        }
+        currentZ = newZ;
+        requestReload (layer, null);
+      }; // zoomChanged
+    }
+    
     layer.on ('add', ev => {
       needReload = true;
       requestReload (ev.target, null);
-      if (ts) ts.addTo (map);
+      legends.forEach (_ => _.addTo (map));
       map.pcAddTimeSetter (timeSetter);
+      if (zoomChanged) map.on ('zoomend', zoomChanged);
     });
     layer.on ('remove', ev => {
       needReload = false;
       clearTimeout (timeout);
-      if (ts) ts.remove ();
+      legends.forEach (_ => _.remove ());
       map.pcRemoveTimeSetter (timeSetter);
+      if (zoomChanged) map.off ('zoomend', zoomChanged);
     });
 
     return layer;
-  }; // L.tileLayer.jmaNowc
+  }; // L.tileLayer.jma
   
   var gmPromise;
   var loadGoogleMaps = () => {
@@ -833,10 +1023,10 @@
           
           this.maGoogleMap.addListener ('bounds_changed', () => {
             var v = this.maGoogleMap.getCenter ();
-            this.maCenter = {
+            this.maCenter = v ? {
               lat: v.lat (),
               lon: v.lng (),
-            };
+            } : {lat: 0, lon: 0};
             if (this.maCenter.lon < -180) {
               this.maCenter.lon += 360;
             }
@@ -1568,7 +1758,7 @@
 
       setMapType: function (type) {
         if (this.pcMapType !== type) {
-          this.pcMapType = type;
+          [this.pcMapType, this.pcMapTypeParam1] = type.split (/:/);
           this.maRedraw ({mapType: true});
         }
       }, // setMapType
@@ -1578,8 +1768,9 @@
         this.maRedraw ({mapType: true});
       }, // toggleJMANowc
       pcChangeMapType: function () {
-        var sType = this.pcMapType;
-        var map = this.pcLMap;
+        let sType = this.pcMapType;
+        let sTypeParam1 = this.pcMapTypeParam1;
+        let map = this.pcLMap;
 
         var layers = [];
 
@@ -1678,13 +1869,6 @@
           layers.push (lShade);
           layers.push (lGSI);
         } else if (type === 'gsi-photo-standard') {
-          var lGSI = L.gridLayer.gsiOverlay ({
-            //attribution: gsiCreditHTML,
-            errorTileUrl,
-            maxNativeZoom: 18,
-            minNativeZoom: 2,
-            maxZoom,
-          });
           var lPhoto = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
                 attribution: gsiPhotoCreditHTML,
@@ -1694,6 +1878,13 @@
                 maxZoom,
              });
           layers.push (lPhoto);
+          let lGSI = L.gridLayer.gsiOverlay ({
+            //attribution: gsiCreditHTML,
+            errorTileUrl,
+            maxNativeZoom: 18,
+            minNativeZoom: 2,
+            maxZoom,
+          });
           layers.push (lGSI);
         } else if (type === 'gsi-english-standard') {
           var lGSI = L.gridLayer.tileImages ({
@@ -1716,13 +1907,81 @@
             maxZoom,
           });
           layers.push (lGSI);
+        } else if (type === 'himawari') {
+          let lHimawari = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'himawari',
+            param1: sTypeParam1,
+            noTimestamp,
+          });
+          layers.push (lHimawari);
+          noTimestamp = true;
+        } else if (type === 'himawari+gsi-standard') {
+          let lHimawari = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'himawari',
+            param1: sTypeParam1,
+            noTimestamp,
+          });
+          layers.push (lHimawari);
+          noTimestamp = true;
+          let lGSI = L.gridLayer.gsiOverlay ({
+            attribution: gsiCreditHTML,
+            errorTileUrl,
+            maxNativeZoom: 18,
+            minNativeZoom: 2,
+            maxZoom,
+          });
+          layers.push (lGSI);
+        } else if (type === 'jma-umimesh-wind') {
+          let layer = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'umimeshwind',
+            noTimestamp,
+          });
+          layers.push (layer);
+          let layerD = L.tileLayer.jma ({
+            maxZoom,
+            type: 'umimeshwinddir',
+            noTimestamp,
+            map,
+          });
+          layers.push (layerD);
+          noTimestamp = true;
+        } else if (type === 'jma-umimesh-wind+gsi-standard') {
+          let layer = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'umimeshwind',
+            noTimestamp,
+          });
+          layers.push (layer);
+          let layerD = L.tileLayer.jma ({
+            maxZoom,
+            type: 'umimeshwinddir',
+            noTimestamp,
+            map,
+          });
+          layers.push (layerD);
+          noTimestamp = true;
+          let lGSI = L.gridLayer.gsiOverlay ({
+            attribution: gsiCreditHTML,
+            errorTileUrl,
+            maxNativeZoom: 18,
+            minNativeZoom: 2,
+            maxZoom,
+          });
+          layers.push (lGSI);
         } else if (type === 'none') {
           //
         }
 
         var noTimestamp = false;
         if (this.pcJMANowc_rain) {
-          var lNowc = L.tileLayer.jmaNowc ({
+          var lNowc = L.tileLayer.jma ({
             maxZoom,
             errorTileUrl,
             type: 'rain',
@@ -1732,7 +1991,7 @@
           noTimestamp = true;
         }
         if (this.pcJMANowc_thns) {
-          var lNowc = L.tileLayer.jmaNowc ({
+          var lNowc = L.tileLayer.jma ({
             maxZoom,
             errorTileUrl,
             type: 'thns',
@@ -1742,7 +2001,7 @@
           noTimestamp = true;
         }
         if (this.pcJMANowc_trns) {
-          var lNowc = L.tileLayer.jmaNowc ({
+          var lNowc = L.tileLayer.jma ({
             maxZoom,
             errorTileUrl,
             type: 'trns',
