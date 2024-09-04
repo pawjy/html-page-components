@@ -1739,8 +1739,8 @@ The following properties are available:
         Himawari photo
         <https://www.jma.go.jp/bosai/map.html#contents=himawari>.
 
-        B13/TBB    可視画像
-        B03/ALBD   赤外画像
+        B13/TBB    赤外画像
+        B03/ALBD   可視画像
         B08/TBB    水蒸気画像
         REP/ETC    トゥルーカラー再現画像
         SND/ETC    雲頂強調画像

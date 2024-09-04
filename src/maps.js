@@ -325,8 +325,9 @@
       if (e.hasAttribute ('gsi')) {
         var mm = m.querySelector ('menu-main');
         var nodes = document.createElement ('div');
-        nodes.innerHTML = '<menu-item><popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-photo-standard data-false=gsi-photo><button type=button class=paco-control-button>Photo</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><button type=button data-true=none>None</button></menu-item><hr>';
-        var nb = nodes.querySelector ('menu-item:last-of-type button');
+        nodes.innerHTML = '<menu-item><popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-photo-standard data-false=gsi-photo data-label=photo><button type=button class=paco-control-button>Photo</button><menu-main class=paco-photo-menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><button type=button class=paco-maptype-button data-true=none>None</button></menu-item><hr>';
+        let nb = nodes.querySelector ('menu-item:last-of-type button');
+        let nps = [nodes.querySelector ('.paco-photo-menu-main')];
         
         var pms = Array.prototype.slice.call (nodes.querySelectorAll ('popup-menu'));
         Array.prototype.slice.call (nodes.childNodes).reverse ().forEach (_ => mm.insertBefore (_, mm.firstChild));
@@ -334,37 +335,54 @@
         if (opts.buttons) {
           var n = document.createElement ('span');
           n.className = 'paco-menu-button-container';
-          n.innerHTML = '<popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-photo-standard data-false=gsi-photo><button type=button class=paco-control-button>Photo</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu>';
+          n.innerHTML = '<popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-photo-standard data-false=gsi-photo data-label=photo><button type=button class=paco-control-button>Photo</button><menu-main class=paco-photo-menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu>';
           pms = pms.concat (Array.prototype.slice.call (n.querySelectorAll ('popup-menu')));
 
           c.insertBefore (n, c.firstChild);
           m.firstChild.textContent = '\u22EF';
+          nps.push (n.querySelector ('.paco-photo-menu-main'));
         } // controls=typebuttons
 
         var sMap = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-map-text'), 'Map');
         var sMapLabel = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-maplabel-text'), 'Labels');
         var sHillshade = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-hillshade-text'), 'Hillshade');
-        var sPhoto = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-photo-text'), 'Photo');
         var sNone = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-none-text'), 'None');
         var buttonLabels = {
           'gsi-lang': sMap,
-          'gsi-photo': sPhoto,
+          'photo': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-photo-text'), 'Photo'),
+          'gsi-photo': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-gsi-photo-text'), 'Photo'),
           'gsi-hillshade': sHillshade,
           'gsi-standard-hillshade': sHillshade,
           'gsi-photo-standard': sMapLabel,
           'gsi-hillshade-standard': sMapLabel,
+          'himawari:B13/TBB': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-B13-TBB-text'), 'Himawari (B13/TBB)'),
+          'himawari:B03/ALBD': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-B03-ALBD-text'), 'Himawari (B03/ALBD)'),
+          'himawari:B08/TBB': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-B08-TBB-text'), 'Himawari (B08/TBB)'),
+          'himawari:REP/ETC': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-REP-ETC-text'), 'Himawari (REP/ETC)'),
+          'himawari:SND/ETC': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-SND-ETC-text'), 'Himawari (SND/ETC)'),
         };
+
+        if (e.hasAttribute ('jma')) {
+          nps.forEach (p => {
+            let m = document.createElement ('menu-item');
+            p.appendChild (m);
+            m.outerHTML = '<menu-item><button type=button data-false=gsi-photo data-true=gsi-photo-standard>Photo</button></menu-item><menu-item><button type=button data-false=himawari:B13/TBB data-true=himawari+gsi-standard:B13/TBB>Himawari (B13/TBB)</button></menu-item><menu-item><button type=button data-false=himawari:B03/ALBD data-true=himawari+gsi-standard:B03/ALBD>Himawari (B03/ALBD)</button></menu-item><menu-item><button type=button data-false=himawari:B08/TBB data-true=himawari+gsi-standard:B08/TBB>Himawari (B08/TBB)</button></menu-item><menu-item><button type=button data-false=himawari:REP/ETC data-true=himawari+gsi-standard:REP/ETC>Himawari (REP/ETC)</button></menu-item><menu-item><button type=button data-false=himawari:SND/ETC data-true=himawari+gsi-standard:SND/ETC>Himawari (SND/ETC)</button></menu-item>';
+          });
+        }
         
         pms.forEach (pm => {
-          var button = pm.querySelector ('button');
-          button.addEventListener ('click', function () {
-            var checked = pm.querySelector ('input[type=checkbox]').checked;
-            e.setMapType (pm.getAttribute ('data-' + checked));
+          let buttons = pm.querySelectorAll ('button');
+          buttons.forEach (button => {
+            button.addEventListener ('click', function () {
+              let checked = pm.querySelector ('input[type=checkbox]').checked;
+              let newType = button.getAttribute ('data-' + checked) || pm.getAttribute ('data-' + checked);
+              e.setMapType (newType);
+            });
+            button.textContent = buttonLabels[button.getAttribute ('data-false') || pm.getAttribute ('data-label') || pm.getAttribute ('data-false')];
           });
-          button.textContent = buttonLabels[pm.getAttribute ('data-false')];
-
           pm.querySelector ('input[type=checkbox]').onclick = function () {
-            e.setMapType (pm.getAttribute ('data-' + this.checked));
+            let newType = (this.checked ? this.trueMapType : this.falseMapType) || pm.getAttribute ('data-' + this.checked);
+            e.setMapType (newType);
           };
           pm.querySelector ('span').textContent = buttonLabels[pm.getAttribute ('data-true')];
         });
@@ -376,13 +394,31 @@
       } // gsi=""
 
       e.addEventListener ('pcMapTypeChange', () => {
-        var mt = e.pcMapType;
-        c.querySelectorAll ('popup-menu[data-true], button[data-true]').forEach (pm => {
-          var tt = mt === pm.getAttribute ('data-true');
-          var ff = mt === pm.getAttribute ('data-false');
+        let mt = e.pcMapType;
+        if (e.pcMapTypeParam1) mt += ":" + e.pcMapTypeParam1;
+        c.querySelectorAll ('popup-menu[data-true], .paco-maptype-button[data-true]').forEach (pm => {
+          let trueType = pm.getAttribute ('data-true');
+          let falseType = pm.getAttribute ('data-false');
+          let tt = mt === trueType;
+          let ff = mt === falseType;
+          let hasTrue = tt;
           pm.classList.toggle ('selected', tt || ff);
+          pm.querySelectorAll ('button[data-true]').forEach (b => {
+            let tType = b.getAttribute ('data-true');
+            let fType = b.getAttribute ('data-false');
+            let tt = mt === tType;
+            let ff = mt === fType;
+            b.classList.toggle ('selected', tt || ff);
+            if (tt) hasTrue = true;
+            if (tt || ff) {
+              trueType = tType;
+              falseType = fType;
+            }
+          });
           pm.querySelectorAll ('input[type=checkbox]').forEach (_ => {
-            _.checked = tt;
+            _.checked = hasTrue;
+            _.trueMapType = trueType;
+            _.falseMapType = falseType;
           });
         });
         e.pcInternal.$fill (c, {
