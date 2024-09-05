@@ -307,11 +307,16 @@
       if (e.hasAttribute ('jma')) {
         var mm = m.querySelector ('menu-main');
         var nodes = document.createElement ('div');
-        nodes.innerHTML = '<menu-item><label><input type=checkbox> <span>Rain</span></label></menu-item><menu-item><label><input type=checkbox> <span>Thunder</span></label></menu-item><menu-item><label><input type=checkbox> <span>Tornado</span></label></menu-item><hr>';
+        nodes.innerHTML = '<menu-item><label><input type=checkbox> <span>Rain</span></label></menu-item><menu-item><popup-menu><button type=button class=paco-control-button>Meteorological</button><menu-main><menu-item><label><input type=checkbox> <span>Thunder</span></label></menu-item><menu-item><label><input type=checkbox> <span>Tornado</span></label></menu-item><menu-item><label><input type=checkbox> <span>Temperature</span></label></menu-item><menu-item><label><input type=checkbox> <span>Precipitation 10m</span></label></menu-item><menu-item><label><input type=checkbox> <span>Precipitation 1h</span></label></menu-item><menu-item><label><input type=checkbox> <span>Precipitation 3h</span></label></menu-item><menu-item><label><input type=checkbox> <span>Precipitation 24h</span></label></menu-item></menu-main></popup-menu></menu-item><hr>';
         var ins = nodes.querySelectorAll ('input');
         ins[0].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'rain');
         ins[1].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'thns');
         ins[2].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'trns');
+        ins[3].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'temp');
+        ins[4].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'precipitation10m');
+        ins[5].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'precipitation1h');
+        ins[6].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'precipitation3h');
+        ins[7].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'precipitation24h');
         var sRain = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jmanowc-current-text'), 'Rain');
         var sThns = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jmanowc-thns-current-text'), 'Thunder');
         var sTrns = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jmanowc-trns-current-text'), 'Tornado');
@@ -319,6 +324,12 @@
         lbs[0].textContent = sRain;
         lbs[1].textContent = sThns;
         lbs[2].textContent = sTrns;
+        lbs[3].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jma-amedas-temp-text'), 'Temperature');
+        lbs[4].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jma-amedas-precipitation10m-text'), 'Precipitation 10m');
+        lbs[5].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jma-amedas-precipitation1h-text'), 'Precipitation 1h');
+        lbs[6].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jma-amedas-precipitation3h-text'), 'Precipitation 3h');
+        lbs[7].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jma-amedas-precipitation24h-text'), 'Precipitation 24h');
+        nodes.querySelector ('button').textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-menu-meteorological'), 'Meteorological');
         Array.prototype.slice.call (nodes.childNodes).reverse ().forEach (_ => mm.insertBefore (_, mm.firstChild));
       } // jma=""
 
@@ -355,11 +366,11 @@
           'gsi-standard-hillshade': sHillshade,
           'gsi-photo-standard': sMapLabel,
           'gsi-hillshade-standard': sMapLabel,
-          'himawari:B13/TBB': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-B13-TBB-text'), 'Himawari (B13/TBB)'),
-          'himawari:B03/ALBD': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-B03-ALBD-text'), 'Himawari (B03/ALBD)'),
-          'himawari:B08/TBB': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-B08-TBB-text'), 'Himawari (B08/TBB)'),
-          'himawari:REP/ETC': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-REP-ETC-text'), 'Himawari (REP/ETC)'),
-          'himawari:SND/ETC': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-SND-ETC-text'), 'Himawari (SND/ETC)'),
+          'himawari:B13/TBB': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-ir-text'), 'Himawari (B13/TBB)'),
+          'himawari:B03/ALBD': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-vis-text'), 'Himawari (B03/ALBD)'),
+          'himawari:B08/TBB': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-vap-text'), 'Himawari (B08/TBB)'),
+          'himawari:REP/ETC': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-color-text'), 'Himawari (REP/ETC)'),
+          'himawari:SND/ETC': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-strengthen-text'), 'Himawari (SND/ETC)'),
         };
 
         if (e.hasAttribute ('jma')) {
@@ -607,6 +618,22 @@
       isGeoJSON: true,
       jmaLinkType: 'umimesh',
     },
+    amedas: {
+      // https://www.jma.go.jp/bosai/amedas/data/map/20240905145000.json
+      pattern: 'https://www.jma.go.jp/bosai/amedas/data/map/{urlTimestamp}.json',
+      params: 'temp', // precipitation10m precipitation1h precipitation3h precipitation24h wind windDirection temp sun1h snow snow6h snow12h snow24h humidity 
+      nextDelta: 10,
+      currentDelta: 10,
+      nowDelta: 20, // :57 -> :40 :59 -> :50
+      constDelta: 9*60,
+      noFuture: true,
+      //minNativeZoom: 4,
+      //maxNativeZoom: 8,
+      opacity: 1,
+      zooms: [],
+      isGeoJSON: true,
+      jmaLinkType: 'amedas',
+    },
   }; // JMAMaps
 
   JMAMaps.himawari.zooms[6] = JMAMaps.himawari;
@@ -625,6 +652,21 @@
     zooms: [],
     jmaLinkType: 'himawari',
   };
+
+  {
+    let p;
+    function getAmedasTable () {
+      return p = p || fetch ('https://www.jma.go.jp/bosai/amedas/const/amedastable.json', {
+        referrerPolicy: 'no-referrer',
+      }).then (res => {
+        if (res.status !== 200) throw res;
+        return res.json ();
+      }).catch (e => {
+        p = null;
+        throw e;
+      });
+    }
+  }
   
   L.tileLayer.jma = function (opts) {
     // https://www.jma.go.jp/bosai/jmatile/data/map/none/none/none/surf/mask/8/222/99.png
@@ -672,9 +714,13 @@
           // next + 100*1000 - realNow
           // = next + 100*1000 - (now + 100*1000)
       if (delta < 60*1000) delta = 60*1000;
-      var prevHTML = new Date (prev).toISOString ();
-      var prevFormatted = prevHTML
+      let prevHTML = new Date (prev).toISOString ();
+      let prevFormatted = prevHTML
           .replace (/(?:\.[0-9]+|)Z$/, '').replace (/[-:T]/g, '');
+      if (md.constDelta) {
+        prevFormatted = new Date (prev + md.constDelta*60*1000).toISOString ()
+            .replace (/(?:\.[0-9]+|)Z$/, '').replace (/[-:T]/g, '');
+      }
       if (md.noCurrent) cur = md.currentDelta * 60*1000;
       let baseHTML;
       if (cur) {
@@ -703,9 +749,43 @@
     let layer;
     let refetch = () => {};
     if (mapDef.isGeoJSON) {
-      layer = L.geoJSON ({type: "FeatureCollection", features: []}, {
-        pointToLayer: function (feature, latlng) {
-          let wd = feature.properties.windDir;
+      let mapper = (_, __) => _;
+      let dataType = 'direction';
+      let propKey = 'value';
+      if (mapDef.jmaLinkType === 'amedas') {
+        let key = opts.param1 || mapDef.param1;
+        mapper = (json, amedas) => {
+          let features = [];
+          Object.keys (json).forEach (aKey => {
+            let w = json[aKey];
+            let v = w[key];
+            if (v && v[1] == 0) {
+              let a = amedas[aKey] || {lat: [], lon: []};
+              features.push ({
+                type: 'Feature',
+                properties: {
+                  value: v[0],
+                },
+                geometry: {
+                  type: 'Point',
+                  coordinates: [
+                    a.lon[0] + a.lon[1] / 60,
+                    a.lat[0] + a.lat[1] / 60,
+                  ],
+                },
+              });
+            }
+          });
+          return {type: "FeatureCollection", features};
+        };
+        dataType = key || 'value';
+      } else {
+        propKey = 'windDir';
+      }
+      let pointToLayer;
+      if (dataType === 'direction') {
+        pointToLayer = function (feature, latlng) {
+          let wd = feature.properties[propKey];
           let html = {
             S: '&#x2191;',
             SW: '&#x2197;',
@@ -718,12 +798,56 @@
           }[wd];
           let icon = L.divIcon ({
             html,
-            className: 'paco-map-wind-dir',
+            className: 'paco-map-value-' + dataType,
             iconSize: [30, 30],
             iconAnchor: [15, 15],
           });
           return L.marker (latlng, {icon});
-        }
+        };
+      } else {
+        let sub = {
+          temp: 1,
+          precipitation10m: 0,
+          precipitation1h: 0,
+          precipitation3h: 0,
+          precipitation24h: 0,
+        }[dataType];
+        let toColor = {
+          temp: _ => Math.floor (_ / 5) * 5,
+          precipitation10m: _ => {
+            return _ >= 30 ? 30 : _ >= 20 ? 20 : _ >= 15 ? 15 :
+              _ >= 10 ? 10 : _ >= 5 ? 5 : _ >= 3 ? 3 : _ >= 1 ? 1 : 0;
+          },
+          precipitation1h: _ => {
+            return _ >= 80 ? 80 : _ >= 50 ? 50 : _ >= 30 ? 30 :
+              _ >= 20 ? 20 : _ >= 10 ? 10 : _ >= 5 ? 5 : _ >= 1 ? 1 : 0;
+          },
+          precipitation3h: _ => {
+            return _ >= 150 ? 150 : _ >= 120 ? 120 : _ >= 100 ? 100 :
+              _ >= 80 ? 80 : _ >= 60 ? 60 : _ >= 40 ? 40 : _ >= 20 ? 20 : 0;
+          },
+          precipitation24h: _ => {
+            return _ >= 300 ? 300 : _ >= 250 ? 250 : _ >= 200 ? 200 :
+              _ >= 150 ? 150 : _ >= 100 ? 100 : _ >= 80 ? 80 : _ >= 50 ? 50 : 0;
+          },
+        }[dataType];
+        pointToLayer = function (feature, latlng) {
+          let value = feature.properties[propKey];
+          let div = document.createElement ('div');
+          div.innerHTML = '<data></data>';
+          div.firstChild.textContent = value.toFixed (sub);
+          div.firstChild.className = 'paco-map-value-' + dataType + '-' + toColor (value);
+          let icon = L.divIcon ({
+            html: div.innerHTML,
+            className: 'paco-map-value-value',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
+          });
+          return L.marker (latlng, {icon});
+        };
+      }
+      layer = L.geoJSON ({type: "FeatureCollection", features: []}, {
+        pointToLayer,
       });
       let prevU = null;
       refetch = (time, layer) => {
@@ -733,12 +857,17 @@
         });
         if (u === prevU) return;
         prevU = u;
-        fetch (u).then (res => {
-          if (res.status !== 200) throw res;
-          return res.json ();
-        }).then (json => {
+        Promise.all ([
+          fetch (u, {
+            referrerPolicy: 'no-referrer',
+          }).then (res => {
+            if (res.status !== 200) throw res;
+            return res.json ();
+          }),
+          (mapDef.jmaLinkType === 'amedas' ? getAmedasTable () : null),
+        ]).then (([json, amedas]) => {
           layer.clearLayers ();
-          layer.addData (json);
+          layer.addData (mapper (json, amedas));
         }).catch (e => {
           prevU = null;
           throw e;
@@ -2034,6 +2163,66 @@
             noTimestamp,
           });
           layers.push (lNowc);
+          noTimestamp = true;
+        }
+        if (this.pcJMANowc_temp) {
+          let l = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'amedas',
+            param1: 'temp',
+            noTimestamp,
+            map,
+          });
+          layers.push (l);
+          noTimestamp = true;
+        }
+        if (this.pcJMANowc_precipitation10m) {
+          let l = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'amedas',
+            param1: 'precipitation10m',
+            noTimestamp,
+            map,
+          });
+          layers.push (l);
+          noTimestamp = true;
+        }
+        if (this.pcJMANowc_precipitation1h) {
+          let l = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'amedas',
+            param1: 'precipitation1h',
+            noTimestamp,
+            map,
+          });
+          layers.push (l);
+          noTimestamp = true;
+        }
+        if (this.pcJMANowc_precipitation3h) {
+          let l = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'amedas',
+            param1: 'precipitation3h',
+            noTimestamp,
+            map,
+          });
+          layers.push (l);
+          noTimestamp = true;
+        }
+        if (this.pcJMANowc_precipitation24h) {
+          let l = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'amedas',
+            param1: 'precipitation24h',
+            noTimestamp,
+            map,
+          });
+          layers.push (l);
           noTimestamp = true;
         }
 

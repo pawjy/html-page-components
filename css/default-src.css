@@ -236,11 +236,17 @@ map-area {
   --paco-maptype-jmanowc-thns-current-text: 'Thunder';
   --paco-maptype-jmanowc-trns-current-text: 'Tornado';
   --paco-maptype-none-text: 'None';
-  --paco-maptype-himawari-B13-TBB-text: 'Himawari (\8D64\5916\753B\50CF)';
-  --paco-maptype-himawari-B03-ALBD-text: 'Himawari (\53EF\8996\753B\50CF)';
-  --paco-maptype-himawari-B08-TBB-text: 'Himawari (\6C34\84B8\6C17\753B\50CF)';
-  --paco-maptype-himawari-REP-ETC-text: 'Himawari (\30C8\30A5\30EB\30FC\30AB\30E9\30FC\518D\73FE\753B\50CF)';
-  --paco-maptype-himawari-SND-ETC-text: 'Himawari (\96F2\9802\5F37\8ABF\753B\50CF)';
+  --paco-maptype-himawari-ir-text: 'Himawari (Infrared)';
+  --paco-maptype-himawari-vis-text: 'Himawari (Visible)';
+  --paco-maptype-himawari-vap-text: 'Himawari (Water Vapor)';
+  --paco-maptype-himawari-color-text: 'Himawari (True Color Reproduction)';
+  --paco-maptype-himawari-strengthen-text: 'Himawari (Color Enhanced)';
+  --paco-maptype-jma-amedas-temp-text: 'Temperature';
+  --paco-maptype-jma-amedas-precipitation10m-text: 'Precipitation (10-min.)';
+  --paco-maptype-jma-amedas-precipitation1h-text: 'Precipitation (1-hour)';
+  --paco-maptype-jma-amedas-precipitation3h-text: 'Precipitation (3-hour)';
+  --paco-maptype-jma-amedas-precipitation24h-text: 'Precipitation (24-hour)';
+  --paco-maptype-menu-meteorological: 'Meteorological';
   --paco-marker-currentposition: "\25CF" purple 24px;
   --paco-marker-value: none;
   --paco-legend-show-text: "Show legend";
@@ -272,11 +278,17 @@ map-area:lang(ja) {
   --paco-maptype-jmanowc-current-text: '\96E8\96F2\306E\52D5\304D';
   --paco-maptype-jmanowc-thns-current-text: '\96F7\6D3B\52D5\5EA6';
   --paco-maptype-jmanowc-trns-current-text: '\7ADC\5DFB\767A\751F\78BA\5EA6';
-  --paco-maptype-himawari-B13-TBB-text: '\3072\307E\308F\308A (\8D64\5916\753B\50CF)';
-  --paco-maptype-himawari-B03-ALBD-text: '\3072\307E\308F\308A (\53EF\8996\753B\50CF)';
-  --paco-maptype-himawari-B08-TBB-text: '\3072\307E\308F\308A (\6C34\84B8\6C17\753B\50CF)';
-  --paco-maptype-himawari-REP-ETC-text: '\3072\307E\308F\308A (\30C8\30A5\30EB\30FC\30AB\30E9\30FC\518D\73FE\753B\50CF)';
-  --paco-maptype-himawari-SND-ETC-text: '\3072\307E\308F\308A (\96F2\9802\5F37\8ABF\753B\50CF)';
+  --paco-maptype-himawari-ir-text: '\3072\307E\308F\308A (\8D64\5916\753B\50CF)';
+  --paco-maptype-himawari-vis-text: '\3072\307E\308F\308A (\53EF\8996\753B\50CF)';
+  --paco-maptype-himawari-vap-text: '\3072\307E\308F\308A (\6C34\84B8\6C17\753B\50CF)';
+  --paco-maptype-himawari-color-text: '\3072\307E\308F\308A (\30C8\30A5\30EB\30FC\30AB\30E9\30FC\518D\73FE\753B\50CF)';
+  --paco-maptype-himawari-strengthen-text: '\3072\307E\308F\308A (\96F2\9802\5F37\8ABF\753B\50CF)';
+  --paco-maptype-jma-amedas-temp-text: '\6C17\6E29';
+  --paco-maptype-jma-amedas-precipitation10m-text: '10\5206\9593\964D\6C34\91CF';
+  --paco-maptype-jma-amedas-precipitation1h-text: '1\6642\9593\964D\6C34\91CF';
+  --paco-maptype-jma-amedas-precipitation3h-text: '3\6642\9593\964D\6C34\91CF';
+  --paco-maptype-jma-amedas-precipitation24h-text: '24\6642\9593\964D\6C34\91CF';
+  --paco-maptype-menu-meteorological: '\6C17\8C61\60C5\5831';
   --paco-legend-show-text: "\51E1\4F8B\3092\8868\793A";
   --paco-legend-hide-text: "\51E1\4F8B\3092\96A0\3059";
   --paco-map-click-action: none;
@@ -580,10 +592,75 @@ map-area .paco-jma-timestamp-control-base {
   }
 }
 
-map-area .paco-map-wind-dir {
+map-area .paco-map-value-direction {
   font-size: 24px;
   font-weight: bolder;
+  font-family: sans-serif;
+  color: black;
+  background: transparent;
 }
+
+map-area .paco-map-value-value {
+  font-size: 16px;
+  font-weight: bolder;
+  font-family: sans-serif;
+  color: black;
+}
+
+map-area .paco-map-value-value data {
+  padding: .5px 2px;
+  line-height: 1.0;
+  --background: rgba(240, 240, 240, 0.7);
+  --border-radius: 8px;
+  text-shadow: 2px 2px black;
+}
+
+map-area .paco-map-value-temp-35 { color: rgb(180, 0, 104) }
+map-area .paco-map-value-temp-30 { color: rgb(255, 40, 0) }
+map-area .paco-map-value-temp-25 { color: rgb(255, 153, 0) }
+map-area .paco-map-value-temp-20 { color: rgb(250, 245, 0) }
+map-area .paco-map-value-temp-15 { color: rgb(255, 255, 150) }
+map-area .paco-map-value-temp-10 { color: rgb(255, 255, 240) }
+map-area .paco-map-value-temp-5 { color: rgb(185, 235, 255) }
+map-area .paco-map-value-temp-0 { color: rgb(0, 150, 255) }
+map-area .paco-map-value-temp--5 { color: rgb(0, 65, 255) }
+map-area .paco-map-value-temp--10 { color: rgb(0, 32, 128) }
+
+map-area .paco-map-value-precipitation10m-30 { color: rgb(180, 0, 104) }
+map-area .paco-map-value-precipitation10m-20 { color: rgb(255, 40, 0) }
+map-area .paco-map-value-precipitation10m-15 { color: rgb(255, 153, 0) }
+map-area .paco-map-value-precipitation10m-10 { color: rgb(250, 245, 0) }
+map-area .paco-map-value-precipitation10m-5 { color: rgb(0, 65, 255) }
+map-area .paco-map-value-precipitation10m-3 { color: rgb(33, 140, 255) }
+map-area .paco-map-value-precipitation10m-1 { color: rgb(160, 210, 255) }
+map-area .paco-map-value-precipitation10m-0 { color: rgb(242, 242, 255) }
+
+map-area .paco-map-value-precipitation1h-80 { color: rgb(180, 0, 104) }
+map-area .paco-map-value-precipitation1h-50 { color: rgb(255, 40, 0) }
+map-area .paco-map-value-precipitation1h-30 { color: rgb(255, 153, 0) }
+map-area .paco-map-value-precipitation1h-20 { color: rgb(250, 245, 0) }
+map-area .paco-map-value-precipitation1h-10 { color: rgb(0, 65, 255) }
+map-area .paco-map-value-precipitation1h-5 { color: rgb(33, 140, 255) }
+map-area .paco-map-value-precipitation1h-1 { color: rgb(160, 210, 255) }
+map-area .paco-map-value-precipitation1h-0 { color: rgb(242, 242, 255) }
+
+map-area .paco-map-value-precipitation3h-150 { color: rgb(180, 0, 104) }
+map-area .paco-map-value-precipitation3h-120 { color: rgb(255, 40, 0) }
+map-area .paco-map-value-precipitation3h-100 { color: rgb(255, 153, 0) }
+map-area .paco-map-value-precipitation3h-80 { color: rgb(250, 245, 0) }
+map-area .paco-map-value-precipitation3h-60 { color: rgb(0, 65, 255) }
+map-area .paco-map-value-precipitation3h-40 { color: rgb(33, 140, 255) }
+map-area .paco-map-value-precipitation3h-20 { color: rgb(160, 210, 255) }
+map-area .paco-map-value-precipitation3h-0 { color: rgb(242, 242, 255) }
+
+map-area .paco-map-value-precipitation24h-300 { color: rgb(180, 0, 104) }
+map-area .paco-map-value-precipitation24h-250 { color: rgb(255, 40, 0) }
+map-area .paco-map-value-precipitation24h-200 { color: rgb(255, 153, 0) }
+map-area .paco-map-value-precipitation24h-150 { color: rgb(250, 245, 0) }
+map-area .paco-map-value-precipitation24h-100 { color: rgb(0, 65, 255) }
+map-area .paco-map-value-precipitation24h-80 { color: rgb(33, 140, 255) }
+map-area .paco-map-value-precipitation24h-50 { color: rgb(160, 210, 255) }
+map-area .paco-map-value-precipitation24h-0 { color: rgb(242, 242, 255) }
 
 map-area .paco-currentposition-container {
   margin-right: 10px;
