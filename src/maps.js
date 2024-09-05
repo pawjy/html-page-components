@@ -767,10 +767,30 @@
         propKey = 'windDir';
       }
       let pointToLayer;
-      if (dataType === 'direction') {
+      if (dataType === 'direction' || dataType === 'windDirection') {
         pointToLayer = function (feature, latlng) {
           let wd = feature.properties[propKey];
           let html = {
+            // amedas
+            0: '&#x2193;', // north
+            1: '<div style="transform: rotate(22.5deg);">&#x2193;</div>',
+            2: '&#x2199;',
+            3: '<div style="transform: rotate(67.5deg);">&#x2193;</div>',
+            4: '&#x2190;', // east
+            5: '<div style="transform: rotate(112.5deg);">&#x2193;</div>',
+            6: '&#x2196;',
+            7: '<div style="transform: rotate(157.5deg);">&#x2193;</div>',
+            8: '&#x2191;', // south
+            9: '<div style="transform: rotate(202.5deg);">&#x2193;</div>',
+            10: '&#x2197;',
+            11: '<div style="transform: rotate(247.5deg);">&#x2193;</div>',
+            12: '&#x2192;', // west
+            13: '<div style="transform: rotate(292.5deg);">&#x2193;</div>',
+            14: '&#x2198;',
+            15: '<div style="transform: rotate(337.5deg);">&#x2193;</div>',
+            16: '&#x2193;',
+            
+            // umimesh
             S: '&#x2191;',
             SW: '&#x2197;',
             W: '&#x2192;',
@@ -2180,7 +2200,7 @@
           noTimestamp = true;
         }
         ['precipitation10m', 'precipitation1h', 'precipitation3h',
-         'precipitation24h', 'temp', 'wind', 'sun1h', 'humidity',
+         'precipitation24h', 'temp', 'sun1h', 'humidity',
          'snow', 'snow6h', 'snow12h', 'snow24h'].forEach (k => {
           if (this['pcJMANowc_' + k]) {
             let l = L.tileLayer.jma ({
@@ -2195,6 +2215,27 @@
             noTimestamp = true;
           }
         });
+        if (this.pcJMANowc_wind) {
+          let l = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'amedas',
+            param1: 'windDirection',
+            noTimestamp,
+            map,
+          });
+          layers.push (l);
+          noTimestamp = true;
+          let m = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'amedas',
+            param1: 'wind',
+            noTimestamp,
+            map,
+          });
+          layers.push (m);
+        }
 
         layers.forEach (l => l.pcIsMapTypeLayer = true);
         
