@@ -480,7 +480,13 @@
   L.control.timestampControl = function (opts) {
     var t = document.createElement ('map-controls');
     t.className = 'paco-timestamp-control paco-jma-timestamp-control';
-    t.innerHTML = '<a href=https://www.jma.go.jp/ target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a><a href=https://www.jma.go.jp/bosai/nowc/ target=_blank rel=noreferrer>\u30CA\u30A6\u30AD\u30E3\u30B9\u30C8</a>\u7B49 <time data-format=abstime></time>';
+    let type = {
+      nowc: '<a href=https://www.jma.go.jp/bosai/nowc/ target=_blank rel=noreferrer>\u30CA\u30A6\u30AD\u30E3\u30B9\u30C8</a>',
+      umimesh: '<a href=https://www.jma.go.jp/bosai/umimesh/ target=_blank rel=noreferrer>\u6D77\u4E0A\u5206\u5E03\u4E88\u5831</a>',
+      himawari: '<a href=https://www.jma.go.jp/bosai/map.html#contents=himawari target=_blank rel=noreferrer>\u6C17\u8C61\u885B\u661F\u3072\u307E\u308F\u308A</a>',
+      amedas: '<a href=https://www.jma.go.jp/bosai/map.html#contents=amedas target=_blank rel=noreferrer>\u30A2\u30E1\u30C0\u30B9</a>',
+    }[opts.type];
+    t.innerHTML = '<a href=https://www.jma.go.jp/ target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a>'+type+'\u7B49 <time data-format=abstime></time> <span class=paco-jma-timestamp-control-base><time data-format=monthdaytime></time>\u57FA\u6E96</span>';
     opts.element = t;
     opts.styling = b => {
       var e = b.pcMap.getContainer ();
@@ -488,7 +494,23 @@
       var tzo = e.getAttribute ('tzoffset');
       if (tzo) time.setAttribute ('data-tzoffset', tzo);
     };
-    opts.setTimeElement (t.querySelector ('time'));
+    {
+      let tel = t.querySelector ('time');
+      let bc = t.querySelector ('.paco-jma-timestamp-control-base');
+      let bctel = bc.querySelector ('time');
+      opts.setTimeElementUpdater (time => {
+        tel.textContent = time.prevHTML;
+        tel.removeAttribute ('datetime');
+        if (time.prevHTML !== time.baseHTML) {
+          bc.hidden = false;
+          bctel.textContent = time.baseHTML;
+          bctel.removeAttribute ('datetime');
+          bctel.setAttribute ('data-reftime', time.prevHTML);
+        } else {
+          bc.hidden = true;
+        }
+      });
+    }
     return new L.Control.ElementControl (opts);
   }; // L.control.timestampControl
 
@@ -552,6 +574,7 @@
       maxNativeZoom: 6,
       opacity: 1,
       zooms: [],
+      jmaLinkType: 'himawari',
     },
     umimeshwind: {
       // https://www.jma.go.jp/bosai/umimesh/#lat:36.341678/lon:136.842957/zoom:8/colordepth:deep/elements:wind
@@ -567,6 +590,7 @@
       opacity: 1,
       zooms: [],
       isUmiWind: true,
+      jmaLinkType: 'umimesh',
     },
     umimeshwinddir: {
       //https://www.jma.go.jp/bosai/jmatile/data/umimesh/20240904000000/none/20240904060000/surf/wd/data.geojson?id=wd
@@ -581,6 +605,7 @@
       opacity: 1,
       zooms: [],
       isGeoJSON: true,
+      jmaLinkType: 'umimesh',
     },
   }; // JMAMaps
 
@@ -598,6 +623,7 @@
     maxNativeZoom: 5,
     opacity: 1,
     zooms: [],
+    jmaLinkType: 'himawari',
   };
   
   L.tileLayer.jma = function (opts) {
@@ -650,6 +676,7 @@
       var prevFormatted = prevHTML
           .replace (/(?:\.[0-9]+|)Z$/, '').replace (/[-:T]/g, '');
       if (md.noCurrent) cur = md.currentDelta * 60*1000;
+      let baseHTML;
       if (cur) {
         let ct = Math.floor (realNow / cur) * cur;
         if (md.noCurrent) {
@@ -662,11 +689,13 @@
           var x = (prev - ct) % f;
           ct -= f - x;
         }
-        urlTimestamp0 = new Date (ct).toISOString ()
+        baseHTML = new Date (ct).toISOString ();
+        urlTimestamp0 = baseHTML
             .replace (/(?:\.[0-9]+|)Z$/, '').replace (/[-:T]/g, '');
       }
       return {realNow, prev, prevFormatted, prevHTML, next, delta,
               urlTimestamp0: urlTimestamp0 || prevFormatted,
+              baseHTML: baseHTML || prevHTML,
               mapDef: md};
     }; // getTime
     
@@ -739,7 +768,7 @@
     var needReload = false;
     var needUpdate = false;
     var timeout;
-    var timeElement;
+    let updateTimeElements = () => {};
     var prevTimePrev = null;
     var requestReload = (layer, time) => {
       if (!needReload) return;
@@ -751,10 +780,7 @@
         if (!needReload) return;
         var time = getTime ();
         refetch (time, layer);
-        if (timeElement) {
-          timeElement.textContent = time.prevHTML;
-          timeElement.removeAttribute ('datetime');
-        }
+        updateTimeElements (time);
         if (explicitTime) needReload = false;
         requestReload (layer, time);
       }, needUpdate ? 0 : time.delta);
@@ -765,11 +791,11 @@
     if (!opts.noTimestamp) {
       let ts = L.control.timestampControl ({
         position: 'bottomleft',
-        setTimeElement: _ => {
-          timeElement = _;
-          timeElement.textContent = time.prevHTML;
-          timeElement.removeAttribute ('datetime');
+        setTimeElementUpdater: _ => {
+          updateTimeElements = _;
+          _ (time);
         },
+        type: mapDef.jmaLinkType || 'nowc',
         isLegend: true,
       });
       legends.push (ts);
@@ -1943,6 +1969,7 @@
             noTimestamp,
           });
           layers.push (layer);
+          noTimestamp = true;
           let layerD = L.tileLayer.jma ({
             maxZoom,
             type: 'umimeshwinddir',
@@ -1950,7 +1977,6 @@
             map,
           });
           layers.push (layerD);
-          noTimestamp = true;
         } else if (type === 'jma-umimesh-wind+gsi-standard') {
           let layer = L.tileLayer.jma ({
             maxZoom,
@@ -1959,6 +1985,7 @@
             noTimestamp,
           });
           layers.push (layer);
+          noTimestamp = true;
           let layerD = L.tileLayer.jma ({
             maxZoom,
             type: 'umimeshwinddir',
@@ -1966,7 +1993,6 @@
             map,
           });
           layers.push (layerD);
-          noTimestamp = true;
           let lGSI = L.gridLayer.gsiOverlay ({
             attribution: gsiCreditHTML,
             errorTileUrl,
