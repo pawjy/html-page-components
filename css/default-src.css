@@ -539,7 +539,13 @@ map-area popup-menu > menu-main > menu-item > popup-menu > menu-main {
 
 map-area .paco-timestamp-control {
   padding: 2px;
+  line-height: 1.2;
   font-feature-settings: "palt";
+}
+
+.leaflet-left .paco-timestamp-control {
+  margin-left: 5px;
+  margin-bottom: 5px;
 }
 
 map-area .paco-timestamp-control a {
@@ -551,11 +557,18 @@ map-area .paco-jma-timestamp-control {
   color: #333;
 }
 
-map-area .paco-jma-timestamp-control time:not([hidden]) {
+map-area .paco-jma-timestamp-control > time:not([hidden]) {
   display: block;
 }
 map-area .paco-jma-timestamp-control time {
   --timejs-serialization: dtsjp2;
+}
+
+map-area .paco-jma-timestamp-control-base:not([hidden]) {
+  display: block;
+}
+map-area .paco-jma-timestamp-control-base {
+  text-align: end;
 }
 
 @media (max-width: 500px) {
