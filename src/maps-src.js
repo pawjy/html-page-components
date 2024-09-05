@@ -731,19 +731,21 @@
       let mapper = (_, __) => _;
       let dataType = 'direction';
       let propKey = 'value';
+      let inKey = 'value';
       if (mapDef.jmaLinkType === 'amedas') {
-        let key = opts.param1 || mapDef.param1;
+        inKey = opts.param1 || mapDef.param1;
         mapper = (json, amedas) => {
           let features = [];
           Object.keys (json).forEach (aKey => {
             let w = json[aKey];
-            let v = w[key];
+            let v = w[inKey];
             if (v && v[1] == 0) {
               let a = amedas[aKey] || {lat: [], lon: []};
               features.push ({
                 type: 'Feature',
                 properties: {
                   value: v[0],
+                  wind: (w.wind || [])[0],
                 },
                 geometry: {
                   type: 'Point',
@@ -757,7 +759,7 @@
           });
           return {type: "FeatureCollection", features};
         };
-        dataType = key || 'value';
+        dataType = inKey || 'value';
       } else {
         propKey = 'windDir';
       }
@@ -765,6 +767,8 @@
       if (dataType === 'direction' || dataType === 'windDirection') {
         pointToLayer = function (feature, latlng) {
           let wd = feature.properties[propKey];
+          let value = feature.properties.wind;
+          let color = Math.floor (value / 5) * 5;
           let html = {
             // amedas
             0: '&#x2193;', // north
@@ -796,8 +800,8 @@
             SE: '&#x2196;',
           }[wd];
           let icon = L.divIcon ({
-            html,
-            className: 'paco-map-value-' + dataType,
+            html: '<data>' + html + '</data>',
+            className: 'paco-map-value-' + dataType + ' paco-map-value-key-' + inKey + ' paco-map-value-wind-' + color,
             iconSize: [30, 30],
             iconAnchor: [15, 15],
           });
@@ -868,7 +872,7 @@
           div.firstChild.className = 'paco-map-value-' + dataType + '-' + toColor (value);
           let icon = L.divIcon ({
             html: div.innerHTML,
-            className: 'paco-map-value-value',
+            className: 'paco-map-value-value paco-map-value-key-' + inKey,
             iconSize: [30, 30],
             iconAnchor: [15, 15],
           });
