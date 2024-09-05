@@ -1739,11 +1739,11 @@ The following properties are available:
         The Himawari photo
         <https://www.jma.go.jp/bosai/map.html#contents=himawari>.
 
-        B13/TBB    赤外画像
-        B03/ALBD   可視画像
-        B08/TBB    水蒸気画像
-        REP/ETC    トゥルーカラー再現画像
-        SND/ETC    雲頂強調画像
+        B13/TBB    赤外画像 (Infrared)
+        B03/ALBD   可視画像 (Visible)
+        B08/TBB    水蒸気画像 (Water Vapor)
+        REP/ETC    トゥルーカラー再現画像 (True Color Reproduction)
+        SND/ETC    雲頂強調画像 (Color Enhanced)
 
       himawari+gsi-standard:B13/TBB
       himawari+gsi-standard:B03/ALBD
@@ -1839,8 +1839,8 @@ The following properties are available:
 
   toggleJMANowc (flag, type)
 
-    Set whether the JMA map tile images should be shown over the map
-    or not.
+    Set whether the JMA data (Nowcast or Amedas) should be shown over
+    the map or not.
 
     The first argument, /flag/, is a boolean value.  If true, it's
     shown.
@@ -1873,6 +1873,66 @@ The following properties are available:
 
         The 竜巻発生確度ナウキャスト画像.  See:
         <https://www.data.jma.go.jp/add/suishin/cgi-bin/catalogue/make_product_page.cgi?id=Nowcast>.
+
+      precipitation10m
+
+        The 10分間降水量 (Precipitation (10-min.)) of Amedas.  See:
+        <https://www.jma.go.jp/bosai/map.html#contents=amedas>.
+
+      precipitation1h
+
+        The 1時間降水量 (Precipitation (1-hour)) of Amedas.  See:
+        <https://www.jma.go.jp/bosai/map.html#contents=amedas>.
+
+      precipitation3h
+
+        The 3時間降水量 (Precipitation (3-hour)) of Amedas.  See:
+        <https://www.jma.go.jp/bosai/map.html#contents=amedas>.
+
+      precipitation24h
+
+        The 24時間降水量 (Precipitation (24-hour)) of Amedas.  See:
+        <https://www.jma.go.jp/bosai/map.html#contents=amedas>.
+
+      wind
+
+        The 風向・風速 (Wind direction/speed) of Amedas.  See:
+        <https://www.jma.go.jp/bosai/map.html#contents=amedas>.
+
+      temp
+
+        The 気温 (Temperature) of Amedas.  See:
+        <https://www.jma.go.jp/bosai/map.html#contents=amedas>.
+
+      sun1h
+
+        The 日照時間 (Sunshine duration) of Amedas.  See:
+        <https://www.jma.go.jp/bosai/map.html#contents=amedas>.
+
+      snow
+
+        The 積雪深 (Snow depth) of Amedas.  See:
+        <https://www.jma.go.jp/bosai/map.html#contents=amedas>.
+
+      snow6h
+
+        The 6時間降雪量 (Snow fall (6-hour)) of Amedas.  See:
+        <https://www.jma.go.jp/bosai/map.html#contents=amedas>.
+
+      snow12h
+
+        The 12時間降雪量 (Snow fall (12-hour)) of Amedas.  See:
+        <https://www.jma.go.jp/bosai/map.html#contents=amedas>.
+
+      snow24h
+
+        The 24時間降雪量 (Snow fall (24-hour)) of Amedas.  See:
+        <https://www.jma.go.jp/bosai/map.html#contents=amedas>.
+
+      humidity
+
+        The 湿度 (Humidity) of Amedas.  See:
+        <https://www.jma.go.jp/bosai/map.html#contents=amedas>.
 
     See also: <https://www.jma.go.jp/bosai/nowc/>,
     <https://www.jma.go.jp/jma/kishou/info/coment.html>.
