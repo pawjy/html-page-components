@@ -921,6 +921,13 @@ map-area {
   --paco-maptype-jma-amedas-precipitation1h-text: 'Precipitation (1-hour)';
   --paco-maptype-jma-amedas-precipitation3h-text: 'Precipitation (3-hour)';
   --paco-maptype-jma-amedas-precipitation24h-text: 'Precipitation (24-hour)';
+  --paco-maptype-jma-amedas-wind-text: 'Wind direction/speed';
+  --paco-maptype-jma-amedas-snow-text: 'Snow depth';
+  --paco-maptype-jma-amedas-snow6h-text: 'Snow fall (6-hour)';
+  --paco-maptype-jma-amedas-snow12h-text: 'Snow fall (12-hour)';
+  --paco-maptype-jma-amedas-snow24h-text: 'Snow fall (24-hour)';
+  --paco-maptype-jma-amedas-humidity-text: 'Humidity';
+  --paco-maptype-jma-amedas-sun1h-text: 'Sunshine duration';
   --paco-maptype-menu-meteorological: 'Meteorological';
   --paco-marker-currentposition: "\25CF" purple 24px;
   --paco-marker-value: none;
@@ -963,6 +970,13 @@ map-area:lang(ja) {
   --paco-maptype-jma-amedas-precipitation1h-text: '1\6642\9593\964D\6C34\91CF';
   --paco-maptype-jma-amedas-precipitation3h-text: '3\6642\9593\964D\6C34\91CF';
   --paco-maptype-jma-amedas-precipitation24h-text: '24\6642\9593\964D\6C34\91CF';
+  --paco-maptype-jma-amedas-wind-text: '\98A8\5411\30FB\98A8\901F';
+  --paco-maptype-jma-amedas-snow-text: '\7A4D\96EA\6DF1';
+  --paco-maptype-jma-amedas-snow6h-text: '6\6642\9593\964D\96EA\91CF';
+  --paco-maptype-jma-amedas-snow12h-text: '12\6642\9593\964D\96EA\91CF';
+  --paco-maptype-jma-amedas-snow24h-text: '24\6642\9593\964D\96EA\91CF';
+  --paco-maptype-jma-amedas-humidity-text: '\6E7F\5EA6';
+  --paco-maptype-jma-amedas-sun1h-text: '\65E5\7167\6642\9593';
   --paco-maptype-menu-meteorological: '\6C17\8C61\60C5\5831';
   --paco-legend-show-text: "\51E1\4F8B\3092\8868\793A";
   --paco-legend-hide-text: "\51E1\4F8B\3092\96A0\3059";
@@ -1224,6 +1238,11 @@ map-area popup-menu > menu-main > menu-item > popup-menu > menu-main {
   left: 100% !important;
 }
 
+.paco-jma-weather-submenu menu-main {
+  margin-top: -10em;
+  max-height: 22em;
+}
+
 map-area .paco-timestamp-control {
   padding: 2px;
   line-height: 1.2;
@@ -1336,6 +1355,68 @@ map-area .paco-map-value-precipitation24h-100 { color: rgb(0, 65, 255) }
 map-area .paco-map-value-precipitation24h-80 { color: rgb(33, 140, 255) }
 map-area .paco-map-value-precipitation24h-50 { color: rgb(160, 210, 255) }
 map-area .paco-map-value-precipitation24h-0 { color: rgb(242, 242, 255) }
+
+map-area .paco-map-value-wind-25 { color: rgb(180, 0, 104) }
+map-area .paco-map-value-wind-20 { color: rgb(255, 40, 0) }
+map-area .paco-map-value-wind-15 { color: rgb(255, 153, 0) }
+map-area .paco-map-value-wind-10 { color: rgb(250, 245, 0) }
+map-area .paco-map-value-wind-5 { color: rgb(0, 65, 255) }
+map-area .paco-map-value-wind-0 { color: rgb(242, 242, 255) }
+
+map-area .paco-map-value-sun1h-1 { color: rgb(180, 0, 104) }
+map-area .paco-map-value-sun1h-0\.8 { color: rgb(255, 40, 0) }
+map-area .paco-map-value-sun1h-0\.6 { color: rgb(255, 153, 0) }
+map-area .paco-map-value-sun1h-0\.4 { color: rgb(250, 245, 0) }
+map-area .paco-map-value-sun1h-0\.2 { color: rgb(185, 235, 255) }
+map-area .paco-map-value-sun1h-0 { color: rgb(0, 65, 255) }
+
+map-area .paco-map-value-snow-200 { color: rgb(180, 0, 104) }
+map-area .paco-map-value-snow-150 { color: rgb(255, 40, 0) }
+map-area .paco-map-value-snow-100 { color: rgb(255, 153, 0) }
+map-area .paco-map-value-snow-50 { color: rgb(250, 245, 0) }
+map-area .paco-map-value-snow-20 { color: rgb(0, 65, 255) }
+map-area .paco-map-value-snow-5 { color: rgb(33, 140, 255) }
+map-area .paco-map-value-snow-1 { color: rgb(160, 210, 255) }
+map-area .paco-map-value-snow-0 { color: rgb(242, 242, 255) }
+
+map-area .paco-map-value-snow6h-50 { color: rgb(180, 0, 104) }
+map-area .paco-map-value-snow6h-30 { color: rgb(255, 40, 0) }
+map-area .paco-map-value-snow6h-20 { color: rgb(255, 153, 0) }
+map-area .paco-map-value-snow6h-15 { color: rgb(250, 245, 0) }
+map-area .paco-map-value-snow6h-10 { color: rgb(0, 65, 255) }
+map-area .paco-map-value-snow6h-5 { color: rgb(33, 140, 255) }
+map-area .paco-map-value-snow6h-1 { color: rgb(160, 210, 255) }
+map-area .paco-map-value-snow6h-0 { color: rgb(242, 242, 255) }
+
+map-area .paco-map-value-snow12h-70 { color: rgb(180, 0, 104) }
+map-area .paco-map-value-snow12h-50 { color: rgb(255, 40, 0) }
+map-area .paco-map-value-snow12h-30 { color: rgb(255, 153, 0) }
+map-area .paco-map-value-snow12h-20 { color: rgb(250, 245, 0) }
+map-area .paco-map-value-snow12h-10 { color: rgb(0, 65, 255) }
+map-area .paco-map-value-snow12h-5 { color: rgb(33, 140, 255) }
+map-area .paco-map-value-snow12h-1 { color: rgb(160, 210, 255) }
+map-area .paco-map-value-snow12h-0 { color: rgb(242, 242, 255) }
+
+map-area .paco-map-value-snow24h-100 { color: rgb(180, 0, 104) }
+map-area .paco-map-value-snow24h-70 { color: rgb(255, 40, 0) }
+map-area .paco-map-value-snow24h-50 { color: rgb(255, 153, 0) }
+map-area .paco-map-value-snow24h-30 { color: rgb(250, 245, 0) }
+map-area .paco-map-value-snow24h-20 { color: rgb(0, 65, 255) }
+map-area .paco-map-value-snow24h-10 { color: rgb(33, 140, 255) }
+map-area .paco-map-value-snow24h-1 { color: rgb(160, 210, 255) }
+map-area .paco-map-value-snow24h-0 { color: rgb(242, 242, 255) }
+
+map-area .paco-map-value-humidity-100 { color: rgb(1, 31, 125) }
+map-area .paco-map-value-humidity-90 { color: rgb(0, 75, 150) }
+map-area .paco-map-value-humidity-80 { color: rgb(0, 114, 154) }
+map-area .paco-map-value-humidity-70 { color: rgb(31, 194, 211) }
+map-area .paco-map-value-humidity-60 { color: rgb(128, 248, 231) }
+map-area .paco-map-value-humidity-50 { color: rgb(255, 255, 240) }
+map-area .paco-map-value-humidity-40 { color: rgb(255, 200, 70) }
+map-area .paco-map-value-humidity-30 { color: rgb(231, 135, 7) }
+map-area .paco-map-value-humidity-20 { color: rgb(171, 74, 1) }
+map-area .paco-map-value-humidity-10 { color: rgb(118, 17, 0) }
+map-area .paco-map-value-humidity-0 { color: rgb(84, 6, 0) }
 
 map-area .paco-currentposition-container {
   margin-right: 10px;

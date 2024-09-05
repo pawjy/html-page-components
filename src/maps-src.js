@@ -302,29 +302,13 @@
       if (e.hasAttribute ('jma')) {
         var mm = m.querySelector ('menu-main');
         var nodes = document.createElement ('div');
-        nodes.innerHTML = '<menu-item><label><input type=checkbox> <span>Rain</span></label></menu-item><menu-item><popup-menu><button type=button class=paco-control-button>Meteorological</button><menu-main><menu-item><label><input type=checkbox> <span>Thunder</span></label></menu-item><menu-item><label><input type=checkbox> <span>Tornado</span></label></menu-item><menu-item><label><input type=checkbox> <span>Temperature</span></label></menu-item><menu-item><label><input type=checkbox> <span>Precipitation 10m</span></label></menu-item><menu-item><label><input type=checkbox> <span>Precipitation 1h</span></label></menu-item><menu-item><label><input type=checkbox> <span>Precipitation 3h</span></label></menu-item><menu-item><label><input type=checkbox> <span>Precipitation 24h</span></label></menu-item></menu-main></popup-menu></menu-item><hr>';
-        var ins = nodes.querySelectorAll ('input');
-        ins[0].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'rain');
-        ins[1].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'thns');
-        ins[2].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'trns');
-        ins[3].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'temp');
-        ins[4].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'precipitation10m');
-        ins[5].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'precipitation1h');
-        ins[6].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'precipitation3h');
-        ins[7].onchange = (ev) => e.toggleJMANowc (ev.target.checked, 'precipitation24h');
-        var sRain = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jmanowc-current-text'), 'Rain');
-        var sThns = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jmanowc-thns-current-text'), 'Thunder');
-        var sTrns = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jmanowc-trns-current-text'), 'Tornado');
-        var lbs = nodes.querySelectorAll ('label span');
-        lbs[0].textContent = sRain;
-        lbs[1].textContent = sThns;
-        lbs[2].textContent = sTrns;
-        lbs[3].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jma-amedas-temp-text'), 'Temperature');
-        lbs[4].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jma-amedas-precipitation10m-text'), 'Precipitation 10m');
-        lbs[5].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jma-amedas-precipitation1h-text'), 'Precipitation 1h');
-        lbs[6].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jma-amedas-precipitation3h-text'), 'Precipitation 3h');
-        lbs[7].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-jma-amedas-precipitation24h-text'), 'Precipitation 24h');
-        nodes.querySelector ('button').textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-menu-meteorological'), 'Meteorological');
+        nodes.innerHTML = '<menu-item><label><input type=checkbox value=rain> <span data-x=jmanowc-current-text>Rain</span></label></menu-item><menu-item><popup-menu class=paco-jma-weather-submenu><button type=button class=paco-control-button><span data-x=menu-meteorological>Meteorological</span></button><menu-main><menu-item><label><input type=checkbox value=thns> <span data-x=jmanowc-thns-current-text>Thunder</span></label></menu-item><menu-item><label><input type=checkbox value=trns> <span data-x=jmanowc-trns-current-text>Tornado</span></label></menu-item><menu-item><label><input type=checkbox value=temp> <span data-x=jma-amedas-temp-text>Temperature</span></label></menu-item><menu-item><label><input type=checkbox value=wind> <span data-x=jma-amedas-wind-text>Wind</span></label></menu-item><menu-item><label><input type=checkbox value=precipitation10m> <span data-x=jma-amedas-precipitation10m-text>Precipitation 10m</span></label></menu-item><menu-item><label><input type=checkbox value=precipitation1h> <span data-x=jma-amedas-precipitation1h-text>Precipitation 1h</span></label></menu-item><menu-item><label><input type=checkbox value=precipitation3h> <span data-x=jma-amedas-precipitation3h-text>Precipitation 3h</span></label></menu-item><menu-item><label><input type=checkbox value=precipitation24h> <span data-x=jma-amedas-precipitation24h-text>Precipitation 24h</span></label></menu-item><menu-item><label><input type=checkbox value=snow> <span data-x=jma-amedas-snow-text>Snow</span></label></menu-item><menu-item><label><input type=checkbox value=snow6h> <span data-x=jma-amedas-snow6h-text>Snow 6h</span></label></menu-item><menu-item><label><input type=checkbox value=snow12h> <span data-x=jma-amedas-snow12h-text>Snow 12h</span></label></menu-item><menu-item><label><input type=checkbox value=snow24h> <span data-x=jma-amedas-snow24h-text>Snow 24h</span></label></menu-item><menu-item><label><input type=checkbox value=humidity> <span data-x=jma-amedas-humidity-text>Humidity</span></label></menu-item><menu-item><label><input type=checkbox value=sun1h> <span data-x=jma-amedas-sun1h-text>Sun 1h</span></label></menu-item></menu-main></popup-menu></menu-item><hr>';
+        nodes.querySelectorAll ('input').forEach (i => {
+          i.onchange = (ev) => e.toggleJMANowc (i.checked, i.value);
+        });
+        nodes.querySelectorAll ('span[data-x]').forEach (x => {
+          x.textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-' + x.getAttribute ('data-x')), x.textContent);
+        });
         Array.prototype.slice.call (nodes.childNodes).reverse ().forEach (_ => mm.insertBefore (_, mm.firstChild));
       } // jma=""
 
@@ -806,9 +790,19 @@
           precipitation1h: 0,
           precipitation3h: 0,
           precipitation24h: 0,
+          wind: 0,
+          humidity: 0,
+          sun1h: 1,
+          snow: 0,
+          snow6h: 0,
+          snow12h: 0,
+          snow24h: 0,
         }[dataType];
         let toColor = {
           temp: _ => Math.floor (_ / 5) * 5,
+          wind: _ => Math.floor (_ / 5) * 5,
+          humidity: _ => Math.floor (_ / 10) * 10,
+          sun1h: _ => Math.floor (_ * 10 / 2) * 2 / 10,
           precipitation10m: _ => {
             return _ >= 30 ? 30 : _ >= 20 ? 20 : _ >= 15 ? 15 :
               _ >= 10 ? 10 : _ >= 5 ? 5 : _ >= 3 ? 3 : _ >= 1 ? 1 : 0;
@@ -824,6 +818,26 @@
           precipitation24h: _ => {
             return _ >= 300 ? 300 : _ >= 250 ? 250 : _ >= 200 ? 200 :
               _ >= 150 ? 150 : _ >= 100 ? 100 : _ >= 80 ? 80 : _ >= 50 ? 50 : 0;
+          },
+          snow: _ => {
+            return _ >= 200 ? 200 : _ >= 150 ? 150 : _ >= 100 ? 100 :
+              _ >= 50 ? 50 : _ >= 20 ? 20 : _ >= 5 ? 5 : _ >= 1 ? 1 : 0;
+          },
+          snow6h: _ => {
+            return _ >= 50 ? 50 : _ >= 30 ? 30 : _ >= 20 ? 20 :
+              _ >= 15 ? 15 : _ >= 10 ? 10 : _ >= 5 ? 5 : _ >= 1 ? 1 : 0;
+          },
+          snow12h: _ => {
+            return _ >= 70 ? 70 : _ >= 50 ? 50 : _ >= 30 ? 30 :
+              _ >= 20 ? 20 : _ >= 10 ? 10 : _ >= 5 ? 5 : _ >= 1 ? 1 : 0;
+          },
+          snow24h: _ => {
+            return _ >= 100 ? 100 : _ >= 70 ? 70 : _ >= 50 ? 50 :
+              _ >= 30 ? 30 : _ >= 20 ? 20 : _ >= 10 ? 10 : _ >= 1 ? 1 : 0;
+          },
+          sun1h: _ => {
+            return _ >= 1 ? 1 : _ >= 0.8 ? 0.8 : _ >= 0.6 ? 0.6 :
+              _ >= 0.4 ? 0.4 : _ >= 0.2 ? 0.2 : 0;
           },
         }[dataType];
         pointToLayer = function (feature, latlng) {
@@ -2160,66 +2174,22 @@
           layers.push (lNowc);
           noTimestamp = true;
         }
-        if (this.pcJMANowc_temp) {
-          let l = L.tileLayer.jma ({
-            maxZoom,
-            errorTileUrl,
-            type: 'amedas',
-            param1: 'temp',
-            noTimestamp,
-            map,
-          });
-          layers.push (l);
-          noTimestamp = true;
-        }
-        if (this.pcJMANowc_precipitation10m) {
-          let l = L.tileLayer.jma ({
-            maxZoom,
-            errorTileUrl,
-            type: 'amedas',
-            param1: 'precipitation10m',
-            noTimestamp,
-            map,
-          });
-          layers.push (l);
-          noTimestamp = true;
-        }
-        if (this.pcJMANowc_precipitation1h) {
-          let l = L.tileLayer.jma ({
-            maxZoom,
-            errorTileUrl,
-            type: 'amedas',
-            param1: 'precipitation1h',
-            noTimestamp,
-            map,
-          });
-          layers.push (l);
-          noTimestamp = true;
-        }
-        if (this.pcJMANowc_precipitation3h) {
-          let l = L.tileLayer.jma ({
-            maxZoom,
-            errorTileUrl,
-            type: 'amedas',
-            param1: 'precipitation3h',
-            noTimestamp,
-            map,
-          });
-          layers.push (l);
-          noTimestamp = true;
-        }
-        if (this.pcJMANowc_precipitation24h) {
-          let l = L.tileLayer.jma ({
-            maxZoom,
-            errorTileUrl,
-            type: 'amedas',
-            param1: 'precipitation24h',
-            noTimestamp,
-            map,
-          });
-          layers.push (l);
-          noTimestamp = true;
-        }
+        ['precipitation10m', 'precipitation1h', 'precipitation3h',
+         'precipitation24h', 'temp', 'wind', 'sun1h', 'humidity',
+         'snow', 'snow6h', 'snow12h', 'snow24h'].forEach (k => {
+          if (this['pcJMANowc_' + k]) {
+            let l = L.tileLayer.jma ({
+              maxZoom,
+              errorTileUrl,
+              type: 'amedas',
+              param1: k,
+              noTimestamp,
+              map,
+            });
+            layers.push (l);
+            noTimestamp = true;
+          }
+        });
 
         layers.forEach (l => l.pcIsMapTypeLayer = true);
         
