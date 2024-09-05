@@ -71,6 +71,8 @@ build: build-deps build-main
 build-deps:
 build-main: src/qrcode.js src/maps.js css/default.css
 
+build-github-pages:
+
 ## ------ Tests ------
 
 test: test-deps test-main
