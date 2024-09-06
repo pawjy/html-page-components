@@ -342,7 +342,11 @@
     var d = e.querySelector ('input[type=date]');
     var t = e.querySelector ('input[type=time]');
 
-    this.assert.equal (e.value, new Date ((new Date).toISOString ().replace (/T.+/, 'T00:00-02:00')).valueOf () / 1000);
+    if ((new Date).getUTCHours () < 2) {
+      this.assert.equal (e.value, new Date ((new Date ((new Date).valueOf () - 10*60*60*1000)).toISOString ().replace (/T.+/, 'T00:00-02:00')).valueOf () / 1000);
+    } else {
+      this.assert.equal (e.value, new Date ((new Date).toISOString ().replace (/T.+/, 'T00:00-02:00')).valueOf () / 1000);
+    }
     this.assert.equal (changed.length, 1);
     this.assert.equal (changed[0], e.value);
   </test-code>
