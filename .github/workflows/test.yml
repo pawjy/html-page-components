@@ -126,7 +126,7 @@
             },
             {
                "if" : "${{ always () }}",
-               "uses" : "actions/upload-artifact@v3",
+               "uses" : "actions/upload-artifact",
                "with" : {
                   "path" : "/tmp/circle-artifacts/test"
                }
