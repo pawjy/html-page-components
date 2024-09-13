@@ -1324,6 +1324,7 @@ map-area .paco-map-value-value data {
   padding: .5px 2px;
   line-height: 1.0;
   text-shadow: 2px 2px black;
+  text-wrap: nowrap;
 }
 
 map-area .paco-map-value-temp-35 { color: rgb(180, 0, 104) }
