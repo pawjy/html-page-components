@@ -10,6 +10,381 @@
   }).apply ({});
   var L = console.pcMaps.L = window.L;
   L.noConflict ();
+  (function () {
+    (function() {
+
+'use strict';
+
+var isRingBbox = function (ring, bbox) {
+    if (ring.length !== 4) {
+        return false;
+    }
+
+    var p, sumX = 0, sumY = 0;
+
+    for (p = 0; p < 4; p++) {
+        if ((ring[p].x !== bbox.min.x && ring[p].x !== bbox.max.x) ||
+            (ring[p].y !== bbox.min.y && ring[p].y !== bbox.max.y)) {
+            return false;
+        }
+
+        sumX += ring[p].x;
+        sumY += ring[p].y;
+        
+        //bins[Number(ring[p].x === bbox.min.x) + 2 * Number(ring[p].y === bbox.min.y)] = 1;
+    }
+
+    //check that we have all 4 vertex of bbox in our geometry
+    return sumX === 2*(bbox.min.x + bbox.max.x) && sumY === 2*(bbox.min.y + bbox.max.y);
+};
+
+var ExtendMethods = {
+    _toMercGeometry: function(b, isGeoJSON) {
+        var res = [];
+        var c, r, p,
+            mercComponent,
+            mercRing,
+            coords;
+
+        if (!isGeoJSON) {
+            if (!(b[0] instanceof Array)) {
+                b = [[b]];
+            } else if (!(b[0][0] instanceof Array)) {
+                b = [b];
+            }
+        }
+
+        for (c = 0; c < b.length; c++) {
+            mercComponent = [];
+            for (r = 0; r < b[c].length; r++) {
+                mercRing = [];
+                for (p = 0; p < b[c][r].length; p++) {
+                    coords = isGeoJSON ? L.latLng(b[c][r][p][1], b[c][r][p][0]) : b[c][r][p];
+                    mercRing.push(this._map.project(coords, 0));
+                }
+                mercComponent.push(mercRing);
+            }
+            res.push(mercComponent);
+        }
+        
+        return res;
+    },
+    
+    //lazy calculation of layer's boundary in map's projection. Bounding box is also calculated
+    _getOriginalMercBoundary: function () {
+        if (this._mercBoundary) {
+            return this._mercBoundary;
+        }
+
+        var compomentBbox, c;
+            
+        if (L.Util.isArray(this.options.boundary)) { //Depricated: just array of coordinates
+            this._mercBoundary = this._toMercGeometry(this.options.boundary);
+        } else { //GeoJSON
+            this._mercBoundary = [];
+            var processGeoJSONObject = function(obj) {
+                if (obj.type === 'GeometryCollection') {
+                    obj.geometries.forEach(processGeoJSONObject);
+                } else if (obj.type === 'Feature') {
+                    processGeoJSONObject(obj.geometry);
+                } else if (obj.type === 'FeatureCollection') {
+                    obj.features.forEach(processGeoJSONObject);
+                } else if (obj.type === 'Polygon') {
+                    this._mercBoundary = this._mercBoundary.concat(this._toMercGeometry([obj.coordinates], true));
+                } else if (obj.type === 'MultiPolygon') {
+                    this._mercBoundary = this._mercBoundary.concat(this._toMercGeometry(obj.coordinates, true));
+                }
+            }.bind(this);
+            processGeoJSONObject(this.options.boundary);
+        }
+        
+        this._mercBbox = new L.Bounds();
+        for (c = 0; c < this._mercBoundary.length; c++) {
+            compomentBbox = new L.Bounds(this._mercBoundary[c][0]);
+            this._mercBbox.extend(compomentBbox.min);
+            this._mercBbox.extend(compomentBbox.max);
+        }
+
+        return this._mercBoundary;
+    },
+
+    _getClippedGeometry: function(geom, bounds) {
+        var clippedGeom = [],
+            clippedComponent,
+            clippedExternalRing,
+            clippedHoleRing,
+            iC, iR;
+            
+        for (iC = 0; iC < geom.length; iC++) {
+            clippedComponent = [];
+            clippedExternalRing = L.PolyUtil.clipPolygon(geom[iC][0], bounds);
+            if (clippedExternalRing.length === 0) {
+                continue;
+            }
+
+            clippedComponent.push(clippedExternalRing);
+
+            for (iR = 1; iR < geom[iC].length; iR++) {
+                clippedHoleRing = L.PolyUtil.clipPolygon(geom[iC][iR], bounds);
+                if (clippedHoleRing.length > 0) {
+                    clippedComponent.push(clippedHoleRing);
+                }
+            }
+            clippedGeom.push(clippedComponent);
+        }
+        
+        if (clippedGeom.length === 0) { //we are outside of all multipolygon components
+            return {isOut: true};
+        }
+
+        for (iC = 0; iC < clippedGeom.length; iC++) {
+            if (isRingBbox(clippedGeom[iC][0], bounds)) {
+                //inside exterior rings and no holes
+                if (clippedGeom[iC].length === 1) {
+                    return {isIn: true};
+                }
+            } else { //intersects exterior ring
+                return {geometry: clippedGeom};
+            }
+
+            for (iR = 1; iR < clippedGeom[iC].length; iR++) {
+                //inside exterior ring, but have intersection with a hole
+                if (!isRingBbox(clippedGeom[iC][iR], bounds)) {
+                    return {geometry: clippedGeom};
+                }
+            }
+        }
+
+        //we are inside all holes in geometry
+        return {isOut: true};
+    },
+
+    // Calculates intersection of original boundary geometry and tile boundary.
+    // Uses quadtree as cache to speed-up intersection.
+    // Return 
+    //   {isOut: true} if no intersection,  
+    //   {isIn: true} if tile is fully inside layer's boundary
+    //   {geometry: <LatLng[][][]>} otherwise
+    _getTileGeometry: function (x, y, z, skipIntersectionCheck) {
+        if ( !this.options.boundary) {
+            return {isIn: true};
+        }
+    
+        var cacheID = x + ":" + y + ":" + z,
+            zCoeff = Math.pow(2, z),
+            parentState,
+            cache = this._boundaryCache;
+
+        if (cache[cacheID]) {
+            return cache[cacheID];
+        }
+
+        var mercBoundary = this._getOriginalMercBoundary(),
+            ts = this.options.tileSize,
+            tileBbox = new L.Bounds(new L.Point(x * ts / zCoeff, y * ts / zCoeff), new L.Point((x + 1) * ts / zCoeff, (y + 1) * ts / zCoeff));
+
+        //fast check intersection
+        if (!skipIntersectionCheck && !tileBbox.intersects(this._mercBbox)) {
+            return {isOut: true};
+        }
+
+        if (z === 0) {
+            cache[cacheID] = {geometry: mercBoundary};
+            return cache[cacheID];
+        }
+
+        parentState = this._getTileGeometry(Math.floor(x / 2), Math.floor(y / 2), z - 1, true);
+
+        if (parentState.isOut || parentState.isIn) {
+            return parentState;
+        }
+        
+        cache[cacheID] = this._getClippedGeometry(parentState.geometry, tileBbox);
+        return cache[cacheID];
+    },
+
+    _drawTileInternal: function (canvas, tilePoint, url, callback) {
+        var zoom = this._getZoomForUrl(),
+            state = this._getTileGeometry(tilePoint.x, tilePoint.y, zoom);
+
+        if (state.isOut) {
+            callback();
+            return;
+        }
+
+        var ts = this.options.tileSize,
+            tileX = ts * tilePoint.x,
+            tileY = ts * tilePoint.y,
+            zCoeff = Math.pow(2, zoom),
+            ctx = canvas.getContext('2d'),
+            imageObj = new Image(),
+            _this = this;
+            
+        var setPattern = function () {
+            var c, r, p,
+                pattern,
+                geom;
+
+            if (!state.isIn) {
+                geom = state.geometry;
+                ctx.beginPath();
+
+                for (c = 0; c < geom.length; c++) {
+                    for (r = 0; r < geom[c].length; r++) {
+                        if (geom[c][r].length === 0) {
+                            continue;
+                        }
+
+                        ctx.moveTo(geom[c][r][0].x * zCoeff - tileX, geom[c][r][0].y * zCoeff - tileY);
+                        for (p = 1; p < geom[c][r].length; p++) {
+                            ctx.lineTo(geom[c][r][p].x * zCoeff - tileX, geom[c][r][p].y * zCoeff - tileY);
+                        }
+                    }
+                }
+                ctx.clip();
+            }
+
+            pattern = ctx.createPattern(imageObj, "repeat");
+            ctx.beginPath();
+            ctx.rect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = pattern;
+            ctx.fill();
+            callback();
+        };
+        
+        if (this.options.crossOrigin) {
+            imageObj.crossOrigin = '';
+        }
+        
+        imageObj.onload = function () {
+            //TODO: implement correct image loading cancelation
+            canvas.complete = true; //HACK: emulate HTMLImageElement property to make happy L.TileLayer
+            setTimeout(setPattern, 0); //IE9 bug - black tiles appear randomly if call setPattern() without timeout
+        }
+        
+        imageObj.src = url;
+    },
+    
+    onAdd: function(map) {
+        (L.TileLayer.Canvas || L.TileLayer).prototype.onAdd.call(this, map);
+        
+        if (this.options.trackAttribution) {
+            map.on('moveend', this._updateAttribution, this);
+            this._updateAttribution();
+        }
+    },
+    
+    onRemove: function(map) {
+        (L.TileLayer.Canvas || L.TileLayer).prototype.onRemove.call(this, map);
+        
+        if (this.options.trackAttribution) {
+            map.off('moveend', this._updateAttribution, this);
+            if (!this._attributionRemoved) {
+                var attribution = L.TileLayer.BoundaryCanvas.prototype.getAttribution.call(this);
+                map.attributionControl.removeAttribution(attribution);
+            }
+        }
+    },
+    
+    _updateAttribution: function() {
+        var geom = this._getOriginalMercBoundary(),
+            mapBounds = this._map.getBounds(),
+            mercBounds = L.bounds(this._map.project(mapBounds.getSouthWest(), 0), this._map.project(mapBounds.getNorthEast(), 0)),
+            state = this._getClippedGeometry(geom, mercBounds);
+        
+        if (this._attributionRemoved !== !!state.isOut) {
+            var attribution = L.TileLayer.BoundaryCanvas.prototype.getAttribution.call(this);
+            this._map.attributionControl[state.isOut ? 'removeAttribution' : 'addAttribution'](attribution);
+            this._attributionRemoved = !!state.isOut;
+        }
+    }
+};
+
+if (L.version >= '0.8') {
+    L.TileLayer.BoundaryCanvas = L.TileLayer.extend({
+        options: {
+            // all rings of boundary should be without self-intersections or intersections with other rings
+            // zero-winding fill algorithm is used in canvas, so holes should have opposite direction to exterior ring
+            // boundary can be
+            // LatLng[] - simple polygon
+            // LatLng[][] - polygon with holes
+            // LatLng[][][] - multipolygon
+            boundary: null
+        },
+        includes: ExtendMethods,
+        initialize: function(url, options) {
+            L.TileLayer.prototype.initialize.call(this, url, options);
+            this._boundaryCache = {}; //cache index "x:y:z"
+            this._mercBoundary = null;
+            this._mercBbox = null;
+            
+            if (this.options.trackAttribution) {
+                this._attributionRemoved = true;
+                this.getAttribution = null;
+            }
+        },
+        createTile: function(coords, done){
+            var tile = document.createElement('canvas'),
+                url = this.getTileUrl(coords);
+            tile.width = tile.height = this.options.tileSize;
+            this._drawTileInternal(tile, coords, url, L.bind(done, null, null, tile));
+
+            return tile;
+        }
+    })
+} else {
+    L.TileLayer.BoundaryCanvas = L.TileLayer.Canvas.extend({
+        options: {
+            // all rings of boundary should be without self-intersections or intersections with other rings
+            // zero-winding fill algorithm is used in canvas, so holes should have opposite direction to exterior ring
+            // boundary can be
+            // LatLng[] - simple polygon
+            // LatLng[][] - polygon with holes
+            // LatLng[][][] - multipolygon
+            boundary: null
+        },
+        includes: ExtendMethods,
+        initialize: function (url, options) {
+            L.Util.setOptions(this, options);
+            L.Util.setOptions(this, {async: true}); //image loading is always async
+            this._url = url;
+            this._boundaryCache = {}; //cache index "x:y:z"
+            this._mercBoundary = null;
+            this._mercBbox = null;
+            
+            if (this.options.trackAttribution) {
+                this._attributionRemoved = true;
+                this.getAttribution = null;
+            }
+        },
+        
+        drawTile: function(canvas, tilePoint) {
+            var adjustedTilePoint = L.extend({}, tilePoint),
+                url;
+
+            this._adjustTilePoint(adjustedTilePoint);
+            url = this.getTileUrl(adjustedTilePoint);
+            this._drawTileInternal(canvas, tilePoint, url, L.bind(this.tileDrawn, this, canvas));
+
+            //Leaflet v0.7.x bugfix (L.Tile.Canvas doesn't support maxNativeZoom option)
+            if (this._getTileSize() !== this.options.tileSize) {
+                canvas.style.width = canvas.style.height = this._getTileSize() + 'px';
+            }
+        }
+    });
+}
+
+L.TileLayer.boundaryCanvas = function (url, options) {
+    return new L.TileLayer.BoundaryCanvas(url, options);
+};
+
+L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
+    return new L.TileLayer.BoundaryCanvas(layer._url, L.extend({}, layer.options, options));
+};
+
+})();
+
+  }).apply ({});
 
   var define = function (def) {
     var e = document.createElementNS ('data:,pc', 'element');
@@ -22,6 +397,32 @@
   var gsiCreditHTML = "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank' lang=ja>\u56FD\u571F\u5730\u7406\u9662</a>";
   var gsiPhotoCreditHTML = "<details is=pc-map-credit-details><summary lang=ja>\u56FD\u571F\u5730\u7406\u9662\u4ED6</summary><p>"+gsiCreditHTML+"<p lang=ja>\u30C7\u30FC\u30BF\u30BD\u30FC\u30B9\uFF1ALandsat8\u753B\u50CF\uFF08GSI,TSIC,GEO Grid/AIST\uFF09, Landsat8\u753B\u50CF\uFF08courtesy of the U.S. Geological Survey\uFF09, \u6D77\u5E95\u5730\u5F62\uFF08GEBCO\uFF09<p lang=en>Images on \u4E16\u754C\u885B\u661F\u30E2\u30B6\u30A4\u30AF\u753B\u50CF obtained from site <a href=https://lpdaac.usgs.gov/data_access target=_blank>https://lpdaac.usgs.gov/data_access</a> maintained by the NASA Land Processes Distributed Active Archive Center (LP DAAC), USGS/Earth Resources Observation and Science (EROS) Center, Sioux Falls, South Dakota, (Year). Source of image data product.</details>";
   
+  let JPBoundary = [
+    {"lat":35.262290171262606,"lon":129.52549541458012},
+    {"lat":33.63563443112933,"lon":128.11152711598143},
+    {"lat":27.350347623784252,"lon":122.69130149811586},
+    {"lat":22.818018713458926,"lon":122.42140894091759},
+    {"lat":21.46928247377045,"lon":125.74416177967775},
+    {"lat":22.451602587213536,"lon":127.43306430310153},
+    {"lat":19.910331362180518,"lon":132.72485690436136},
+    {"lat":17.550912179219264,"lon":133.21061202970304},
+    {"lat":16.53723722190111,"lon":138.13503721601717},
+    {"lat":20.22565975490805,"lon":140.48645650704304},
+    {"lat":24.577877843701554,"lon":146.08591144544644},
+    {"lat":18.180686409947512,"lon":152.28310995076697},
+    {"lat":23.502592722918372,"lon":160.08685089215786},
+    {"lat":49.547861062839964,"lon":159.2554522102241},
+    {"lat":56.39427546745975,"lon":144.1097173256088},
+    {"lat":54.936641506776475,"lon":141.51017029606572},
+    {"lat":52.18604106241055,"lon":141.58175707690273},
+    {"lat":49.968503479436386,"lon":141.37523485646417},
+    {"lat":45.97493268294697,"lon":140.02162914620013},
+    {"lat":40.57302091108701,"lon":135.0996451677164},
+    {"lat":39.391052033518854,"lon":131.81659632507836},
+    {"lat":35.721172006694296,"lon":130.9465206056198},
+    {"lat":35.262290171262606,"lon":129.52549541458012},
+  ];
+
   var ColorOpacities = console.pcMaps.ColorOpacities = {
     '0,0,0': 1,
     '30,30,30': 1,
@@ -1982,45 +2383,115 @@
         var maxZoom = 21;
         var errorTileUrl = this.getAttribute ('noimgsrc') || noImageURL;
         if (type === 'gsi-standard') {
-          var lStd = L.tileLayer
+          let wLayer = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
                 attribution: gsiCreditHTML,
                 errorTileUrl,
-                maxNativeZoom: 18,
+                maxNativeZoom: 8,
                 minNativeZoom: 2,
                 maxZoom,
               });
-          layers.push (lStd);
+          layers.push (wLayer);
+          
+          let jpLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 18,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+              });
+          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer, {boundary: JPBoundary});
+          layers.push (jpLayerClipped);
         } else if (type === 'gsi-english') {
-          var lEng = L.tileLayer
+          let wLayer = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png', {
                 attribution: gsiCreditHTML,
                 errorTileUrl,
-                maxNativeZoom: 11,
+                maxNativeZoom: 8,
                 minNativeZoom: 5,
                 maxZoom,
               });
-          layers.push (lEng);
-        } else if (type === 'gsi-hillshade') {
-          var lShade = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+          layers.push (wLayer);
+          
+          let jpLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 11,
+                minNativeZoom: 5,
+                maxZoom,
+                minZoom: 9,
+              });
+          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer, {boundary: JPBoundary});
+          layers.push (jpLayerClipped);
+        } else if (type === 'gsi-english-standard') {
+          let wLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png', {
                 attribution: gsiCreditHTML,
                 errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 5,
+                maxZoom,
+              });
+          layers.push (wLayer);
+
+          let jpLayer1 = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 18,
+                minNativeZoom: 12,
+                maxZoom,
+                minZoom: 12,
+              });
+          let jpLayer2 = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 11,
+                minNativeZoom: 5,
+                maxZoom: Math.min (11, maxZoom) || 11,
+                minZoom: 9,
+              });
+          let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer1, {boundary: JPBoundary});
+          layers.push (jpLayer1Clipped);
+          let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer2, {boundary: JPBoundary});
+          layers.push (jpLayer2Clipped);
+        } else if (type === 'gsi-hillshade') {
+          let wLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 0,
+                maxZoom,
+              });
+          layers.push (wLayer);
+
+          let jpLayer1 = L.tileLayer
+          ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23ededed'/%3E%3C/svg%3E", {
                 maxNativeZoom: 16,
                 minNativeZoom: 2,
                 maxZoom,
+                minZoom: 9,
               });
-          layers.push (lShade);
-        } else if (type === 'gsi-photo') {
-          var lPhoto = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
-                attribution: gsiPhotoCreditHTML,
-                errorTileUrl,
-                maxNativeZoom: 18,
+          let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer1, {boundary: JPBoundary});
+          layers.push (jpLayer1Clipped);
+          
+          let jpLayer2 = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 16,
                 minNativeZoom: 2,
                 maxZoom,
+                minZoom: 9,
               });
-          layers.push (lPhoto);
+          let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer2, {boundary: JPBoundary});
+          layers.push (jpLayer2Clipped);
         } else if (type === 'gsi-standard-hillshade') {
           var lShade = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
@@ -2061,42 +2532,57 @@
               });
           layers.push (lShade);
           layers.push (lGSI);
-        } else if (type === 'gsi-photo-standard') {
-          var lPhoto = L.tileLayer
+          // non-jp area not supported
+        } else if (type === 'gsi-photo') {
+          let wLayer = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
                 attribution: gsiPhotoCreditHTML,
                 errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 2,
+                maxZoom,
+              });
+          layers.push (wLayer);
+          
+          let jpLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+                attribution: gsiPhotoCreditHTML,
                 maxNativeZoom: 18,
                 minNativeZoom: 2,
                 maxZoom,
-             });
-          layers.push (lPhoto);
+                minZoom: 9,
+              });
+          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer, {boundary: JPBoundary});
+          layers.push (jpLayerClipped);
+        } else if (type === 'gsi-photo-standard') {
+          let wLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+                attribution: gsiPhotoCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 2,
+                maxZoom,
+              });
+          layers.push (wLayer);
+          
+          let jpLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+                attribution: gsiPhotoCreditHTML,
+                maxNativeZoom: 18,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+              });
+          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer, {boundary: JPBoundary});
+          layers.push (jpLayerClipped);
+
           let lGSI = L.gridLayer.gsiOverlay ({
             //attribution: gsiCreditHTML,
             errorTileUrl,
             maxNativeZoom: 18,
             minNativeZoom: 2,
-            maxZoom,
-          });
-          layers.push (lGSI);
-        } else if (type === 'gsi-english-standard') {
-          var lGSI = L.gridLayer.tileImages ({
-            srcs: [
-              {
-                url: 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png',
-                maxZoom: 18,
-                minZoom: 12,
-              },
-              {
-                url: 'https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png',
-                maxZoom: 11,
-                minZoom: 5,
-              },
-            ],
-            attribution: gsiCreditHTML,
-            errorTileUrl,
-            maxNativeZoom: 18,
-            minNativeZoom: 5,
             maxZoom,
           });
           layers.push (lGSI);
@@ -2538,4 +3024,27 @@ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRU
 HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+/*
+MIT License
+
+Copyright (c) 2018 Alexander Parshin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */

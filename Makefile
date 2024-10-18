@@ -46,13 +46,20 @@ intermediate-leaflet:
 intermediate/leaflet/leaflet.js: intermediate-leaflet
 intermediate/leaflet/leaflet.css: intermediate-leaflet
 intermediate/leaflet/LICENSE: intermediate-leaflet
+intermediate/leaflet/BoundaryCanvas.js: intermediate-leaflet
+intermediate/leaflet/LICENSE.boundary: intermediate-leaflet
 
 src/maps.js: src/maps-src.js \
-    intermediate/leaflet/leaflet.js intermediate/leaflet/LICENSE
-	cat $< | perl -n -e 's{/\*\@\@\@leaflet.js\@\@\@\*/}{open $$f, "<", "intermediate/leaflet/leaflet.js"; join "", <$$f>}ge; s{^//# sourceMappingURL=}{//}gm; print' > $@
+    intermediate/leaflet/leaflet.js intermediate/leaflet/LICENSE \
+    intermediate/leaflet/BoundaryCanvas.js \
+    intermediate/leaflet/LICENSE.boundary
+	cat $< | perl -n -e 's{/\*\@\@\@leaflet.js\@\@\@\*/}{open $$f, "<", "intermediate/leaflet/leaflet.js"; join "", <$$f>}ge; s{/\*\@\@\@BoundaryCanvas.js\@\@\@\*/}{open $$f, "<", "intermediate/leaflet/BoundaryCanvas.js"; join "", <$$f>}ge; s{^//# sourceMappingURL=}{//}gm; s{\xEF\xBB\xBF}{}gm; print' > $@
 	echo '/* Leaflet */' >> $@
 	echo '/*' >> $@
 	cat intermediate/leaflet/LICENSE >> $@
+	echo '*/' >> $@
+	echo '/*' >> $@
+	cat intermediate/leaflet/LICENSE.boundary >> $@
 	echo '*/' >> $@
 
 css/default.css: \
