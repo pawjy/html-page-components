@@ -32,13 +32,34 @@
     {"lat":16.53723722190111,"lon":138.13503721601717},
     {"lat":20.22565975490805,"lon":140.48645650704304},
     {"lat":24.577877843701554,"lon":146.08591144544644},
-    {"lat":18.180686409947512,"lon":152.28310995076697},
+    {"lat":18.180686409947512,"lon":155.28310995076697},
     {"lat":23.502592722918372,"lon":160.08685089215786},
-    {"lat":49.547861062839964,"lon":159.2554522102241},
+    {"lat":49.547861062839964,"lon":159.3554522102241},
     {"lat":56.39427546745975,"lon":144.1097173256088},
     {"lat":54.936641506776475,"lon":141.51017029606572},
     {"lat":52.18604106241055,"lon":141.58175707690273},
     {"lat":49.968503479436386,"lon":141.37523485646417},
+    {"lat":45.97493268294697,"lon":140.02162914620013},
+    {"lat":40.57302091108701,"lon":135.0996451677164},
+    {"lat":39.391052033518854,"lon":131.81659632507836},
+    {"lat":35.721172006694296,"lon":130.9465206056198},
+    {"lat":35.262290171262606,"lon":129.52549541458012},
+  ];
+  let JPGSIMapBoundary = [
+    {"lat":35.262290171262606,"lon":129.52549541458012},
+    {"lat":33.63563443112933,"lon":128.11152711598143},
+    {"lat":27.350347623784252,"lon":122.69130149811586},
+    {"lat":22.818018713458926,"lon":122.42140894091759},
+    {"lat":21.46928247377045,"lon":125.74416177967775},
+    {"lat":22.451602587213536,"lon":127.43306430310153},
+    {"lat":19.910331362180518,"lon":132.72485690436136},
+    {"lat":17.550912179219264,"lon":133.21061202970304},
+    {"lat":16.53723722190111,"lon":138.13503721601717},
+    {"lat":20.22565975490805,"lon":140.48645650704304},
+    {"lat":24.577877843701554,"lon":146.08591144544644},
+    {"lat":18.180686409947512,"lon":155.28310995076697},
+    {"lat":46.7195903678211,"lon":148.71198705249572},
+    {"lat":45.31730227791727,"lon":145.14328950844268},
     {"lat":45.97493268294697,"lon":140.02162914620013},
     {"lat":40.57302091108701,"lon":135.0996451677164},
     {"lat":39.391052033518854,"lon":131.81659632507836},
@@ -2025,7 +2046,7 @@
                 minZoom: 9,
               });
           let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer, {boundary: JPBoundary});
+              (jpLayer, {boundary: JPGSIMapBoundary});
           layers.push (jpLayerClipped);
         } else if (type === 'gsi-english') {
           let wLayer = L.tileLayer
@@ -2047,7 +2068,7 @@
                 minZoom: 9,
               });
           let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer, {boundary: JPBoundary});
+              (jpLayer, {boundary: JPGSIMapBoundary});
           layers.push (jpLayerClipped);
         } else if (type === 'gsi-english-standard') {
           let wLayer = L.tileLayer
@@ -2077,10 +2098,10 @@
                 minZoom: 9,
               });
           let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer1, {boundary: JPBoundary});
+              (jpLayer1, {boundary: JPGSIMapBoundary});
           layers.push (jpLayer1Clipped);
           let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer2, {boundary: JPBoundary});
+              (jpLayer2, {boundary: JPGSIMapBoundary});
           layers.push (jpLayer2Clipped);
         } else if (type === 'gsi-hillshade') {
           let wLayer = L.tileLayer
@@ -2101,7 +2122,7 @@
                 minZoom: 9,
               });
           let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer1, {boundary: JPBoundary});
+              (jpLayer1, {boundary: JPGSIMapBoundary});
           layers.push (jpLayer1Clipped);
           
           let jpLayer2 = L.tileLayer
@@ -2113,7 +2134,7 @@
                 minZoom: 9,
               });
           let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer2, {boundary: JPBoundary});
+              (jpLayer2, {boundary: JPGSIMapBoundary});
           layers.push (jpLayer2Clipped);
         } else if (type === 'gsi-standard-hillshade') {
           var lShade = L.tileLayer
@@ -2176,7 +2197,7 @@
                 minZoom: 9,
               });
           let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer, {boundary: JPBoundary});
+              (jpLayer, {boundary: JPGSIMapBoundary});
           layers.push (jpLayerClipped);
         } else if (type === 'gsi-photo-standard') {
           let wLayer = L.tileLayer
@@ -2198,7 +2219,7 @@
                 minZoom: 9,
               });
           let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer, {boundary: JPBoundary});
+              (jpLayer, {boundary: JPGSIMapBoundary});
           layers.push (jpLayerClipped);
 
           let lGSI = L.gridLayer.gsiOverlay ({
