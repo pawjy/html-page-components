@@ -547,6 +547,8 @@
     this.assert.equal (m.querySelector ('menu-item:nth-of-type(3) popup-menu').classList.contains ('selected'), true);
 
     m.querySelector ('button').click ();
+
+    await this.wait (1000);
     
     e.pcScroll ({center: {lat: 31, lon: 140.444}});
     await this.wait (1000);
@@ -812,8 +814,6 @@
         east: 35.10018, west: 34.90018,
       },
     });
-
-    await this.wait (500);
 
     var bounds = e.getMapBounds ();
     this.assert.equal (bounds.north > 34.335, true);
