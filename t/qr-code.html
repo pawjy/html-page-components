@@ -16,6 +16,17 @@
     this.assert.equal (e.offsetWidth, 145);
     this.assert.equal (e.offsetHeight, 145);
   </test-code>
+
+  <test-code name="modulesize">
+    /*
+      <qr-code data="abcde" modulesize=2></qr-code>
+    */
+    let e = this.currentScript.querySelector ('qr-code');
+    await this.wait (100);
+
+    this.assert.equal (e.offsetWidth, 58);
+    this.assert.equal (e.offsetHeight, 58);
+  </test-code>
   
   <script src=runtests.js data-qrcode></script>
 </body>

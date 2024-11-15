@@ -11,7 +11,7 @@
   }; // define
 
   // Similar to <https://github.com/educastellano/qr-code> but we only
-  // supports data="".
+  // supports data="" and modulesize="".
   define ({
     name: 'qr-code',
     props: {
@@ -22,9 +22,9 @@
         this.pcRender ();
       }, // pcInit
       pcRender: function () {
-        let img = document.createElement('img')
+        let img = document.createElement ('img');
         img.src = defs.QRCode.generatePNG (this.getAttribute ('data'), {
-          modulesize: 5,
+          modulesize: parseInt (this.getAttribute ('modulesize') || 5),
           margin: 4,
         });
         this.textContent = '';
@@ -37,7 +37,7 @@
 
 /*
 
-Copyright 2019 Wakaba <wakaba@suikawiki.org>.
+Copyright 2019-2024 Wakaba <wakaba@suikawiki.org>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
