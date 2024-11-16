@@ -822,14 +822,29 @@ return QRCode;
         this.pcRender ();
       }, // pcInit
       pcRender: function () {
-        let svg = defs.QRCode.generateSVG (this.getAttribute ('data'), {
-          modulesize: parseInt (this.getAttribute ('modulesize') || 5),
-          margin: 4,
-        });
-        svg.setAttribute ('width', svg.viewBox.baseVal.width);
-        svg.setAttribute ('height', svg.viewBox.baseVal.height);
-        this.textContent = '';
-        this.appendChild (svg);
+        if (this.hasAttribute ('png')) {
+          let img = document.createElement ('img');
+          let x = 4;
+          img.src = defs.QRCode.generatePNG (this.getAttribute ('data'), {
+            modulesize: parseInt (this.getAttribute ('modulesize') || 5) * x,
+            margin: 4,
+          });
+          img.onload = () => {
+            img.width = img.naturalWidth / x;
+            img.height = img.naturalHeight / x;
+          };
+          this.textContent = '';
+          this.appendChild (img);
+        } else {
+          let svg = defs.QRCode.generateSVG (this.getAttribute ('data'), {
+            modulesize: parseInt (this.getAttribute ('modulesize') || 5),
+            margin: 4,
+          });
+          svg.setAttribute ('width', svg.viewBox.baseVal.width);
+          svg.setAttribute ('height', svg.viewBox.baseVal.height);
+          this.textContent = '';
+          this.appendChild (svg);
+        }
       }, // pcRender
     },
   }); // <qr-code>

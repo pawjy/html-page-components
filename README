@@ -2024,14 +2024,19 @@ addition to the main script:
 
 The following content attribute is available:
 
-  data : Text
+  data="" : Text
 
     The string encoded by the QR code.  Required.
 
-  modulesize : Integer
+  modulesize="" : Integer
 
     The module size parameter for the QR code generation.  Defaulted
     to 5.
+
+  png="" : Boolean
+
+    If specified, a PNG image with an HTML |img| element is inserted.
+    Otherwise, an SVG image is inserted.
 
 * Exportable functions
 
