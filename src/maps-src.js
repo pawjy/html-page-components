@@ -19,6 +19,8 @@
   // Credit required by GSI.
   var gsiCreditHTML = "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank' lang=ja>\u56FD\u571F\u5730\u7406\u9662</a>";
   var gsiPhotoCreditHTML = "<details is=pc-map-credit-details><summary lang=ja>\u56FD\u571F\u5730\u7406\u9662\u4ED6</summary><p>"+gsiCreditHTML+"<p lang=ja>\u30C7\u30FC\u30BF\u30BD\u30FC\u30B9\uFF1ALandsat8\u753B\u50CF\uFF08GSI,TSIC,GEO Grid/AIST\uFF09, Landsat8\u753B\u50CF\uFF08courtesy of the U.S. Geological Survey\uFF09, \u6D77\u5E95\u5730\u5F62\uFF08GEBCO\uFF09<p lang=en>Images on \u4E16\u754C\u885B\u661F\u30E2\u30B6\u30A4\u30AF\u753B\u50CF obtained from site <a href=https://lpdaac.usgs.gov/data_access target=_blank>https://lpdaac.usgs.gov/data_access</a> maintained by the NASA Land Processes Distributed Active Archive Center (LP DAAC), USGS/Earth Resources Observation and Science (EROS) Center, Sioux Falls, South Dakota, (Year). Source of image data product.</details>";
+  // <https://operations.osmfoundation.org/policies/tiles/>
+  let osmCreditHTML = '<a href=https://www.openstreetmap.org/copyright lang=en>OpenStreetMap</a> (<a href=https://www.openstreetmap.org/fixthemap title="Fix problems" lang=en>Fix</a>)';
   
   let JPBoundary = [
     {"lat":35.262290171262606,"lon":129.52549541458012},
@@ -2318,7 +2320,7 @@
           // <https://osmfoundation.org/wiki/Licence/Attribution_Guidelines>
           let wLayer = L.tileLayer
               ('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '<a href=https://www.openstreetmap.org/copyright>OpenStreetMap</a>',
+                attribution: osmCreditHTML,
                 errorTileUrl,
                 maxZoom,
               });
@@ -2337,7 +2339,7 @@
           
           let wLayer = L.tileLayer
               ('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '<a href=https://www.openstreetmap.org/copyright>OpenStreetMap</a>',
+                attribution: osmCreditHTML,
                 errorTileUrl,
                 maxZoom,
                 opacity: 0.8,
