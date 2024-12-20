@@ -879,6 +879,7 @@ qr-code:not([hidden]) {
   display: inline-block;
 }
 
+qr-code svg,
 qr-code img {
   vertical-align: bottom;
 }
