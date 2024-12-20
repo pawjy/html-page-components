@@ -38,7 +38,7 @@
 <script src=https://wiki.suikawiki.org/scripts/time async data-time-selector=time></script>
 
   <section id=map-section-1 lang=ja>
-    <map-area engine=leaflet controls="type typebuttons scale fullscreen currentposition zoom streetview togglelegend" gsi jma lat=35.2 lon=135.4 formcontrol>
+    <map-area engine=leaflet controls="type typebuttons scale fullscreen currentposition zoom streetview togglelegend" gsi jma osm lat=35.2 lon=135.4 formcontrol>
       <map-controls>ABC</map-controls>
       <map-controls position=top-left>XYZ</map-controls>
       <map-controls position=top-left><button>xyz</button></map-controls>
@@ -114,6 +114,12 @@
       <button value=jma-umimesh-wind+gsi-standard onclick="
         document.querySelector('map-area').setMapType(this.value);
       ">jma-umimesh-wind+gsi-standard</button>
+      <button value=osm onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">osm</button>
+      <button value=osm-gsi-hillshade onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">osm-gsi-hillshade</button>
 
       <input id=latlon onfocus=this.select() onchange="
         var [lat, lon] = this.value.split (/,/);

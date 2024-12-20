@@ -253,6 +253,8 @@ map-area {
   --paco-maptype-jma-amedas-snow24h-text: 'Snow fall (24-hour) [cm]';
   --paco-maptype-jma-amedas-humidity-text: 'Humidity [%]';
   --paco-maptype-jma-amedas-sun1h-text: 'Sunshine duration [h]';
+  --paco-maptype-osm-text: 'OpenStreetMap';
+  --paco-maptype-gsi-text: 'GSI Tile';
   --paco-maptype-menu-meteorological: 'Meteorological';
   --paco-marker-currentposition: "\25CF" purple 24px;
   --paco-marker-value: none;
@@ -302,6 +304,8 @@ map-area:lang(ja) {
   --paco-maptype-jma-amedas-snow24h-text: '24\6642\9593\964D\96EA\91CF  [cm]';
   --paco-maptype-jma-amedas-humidity-text: '\6E7F\5EA6  [%]';
   --paco-maptype-jma-amedas-sun1h-text: '\65E5\7167\6642\9593  [h]';
+  --paco-maptype-osm-text: 'OpenStreetMap';
+  --paco-maptype-gsi-text: '\5730\7406\9662\30BF\30A4\30EB';
   --paco-maptype-menu-meteorological: '\6C17\8C61\60C5\5831';
   --paco-legend-show-text: "\51E1\4F8B\3092\8868\793A";
   --paco-legend-hide-text: "\51E1\4F8B\3092\96A0\3059";
@@ -564,8 +568,10 @@ map-area popup-menu > menu-main > menu-item > popup-menu > menu-main {
 }
 
 .paco-jma-weather-submenu menu-main {
-  margin-top: -10em;
   max-height: 22em;
+}
+map-area[gsi] .paco-jma-weather-submenu menu-main {
+  margin-top: -10em;
 }
 
 map-area .paco-timestamp-control {

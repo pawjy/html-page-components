@@ -742,9 +742,10 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
       if (e.hasAttribute ('gsi')) {
         var mm = m.querySelector ('menu-main');
         var nodes = document.createElement ('div');
-        nodes.innerHTML = '<menu-item><popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-photo-standard data-false=gsi-photo data-label=photo><button type=button class=paco-control-button>Photo</button><menu-main class=paco-photo-menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><button type=button class=paco-maptype-button data-true=none>None</button></menu-item><hr>';
+        nodes.innerHTML = '<menu-item><popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main class=paco-map-menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-photo-standard data-false=gsi-photo data-label=photo><button type=button class=paco-control-button>Photo</button><menu-main class=paco-photo-menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><button type=button class=paco-maptype-button data-true=none>None</button></menu-item><hr>';
         let nb = nodes.querySelector ('menu-item:last-of-type button');
         let nps = [nodes.querySelector ('.paco-photo-menu-main')];
+        let mps = [nodes.querySelector ('.paco-map-menu-main')];
         
         var pms = Array.prototype.slice.call (nodes.querySelectorAll ('popup-menu'));
         Array.prototype.slice.call (nodes.childNodes).reverse ().forEach (_ => mm.insertBefore (_, mm.firstChild));
@@ -752,12 +753,13 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         if (opts.buttons) {
           var n = document.createElement ('span');
           n.className = 'paco-menu-button-container';
-          n.innerHTML = '<popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-photo-standard data-false=gsi-photo data-label=photo><button type=button class=paco-control-button>Photo</button><menu-main class=paco-photo-menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu>';
+          n.innerHTML = '<popup-menu data-true=gsi-standard-hillshade data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main class=paco-map-menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-photo-standard data-false=gsi-photo data-label=photo><button type=button class=paco-control-button>Photo</button><menu-main class=paco-photo-menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu><popup-menu data-true=gsi-hillshade-standard data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu>';
           pms = pms.concat (Array.prototype.slice.call (n.querySelectorAll ('popup-menu')));
 
           c.insertBefore (n, c.firstChild);
           m.firstChild.textContent = '\u22EF';
           nps.push (n.querySelector ('.paco-photo-menu-main'));
+          mps.push (n.querySelector ('.paco-map-menu-main'));
         } // controls=typebuttons
 
         var sMap = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-map-text'), 'Map');
@@ -777,6 +779,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           'himawari:B08/TBB': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-vap-text'), 'Himawari (B08/TBB)'),
           'himawari:REP/ETC': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-color-text'), 'Himawari (REP/ETC)'),
           'himawari:SND/ETC': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-himawari-strengthen-text'), 'Himawari (SND/ETC)'),
+          'osm': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-osm-text'), 'OpenStreetMap'),
+          'gsi': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-gsi-text'), 'GSI Tile'),
         };
 
         if (e.hasAttribute ('jma')) {
@@ -784,6 +788,14 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             let m = document.createElement ('menu-item');
             p.appendChild (m);
             m.outerHTML = '<menu-item><button type=button data-false=gsi-photo data-true=gsi-photo-standard>Photo</button></menu-item><menu-item><button type=button data-false=himawari:B13/TBB data-true=himawari+gsi-standard:B13/TBB>Himawari (B13/TBB)</button></menu-item><menu-item><button type=button data-false=himawari:B03/ALBD data-true=himawari+gsi-standard:B03/ALBD>Himawari (B03/ALBD)</button></menu-item><menu-item><button type=button data-false=himawari:B08/TBB data-true=himawari+gsi-standard:B08/TBB>Himawari (B08/TBB)</button></menu-item><menu-item><button type=button data-false=himawari:REP/ETC data-true=himawari+gsi-standard:REP/ETC>Himawari (REP/ETC)</button></menu-item><menu-item><button type=button data-false=himawari:SND/ETC data-true=himawari+gsi-standard:SND/ETC>Himawari (SND/ETC)</button></menu-item>';
+          });
+        }
+
+        if (e.hasAttribute ('osm')) {
+          mps.forEach (p => {
+            let m = document.createElement ('menu-item');
+            p.appendChild (m);
+            m.outerHTML = '<menu-item><button type=button data-true=gsi-standard-hillshade data-false=gsi-lang data-label=gsi></button></menu-item><menu-item><button type=button data-true=osm-gsi-hillshade data-false=osm data-label=osm></button></menu-item>';
           });
         }
         
@@ -795,7 +807,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
               let newType = button.getAttribute ('data-' + checked) || pm.getAttribute ('data-' + checked);
               e.setMapType (newType);
             });
-            button.textContent = buttonLabels[button.getAttribute ('data-false') || pm.getAttribute ('data-label') || pm.getAttribute ('data-false')];
+            button.textContent = buttonLabels[button.getAttribute ('data-label') || button.getAttribute ('data-false') || pm.getAttribute ('data-label') || pm.getAttribute ('data-false')];
           });
           pm.querySelector ('input[type=checkbox]').onclick = function () {
             let newType = (this.checked ? this.trueMapType : this.falseMapType) || pm.getAttribute ('data-' + this.checked);
@@ -1884,6 +1896,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         if (this.hasAttribute ('gsi') && !initialMapType) {
           initialMapType = 'gsi-lang';
         }
+        if (this.hasAttribute ('osm') && !initialMapType) {
+          initialMapType = 'osm';
+        }
         if (initialMapType) this.setMapType (initialMapType);
 
         map.pcAddTimeSetter = (code) => {
@@ -2675,6 +2690,36 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             maxZoom,
           });
           layers.push (lGSI);
+        } else if (type === 'osm') {
+          // <https://operations.osmfoundation.org/policies/tiles/>
+          // <https://osmfoundation.org/wiki/Licence/Attribution_Guidelines>
+          let wLayer = L.tileLayer
+              ('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '<a href=https://www.openstreetmap.org/copyright>OpenStreetMap</a>',
+                errorTileUrl,
+                maxZoom,
+              });
+          layers.push (wLayer);
+        } else if (type === 'osm-gsi-hillshade') {
+          let lShade = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                maxZoom,
+                opacity: 0.8,
+              });
+          layers.push (lShade);
+          
+          let wLayer = L.tileLayer
+              ('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '<a href=https://www.openstreetmap.org/copyright>OpenStreetMap</a>',
+                errorTileUrl,
+                maxZoom,
+                opacity: 0.8,
+              });
+          layers.push (wLayer);
         } else if (type === 'none') {
           //
         }

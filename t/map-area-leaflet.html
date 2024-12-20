@@ -629,6 +629,54 @@
     this.assert.equal (ts.querySelector ('time').getAttribute ('tzoffset'), null);
   </test-code>
 
+  <test-code name="map-area gsi jma">
+    /*
+      <map-area engine=leaflet lat=20.33 lon=-120.7013 controls gsi jma lang=ja></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+    await e.ready;
+
+    var m = e.querySelector ('popup-menu');
+    this.assert.equal (!!m.offsetWidth, true, 'menu shown');
+    m.querySelector ('button').click ();
+
+    await this.wait ();
+    var input = e.querySelector ('input[type=checkbox][value=rain]');
+    this.assert.equal (input.parentNode.querySelector ('span').textContent, '雨雲の動き');
+
+    input.click ();
+    var ts = e.querySelector ('.paco-jma-timestamp-control');
+    this.assert.equal (!!ts.offsetWidth, true);
+    this.assert.equal (!!ts.querySelector ('time').textContent, true);
+    this.assert.equal (ts.querySelector ('time').getAttribute ('tzoffset'), null);
+  </test-code>
+
+  <test-code name="map-area gsi osm">
+    /*
+      <map-area engine=leaflet lat=20.33 lon=-120.7013 controls gsi osm lang=ja></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+    await e.ready;
+
+    var m = e.querySelector ('popup-menu');
+    this.assert.equal (!!m.offsetWidth, true, 'menu shown');
+    m.querySelector ('button').click ();
+    await this.wait ();
+    
+    let b = m.querySelector ('menu-item popup-menu:has(.paco-map-menu-main) button');
+    b.click ();
+    await this.wait ();
+
+    let c = m.querySelector ('button[data-false=osm]');
+    this.assert.equal (!!c.offsetWidth, true);
+    c.click ();
+    await this.wait ();
+
+    let link = e.querySelector ('.leaflet-control-attribution a[href*=openstreetmap]');
+    this.assert.equal (!!link.offsetWidth, true);
+    this.assert.equal (link.textContent, 'OpenStreetMap');
+  </test-code>
+
   <test-code name="map-area timestamp tzoffset">
     /*
       <map-area engine=leaflet lat=20.33 lon=-120.7013 controls jma tzoffset=-3600 lang=ja></map-area>

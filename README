@@ -1598,6 +1598,22 @@ The following content attributes are available:
     image data is available.  If not specified, the default image is
     used.  This is applied to GSI maps.
 
+  <map-area osm=""> : boolean
+
+    Whether the OpenStreetMap is enabled or not.
+
+    The OpenStreetMap support shows the tile images provided by
+    OpenStreetMap <https://www.openstreetmap.org/>.
+
+    If specified, the attribute value has to be the empty string.
+
+    If the attribute and a |gsi=""| attribute are specified, the
+    OpenStreetMap option is added to the map type menu (see |<map-area
+    controls=type>|).
+
+    This attribute is ignored when the map's |engine| is |googlemaps|
+    or |googlemapsembed|.
+
   <map-area readonly=""> : boolean
 
     If specified, the marker for the "value" point coordinate of the
@@ -1805,6 +1821,17 @@ The following properties are available:
       gsi-standard-hillshade
 
         The GSI's standard map, overlayed on the GSI's hillshade map.
+
+      osm
+
+        The OpenStreetMap.
+
+        See <https://operations.osmfoundation.org/policies/tiles/> and
+        <https://osmfoundation.org/wiki/Licence/Attribution_Guidelines>.
+
+      osm-gsi-hillshade
+
+        The OpenStreetMap, overlayed on the GSI's hillshade map.
 
       none
 
