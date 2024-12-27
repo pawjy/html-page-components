@@ -2322,6 +2322,7 @@
               ('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: osmCreditHTML,
                 errorTileUrl,
+                maxNativeZoom: 19,
                 maxZoom,
               });
           layers.push (wLayer);
@@ -2341,6 +2342,7 @@
               ('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: osmCreditHTML,
                 errorTileUrl,
+                maxNativeZoom: 19,
                 maxZoom,
                 opacity: 0.8,
               });
