@@ -211,6 +211,8 @@
         
         done (null, canvas);
       }, err => { // err is img.onerror's error
+        if (!this.options.errorTileUrl) throw err;
+        
         var img = document.createElement ('img');
         return new Promise ((ok, ng) => {
           img.setAttribute ('crossorigin', '');
@@ -2154,46 +2156,124 @@
               (jpLayer2, {boundary: JPGSIMapBoundary});
           layers.push (jpLayer2Clipped);
         } else if (type === 'gsi-standard-hillshade') {
-          var lShade = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+          let wLayerH = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png', {
                 attribution: gsiCreditHTML,
                 errorTileUrl,
-                maxNativeZoom: 16,
-                minNativeZoom: 2,
+                maxNativeZoom: 8,
+                minNativeZoom: 0,
                 maxZoom,
-                opacity: 0.8,
               });
-          layers.push (lShade);
-          var lStd = L.tileLayer
+          layers.push (wLayerH);
+
+          let wLayerS = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
                 attribution: gsiCreditHTML,
                 errorTileUrl,
-                maxNativeZoom: 18,
+                maxNativeZoom: 8,
                 minNativeZoom: 2,
                 maxZoom,
                 opacity: 0.8,
               });
-          layers.push (lStd);
+          layers.push (wLayerS);
+          
+          let jpLayer1 = L.tileLayer
+          ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23ededed'/%3E%3C/svg%3E", {
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+              });
+          let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer1, {boundary: JPGSIMapBoundary});
+          layers.push (jpLayer1Clipped);
+          
+          let jpLayer2 = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+              });
+          let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer2, {boundary: JPGSIMapBoundary});
+          layers.push (jpLayer2Clipped);
+          
+          let jpLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 18,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+                opacity: 0.8,
+              });
+          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer, {boundary: JPGSIMapBoundary});
+          layers.push (jpLayerClipped);
         } else if (type === 'gsi-hillshade-standard') {
-          var lGSI = L.gridLayer.gsiOverlay ({
+          let wLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 0,
+                maxZoom,
+                opacity: 0.6,
+              });
+          layers.push (wLayer);
+
+          let jpLayer1 = L.tileLayer
+          ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23ededed'/%3E%3C/svg%3E", {
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+                opacity: 0.6,
+              });
+          let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer1, {boundary: JPGSIMapBoundary});
+          layers.push (jpLayer1Clipped);
+          
+          let jpLayer2 = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+                opacity: 0.6,
+              });
+          let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer2, {boundary: JPGSIMapBoundary});
+          layers.push (jpLayer2Clipped);
+
+          /*
+          var wGSI = L.gridLayer.gsiOverlay ({
             //attribution: gsiCreditHTML,
-            errorTileUrl,
+            //errorTileUrl,
             maxNativeZoom: 18,
             minNativeZoom: 2,
             maxZoom,
           });
-          var lShade = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                errorTileUrl,
-                maxNativeZoom: 16,
-                minNativeZoom: 2,
-                maxZoom,
-                opacity: 0.6,
-              });
-          layers.push (lShade);
-          layers.push (lGSI);
-          // non-jp area not supported
+          layers.push (wGSI);
+          */
+          
+          var jpGSI = L.gridLayer.gsiOverlay ({
+            //attribution: gsiCreditHTML,
+            //errorTileUrl,
+            maxNativeZoom: 18,
+            minNativeZoom: 2,
+            maxZoom,
+            //minZoom: 9,
+          });
+          layers.push (jpGSI);
+          /*
+          let jpGSIClipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpGSI, {boundary: JPGSIMapBoundary});
+          layers.push (jpGSIClipped);
+          */
         } else if (type === 'gsi-photo') {
           let wLayer = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
