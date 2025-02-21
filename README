@@ -2299,6 +2299,10 @@ scope.  The following functions are available:
       specified URL to be downloaded as a file.  It can be replaced to
       another function for, e.g., development purposes.
 
+    $paco.isBadBrowser : Boolean
+
+      Set to true if the browser is broken, e.g. in-app iOS browsers.
+
     $paco.showToast ({...})
 
       Show a toast, i.e. inserting a |toast-box| element into the
