@@ -1875,6 +1875,10 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           this.maRedraw ({relocate: true});
         });
         this.maISObserver.observe (this);
+        this.maRSObserver = new ResizeObserver (() => {
+          this.maRedraw ({relocate: true});
+        });
+        this.maRSObserver.observe (this);
 
         map.on ('load viewreset zoomend moveend', ev => {
           var c = map.getCenter ();
