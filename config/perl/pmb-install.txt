@@ -2,11 +2,11 @@ AnyEvent~7.17
 Carp~1.50
 Digest::SHA~6.04
 MIME::Base64~3.16
-Math::BigInt~2.005001
+Math::BigInt~2.005002
 Net::SSLeay~1.94
 Path::Tiny~0.148
-Scalar::Util~1.68
+Scalar::Util~1.69
 Socket~2.038
 Term::Table~0.024
-Test::More~1.302209
+Test::More~1.302210
 Time::HiRes~1.9764
