@@ -809,6 +809,10 @@ map-area.paco-legend-hidden .paco-legend-control {
   display: none;
 }
 
+map-area .leaflet-gl-layer {
+  z-index: 1;
+} 
+
 template-set,
 label-set {
   display: none ! important;
@@ -837,7 +841,7 @@ can-copy time {
 }
 
 details[is=pc-map-credit-details]:not([open]):not([hidden]) {
-  display: inline;
+  display: inline-block;
 }
 details[is=pc-map-credit-details][open]:not([hidden]) {
   display: inline-block;

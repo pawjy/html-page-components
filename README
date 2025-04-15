@@ -1769,6 +1769,14 @@ The following properties are available:
 
         The GSI's standard map, rendered on Himawari photo.
 
+      himawari+gsi-optimal_bvmap:B13/TBB
+      himawari+gsi-optimal_bvmap:B03/ALBD
+      himawari+gsi-optimal_bvmap:B08/TBB
+      himawari+gsi-optimal_bvmap:REP/ETC
+      himawari+gsi-optimal_bvmap:SND/ETC
+
+        The |gsi-optimal_bvmap|, rendered on Himawari photo.
+
       jma-umimesh-wind
 
         The wind map of the 海上分布予報
@@ -1795,6 +1803,10 @@ The following properties are available:
         The GSI's hillshade map
         <https://maps.gsi.go.jp/development/ichiran.html#hillshademap>.
 
+      gsi-hillshade-optimal_bvmap
+
+        The |gsi-optimal_bvmap|, rendered on the GSI's hillshade map.
+
       gsi-hillshade-standard
 
         The GSI's standard map, rendered on the GSI's hillshade map.
@@ -1805,10 +1817,19 @@ The following properties are available:
         the |lang=""| attribute) is |en|, same as
         |gsi-english-standard|.  Otherwise, same as |gsi-standard|.
 
+      gsi-optimal_bvmap
+
+        国土地理院最適化ベクトルタイル(標準地図風スタイル) (PMTiles版)
+        <https://github.com/gsi-cyberjapan/optimal_bvmap>.
+
       gsi-photo
 
         The GSI's photo
         <https://maps.gsi.go.jp/development/ichiran.html#seamlessphoto>.
+
+      gsi-photo-optimal_bvmap
+
+        The |gsi-optimal_bvmap|, rendered on the GSI's photo.
 
       gsi-photo-standard
 
@@ -2648,7 +2669,7 @@ The Git repository was at
 
 * License
 
-Copyright 2017-2024 Wakaba <wakaba@suikawiki.org>.
+Copyright 2017-2025 Wakaba <wakaba@suikawiki.org>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
