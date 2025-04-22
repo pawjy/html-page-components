@@ -10,8 +10,8 @@
   </style>
 </head>
 <body>
-  <test-code name="empty">
-    // <list-container>hoge</list-container>
+  <test-code name="no loader">
+    // <list-container key=dummy>hoge</list-container>
     var e = this.currentScript.querySelector ('list-container');
     this.assert.equal (e.innerHTML, 'hoge');
   </test-code>
