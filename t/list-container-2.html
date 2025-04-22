@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+  <style>
+    .display-block {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <test-code name="src no key">
+    /*
+      <list-container src=list-container-data-1.json>
+        <template><span data-field=name></span></template>
+        <list-main></list-main>
+      </list-container>
+    */
+    var e = this.currentScript.querySelector ('list-container');
+    return this.wait ().then (() => {
+      return e.loaded;
+    }).then (() => {
+      throw "e.loaded not failed";
+    }, (error) => {  
+      var items = e.querySelectorAll ('list-main list-item');
+      this.assert.equal (items.length, 0);
+      this.assertEqualError (error, new Error ("|key| is not specified"));
+    });
+  </test-code>
+
+  <script src=runtests.js></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->
