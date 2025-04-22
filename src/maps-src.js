@@ -2644,9 +2644,21 @@
         layers.forEach (l => l.pcIsMapTypeLayer = true);
         
         map.eachLayer (l => {
-          if (l.pcIsMapTypeLayer) map.removeLayer (l);
+          if (l.pcIsMapTypeLayer) {
+            try {
+              map.removeLayer (l);
+            } catch (e) {
+              console.log ("Failed to remove map layer", e);
+            }
+          }
         });
-        layers.forEach (l => map.addLayer (l));
+        layers.forEach (l => {
+          try {
+            map.addLayer (l);
+          } catch (e) {
+            console.log ("Failed to add map layer", e);
+          }
+        });
         this.classList.toggle ('paco-maptype-none', type === 'none');
         this.dispatchEvent (new Event ('pcMapTypeChange'));
       }, // pcChangeMapType

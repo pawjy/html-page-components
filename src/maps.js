@@ -3396,9 +3396,21 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         layers.forEach (l => l.pcIsMapTypeLayer = true);
         
         map.eachLayer (l => {
-          if (l.pcIsMapTypeLayer) map.removeLayer (l);
+          if (l.pcIsMapTypeLayer) {
+            try {
+              map.removeLayer (l);
+            } catch (e) {
+              console.log ("Failed to remove map layer", e);
+            }
+          }
         });
-        layers.forEach (l => map.addLayer (l));
+        layers.forEach (l => {
+          try {
+            map.addLayer (l);
+          } catch (e) {
+            console.log ("Failed to add map layer", e);
+          }
+        });
         this.classList.toggle ('paco-maptype-none', type === 'none');
         this.dispatchEvent (new Event ('pcMapTypeChange'));
       }, // pcChangeMapType
@@ -3649,7 +3661,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
 
 /*
 
-Copyright 2017-2022 Wakaba <wakaba@suikawiki.org>.
+Copyright 2017-2025 Wakaba <wakaba@suikawiki.org>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
