@@ -134,6 +134,13 @@ sub execute_test_html_file {
             die "File open failed: $test_result_file_path" if not defined $fh;
             print $fh $image;
             undef $fh;
+            return $session->execute (q{ return document.documentElement.outerHTML });
+          })->then (sub {
+            my $fh = IO::File->new($test_result_file_path, ">:encoding(utf-8)");
+            die "File open failed: $test_result_file_path" if not defined $fh;
+            print $fh $result->json->{value};
+            undef $fh;
+          })->then (sub {
             die $error;
           });
         });
