@@ -49,11 +49,37 @@ intermediate/leaflet/LICENSE: intermediate-leaflet
 intermediate/leaflet/BoundaryCanvas.js: intermediate-leaflet
 intermediate/leaflet/LICENSE.boundary: intermediate-leaflet
 
+intermediate-mlgl:
+	cd intermediate/maplibregl && $(MAKE) all
+intermediate/maplibregl/maplibre.css: intermediate-mlgl
+intermediate/maplibregl/maplibre.js: intermediate-mlgl
+intermediate/maplibregl/LICENSE: intermediate-mlgl
+intermediate/maplibregl/leafletmaplibre.js: intermediate-mlgl
+intermediate/maplibregl/LICENSE.maplibre-gl-leaflet: intermediate-mlgl
+
+intermediate-pmtiles:
+	cd intermediate/pmtiles && $(MAKE) all
+intermediate/pmtiles/LICENSE: intermediate-pmtiles
+intermediate/pmtiles/pmtiles.js: intermediate-pmtiles
+
 src/maps.js: src/maps-src.js \
     intermediate/leaflet/leaflet.js intermediate/leaflet/LICENSE \
     intermediate/leaflet/BoundaryCanvas.js \
-    intermediate/leaflet/LICENSE.boundary
-	cat $< | perl -n -e 's{/\*\@\@\@leaflet.js\@\@\@\*/}{open $$f, "<", "intermediate/leaflet/leaflet.js"; join "", <$$f>}ge; s{/\*\@\@\@BoundaryCanvas.js\@\@\@\*/}{open $$f, "<", "intermediate/leaflet/BoundaryCanvas.js"; join "", <$$f>}ge; s{^//# sourceMappingURL=}{//}gm; s{\xEF\xBB\xBF}{}gm; print' > $@
+    intermediate/leaflet/LICENSE.boundary \
+    intermediate/maplibregl/maplibre.js \
+    intermediate/maplibregl/LICENSE \
+    intermediate/maplibregl/leafletmaplibre.js \
+    intermediate/maplibregl/LICENSE.maplibre-gl-leaflet \
+    intermediate/pmtiles/pmtiles.js \
+    intermediate/pmtiles/LICENSE
+	echo "" > $@
+	cat $< | perl -n -e ' \
+	    s{/\*\@\@\@leaflet.js\@\@\@\*/}{open $$f, "<", "intermediate/leaflet/leaflet.js"; join "", <$$f>}ge; \
+	    s{/\*\@\@\@BoundaryCanvas.js\@\@\@\*/}{open $$f, "<", "intermediate/leaflet/BoundaryCanvas.js"; join "", <$$f>}ge; \
+	    s{/\*\@\@\@maplibre.js\@\@\@\*/}{open $$f, "<", "intermediate/maplibregl/maplibre.js"; join "", <$$f>}ge; \
+	    s{/\*\@\@\@leafletmaplibre.js\@\@\@\*/}{open $$f, "<", "intermediate/maplibregl/leafletmaplibre.js"; join "", <$$f>}ge; \
+	    s{/\*\@\@\@pmtiles.js\@\@\@\*/}{open $$f, "<", "intermediate/pmtiles/pmtiles.js"; join "", <$$f>}ge; \
+	    s{^//# sourceMappingURL=}{//}gm; s{\xEF\xBB\xBF}{}gm; print' >> $@
 	echo '/* Leaflet */' >> $@
 	echo '/*' >> $@
 	cat intermediate/leaflet/LICENSE >> $@
@@ -61,16 +87,35 @@ src/maps.js: src/maps-src.js \
 	echo '/*' >> $@
 	cat intermediate/leaflet/LICENSE.boundary >> $@
 	echo '*/' >> $@
+	echo '/* MapLibre GL */' >> $@
+	echo '/*' >> $@
+	cat intermediate/maplibregl/LICENSE >> $@
+	echo '*/' >> $@
+	echo '/* maplibre-gl-leaflet */' >> $@
+	echo '/*' >> $@
+	cat intermediate/maplibregl/LICENSE.maplibre-gl-leaflet >> $@
+	echo '*/' >> $@
+	echo '/* PMTiles */' >> $@
+	echo '/*' >> $@
+	cat intermediate/pmtiles/LICENSE >> $@
+	echo '*/' >> $@
 
 css/default.css: \
     css/default-import.css \
     css/default-src.css \
-    intermediate/leaflet/leaflet.css intermediate/leaflet/LICENSE
+    intermediate/leaflet/leaflet.css intermediate/leaflet/LICENSE \
+    intermediate/maplibregl/maplibre.css \
+    intermediate/maplibregl/LICENSE
 	cat css/default-import.css > $@
 	echo '/* Leaflet default styles */' >> $@
 	cat intermediate/leaflet/leaflet.css >> $@
 	echo '/*' >> $@
 	cat intermediate/leaflet/LICENSE >> $@
+	echo '*/' >> $@
+	echo '/* MapLibre GL default styles */' >> $@
+	cat intermediate/maplibregl/maplibre.css >> $@
+	echo '/*' >> $@
+	cat intermediate/maplibregl/LICENSE >> $@
 	echo '*/' >> $@
 	cat css/default-src.css >> $@
 

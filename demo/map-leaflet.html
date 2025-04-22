@@ -1,5 +1,6 @@
 <!DOCTYPE HTML>
 <html>
+  <meta charset=utf-8>
   <title>Map</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel=stylesheet href=../css/default.css>
@@ -120,6 +121,18 @@
       <button value=osm-gsi-hillshade onclick="
         document.querySelector('map-area').setMapType(this.value);
       ">osm-gsi-hillshade</button>
+      <button value=gsi-optimal_bvmap onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">gsi-optimal_bvmap</button>
+      <button value=gsi-photo-optimal_bvmap onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">gsi-photo-optimal_bvmap</button>
+      <button value=gsi-hillshade-optimal_bvmap onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">gsi-hillshade-optimal_bvmap</button>
+      <button value=SND/ETC onclick="
+        document.querySelector('map-area').setMapType('himawari+gsi-optimal_bvmap:'+this.value);
+      ">himawari+gsi-optimal_bvmap (SND/ETC)</button>
 
       <input id=latlon onfocus=this.select() onchange="
         var [lat, lon] = this.value.split (/,/);

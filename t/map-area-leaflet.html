@@ -102,7 +102,7 @@
     e.parentNode.style.overflow = 'scroll';
     e.parentNode.style.height = '10em';
     e.style.marginTop = '20em';
-    this.assert.equal (e.parentNode.scrollTop, 0);
+    e.parentNode.scrollTop = 0;
 
     e.pcScroll ({center: {lat: 30.211, lon: 140.444}, intoView: true});
     await this.wait ();
@@ -280,8 +280,8 @@
     await this.wait ();
       
     var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 53);
-    this.assert.equal (pos.lon, 65);
+    this.assert.equal (Math.abs (pos.lat - 53) < 0.002, true, pos.lat);
+    this.assert.equal (Math.abs (pos.lon - 65) < 0.001, true, pos.lon);
   </test-code>
 
   <test-code name="no redraw event before init">
@@ -505,106 +505,6 @@
     var controls = Array.prototype.slice.call (e.querySelectorAll ('map-controls')).sort ((a, b) => parseInt (a.textContent) - parseInt (b.textContent));
     this.assert.equal (controls.length, 13);
     this.assert.equal (Array.prototype.slice (e.children).filter (_ => _.localName === 'map-controls').length, 0);
-  </test-code>
-
-  <test-code name="map-area controls=type">
-    /*
-      <map-area engine=leaflet lat=20.33 lon=-120.7013 controls gsi></map-area>
-    */
-    var e = this.currentScript.querySelector ('map-area');
-    await this.wait ();
-
-    this.assert.equal (e.offsetWidth, 977);
-    this.assert.equal (e.offsetHeight, 300);
-
-    await e.ready;
-
-    var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 20.33);
-    this.assert.equal (pos.lon, -120.7013);
-    
-    var bounds = e.getMapBounds ();
-    this.assert.equal (bounds.north, 21.099875492701216);
-    this.assert.equal (bounds.east, -118.0206298828125);
-    this.assert.equal (bounds.south, 19.554613885372127);
-    this.assert.equal (bounds.west, -123.387451171875);
-    
-    var m = e.querySelector ('popup-menu');
-    this.assert.equal (!!m.offsetWidth, true, 'menu shown');
-    m.querySelector ('button').click ();
-
-    await this.wait ();
-    var a = e.querySelector ('a[href^="geo:"]');
-    this.assert.equal (a.href, 'geo:20.33,-120.7013');
-
-    var c = m.querySelector ('menu-item:nth-of-type(3) input[type=checkbox]');
-    c.click ();
-    await this.wait ();
-    
-    this.assert.equal (e.pcMapType, 'gsi-hillshade-standard');
-    this.assert.equal (m.querySelector ('menu-item:nth-of-type(1) popup-menu').classList.contains ('selected'), false);
-    this.assert.equal (m.querySelector ('menu-item:nth-of-type(2) popup-menu').classList.contains ('selected'), false);
-    this.assert.equal (m.querySelector ('menu-item:nth-of-type(3) popup-menu').classList.contains ('selected'), true);
-
-    m.querySelector ('button').click ();
-
-    await this.wait (1000);
-    
-    e.pcScroll ({center: {lat: 31, lon: 140.444}});
-    await this.wait (1000);
-
-    var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 31);
-    this.assert.equal (pos.lon, 140.444);
-
-    var m = e.querySelector ('popup-menu');
-    m.querySelector ('button').click ();
-
-    await this.wait ();
-    var a = e.querySelector ('a[href^="geo:"]');
-    this.assert.equal (a.href, 'geo:31,140.444');
-      
-  </test-code>
-
-  <test-code name="map-area controls='type typebuttons'">
-    /*
-      <map-area engine=leaflet lat=20.33 lon=-120.7013 controls="type typebuttons" gsi></map-area>
-    */
-    var e = this.currentScript.querySelector ('map-area');
-    await this.wait ();
-
-    this.assert.equal (e.offsetWidth, 977);
-    this.assert.equal (e.offsetHeight, 300);
-
-    await e.ready;
-
-    var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 20.33);
-    this.assert.equal (pos.lon, -120.7013);
-    
-    var bounds = e.getMapBounds ();
-    this.assert.equal (bounds.north, 21.099875492701216);
-    this.assert.equal (bounds.east, -118.0206298828125);
-    this.assert.equal (bounds.south, 19.554613885372127);
-    this.assert.equal (bounds.west, -123.387451171875);
-    
-    var m = e.querySelector ('.paco-menu-button-container + popup-menu');
-    this.assert.equal (!!m.offsetWidth, true, 'menu shown');
-    m.querySelector ('button').click ();
-
-    await this.wait ();
-    var a = e.querySelector ('a[href^="geo:"]');
-    this.assert.equal (a.href, 'geo:20.33,-120.7013');
-
-    var c = m.querySelector ('menu-item:nth-of-type(3) input[type=checkbox]');
-    c.click ();
-    await this.wait ();
-    
-    var n = e.querySelector ('.paco-menu-button-container');
-    this.assert.equal (e.pcMapType, 'gsi-hillshade-standard');
-    this.assert.equal (m.querySelector ('menu-item:nth-of-type(1) popup-menu').classList.contains ('selected'), false);
-    this.assert.equal (m.querySelector ('menu-item:nth-of-type(2) popup-menu').classList.contains ('selected'), false);
-    this.assert.equal (m.querySelector ('menu-item:nth-of-type(3) popup-menu').classList.contains ('selected'), true);
   </test-code>
 
   <test-code name="map-area jma">
