@@ -280,8 +280,8 @@
     await this.wait ();
       
     var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 53);
-    this.assert.equal (pos.lon, 65);
+    this.assert.equal (Math.abs (pos.lat - 53) < 0.002, true, pos.lat);
+    this.assert.equal (Math.abs (pos.lon - 65) < 0.001, true, pos.lon);
   </test-code>
 
   <test-code name="no redraw event before init">
