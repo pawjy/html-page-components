@@ -3409,6 +3409,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             map.addLayer (l);
           } catch (e) {
             console.log ("Failed to add map layer", e);
+            try {
+              map.removeLayer (l);
+            } catch (e) { }
           }
         });
         this.classList.toggle ('paco-maptype-none', type === 'none');
