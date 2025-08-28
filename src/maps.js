@@ -2512,7 +2512,14 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
 
           var computedStyle;
           var updateMarker = (markerName, propName, pos, opts) => {
-            if (opts.redraw) delete this[markerName];
+            if (opts.redraw && this[markerName]) {
+              if (this.maGoogleMap) {
+                this[markerName].setMap (null);
+              } else {
+                this[markerName].remove ();
+              }
+              delete this[markerName];
+            }
             if (this[markerName]) {
               if (this[markerName].setLatLng) {
                 this[markerName].setLatLng (pos);
