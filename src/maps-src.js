@@ -1210,6 +1210,10 @@
             this.maRedraw ({mapDraggable: true});
           },
         });
+
+        new MutationObserver (() => this.maRedraw ({redrawMarkers: true}))
+              .observe (this, {attributeFilter: ['style']});
+
         
         this.maEngine = this.getAttribute ('engine');
         if (this.maEngine === 'googlemaps') {
@@ -1756,6 +1760,7 @@
 
           var computedStyle;
           var updateMarker = (markerName, propName, pos, opts) => {
+            if (opts.redraw) delete this[markerName];
             if (this[markerName]) {
               if (this[markerName].setLatLng) {
                 this[markerName].setLatLng (pos);
@@ -1900,20 +1905,23 @@
                 });
                 return;
               }
-            } // circle
-            
-            if (!markerURL) console.log ("Bad |"+propName+"| value: |"+v+"|");
+            } else { // circle
+              if (!icon) console.log ("Bad |"+propName+"| value: |"+v+"|");
+            }
           }; // updateMarker
 
           if (updates.currentPositionMarker || updates.all) {
             if (this.pcCurrentPosition) {
-              updateMarker ('pcCurrentPositionMarker', '--paco-marker-currentposition', this.pcCurrentPosition, {});
+              updateMarker ('pcCurrentPositionMarker', '--paco-marker-currentposition', this.pcCurrentPosition, {
+                redraw: updates.redrawMarkers,
+              });
             }
           } // currentPositionMarker
 
           if (updates.valueMarker || updates.readonly || updates.all) {
             updateMarker ('pcValueMarker', '--paco-marker-value', this.pcValue, {
               draggable: !this.hasAttribute ('readonly'),
+              redraw: updates.redrawMarkers,
             });
           } // valueMarker
         } // isShown
