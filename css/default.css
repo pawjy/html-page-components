@@ -1115,7 +1115,7 @@ map-area:lang(ja) {
 }
 
 map-area[formcontrol] {
-  --paco-marker-value: url(https://raw.githubusercontent.com/wakaba/html-page-components/master/intermediate/leaflet/marker-icon.png);
+  --paco-marker-value: url(https://raw.githubusercontent.com/wakaba/html-page-components/master/intermediate/leaflet/marker-icon.png) 12px 41px;
   --paco-map-click-action: set-value;
 }
 

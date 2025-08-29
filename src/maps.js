@@ -2567,24 +2567,34 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                 icon.iconUrl = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+mss+' '+mss+'"><text x="calc('+mss+'/2)" y="calc('+mss+'/2)" width="'+mss+'" height="'+mss+'" font-size="'+mss+'" text-anchor="middle" alignment-baseline="central" fill="'+mc.innerHTML+'">'+mt.innerHTML+'</text></svg>');
               }
             } else {
-              m = v.match (/^\s*url\(((?:[^()"'\\]|\\[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E])+)\)\s*$/);
+              let m = v.match (/^\s*url\(((?:[^()"'\\]|\\[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E])+)\)\s+([0-9.]+)px\s+([0-9.]+)px\s*$/);
               if (m) {
                 icon = {
-                  // XXX
-                  iconAnchor: [12, 41],
+                  iconAnchor: [parseFloat (m[2]), parseFloat (m[3])],
                   popupAnchor: [1, -34],
                   tooltipAnchor: [16, -28],
                 };
                 icon.iconUrl = m[1].replace (/\\(.)/g, (_, v) => v);
               } else {
-                m = v.match (/^\s*circle\s+(\S+)\s+([0-9.]+)px\s*$/);
+                let m = v.match (/^\s*url\(((?:[^()"'\\]|\\[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E])+)\)\s*$/);
                 if (m) {
-                  var c = m[1];
-                  var s = document.createElement ('span');
-                  s.textContent = c;
-                  var r = parseFloat (m[2]);
-                  icon = {iconSize: [r*2, r*2]};
-                  icon.iconUrl = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+r*2+'px '+r*2+'px"><circle cx="'+r+'" cy="'+r+'" r="'+r+'" fill="'+s.innerHTML+'"/></svg>');
+                  // backcompat syntax which does not support explicit hotpoint specification
+                  icon = {
+                    iconAnchor: [12, 41], // best for our default image
+                    popupAnchor: [1, -34],
+                    tooltipAnchor: [16, -28],
+                  };
+                  icon.iconUrl = m[1].replace (/\\(.)/g, (_, v) => v);
+                } else {
+                  m = v.match (/^\s*circle\s+(\S+)\s+([0-9.]+)px\s*$/);
+                  if (m) {
+                    var c = m[1];
+                    var s = document.createElement ('span');
+                    s.textContent = c;
+                    var r = parseFloat (m[2]);
+                    icon = {iconSize: [r*2, r*2]};
+                    icon.iconUrl = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+r*2+'px '+r*2+'px"><circle cx="'+r+'" cy="'+r+'" r="'+r+'" fill="'+s.innerHTML+'"/></svg>');
+                  }
                 }
               }
             }
