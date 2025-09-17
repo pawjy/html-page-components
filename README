@@ -1454,6 +1454,25 @@ The following content attributes are available:
 
       - A |map-controls| element with a |legend| attribute specified.
 
+  <map-area credits="">
+
+    Specify additional credit types.
+
+    By default appropriate credits for the shown tiles are chosen such
+    that this attribute need not to be explicitly specified.
+
+    This attribute can be used where additional map data is used in
+    other ways, e.g. to extract data from tiles through API and
+    additional credits are required.
+
+    If a |credits| attribute is specified to a space-separated list of
+    keywords, the respective credits are shown, as follows:
+
+      |gsi|              The 地理院タイル (GSI Tile)
+      <https://maps.gsi.go.jp/development/ichiran.html> map data
+      provided by 国土地理院 (Geospatial Information Authority of Japan)
+      <https://www.gsi.go.jp/> of the Japanese Government.
+
   <map-area engine="">
 
     The engine used to render the map.

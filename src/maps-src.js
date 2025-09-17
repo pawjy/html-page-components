@@ -273,6 +273,245 @@
     return gl;
   }; // L.GridLayer.gsiOptimalBvmap
 
+
+  /*
+
+    Elevations from GSI tiles.
+
+    <https://maps.gsi.go.jp/development/ichiran.html#demgm>
+    <https://maps.gsi.go.jp/development/demtile.html>
+    <https://maps.gsi.go.jp/development/elevation.html>
+
+    License of the reference implementation from which this code derived:
+
+      『地理院地図｜標高を求めるプログラム』を加工して作成。
+
+      出典: 『地理院地図｜標高を求めるプログラム』, Geospatial
+      Information Authority of Japan,
+      <https://maps.gsi.go.jp/development/elevation.html> (R7.9.17 閲覧)
+      
+      <https://maps.gsi.go.jp/help/termsofuse.html> ->
+      <https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html> ->
+      PDL1.0 <https://www.digital.go.jp/resources/open_data/public_data_license_v1.0>
+
+  */
+  L.GSIElevationLoader = L.Evented.extend ({
+    initialize: function (map, options) {
+      this._map = map;
+
+      this._demUrlList = [
+        {
+          "title": "DEM1A",
+          "url": "https://cyberjapandata.gsi.go.jp/xyz/dem1a_png/{z}/{x}/{y}.png",
+          "minzoom": 17,
+          "maxzoom": 17,
+          "fixed": 1
+        },
+        {
+          "title": "DEM5A",
+          "url": "https://cyberjapandata.gsi.go.jp/xyz/dem5a_png/{z}/{x}/{y}.png",
+          "minzoom": 15,
+          "maxzoom": 15,
+          "fixed": 1
+        },
+        {
+          "title": "DEM5B",
+          "url": "https://cyberjapandata.gsi.go.jp/xyz/dem5b_png/{z}/{x}/{y}.png",
+          "minzoom": 15,
+          "maxzoom": 15,
+          "fixed": 1
+        },
+        {
+          "title": "DEM5C",
+          "url": "https://cyberjapandata.gsi.go.jp/xyz/dem5c_png/{z}/{x}/{y}.png",
+          "minzoom": 15,
+          "maxzoom": 15,
+          "fixed": 1
+        },
+        {
+          "title": "DEM10B",
+          "url": "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png",
+          "minzoom": 14,
+          "maxzoom": 14,
+          "fixed": 0
+        },
+        {
+          "title": "DEMGM",
+          "url": "https://cyberjapandata.gsi.go.jp/xyz/demgm_png/{z}/{x}/{y}.png",
+          "minzoom": 8,
+          "maxzoom": 8,
+          "fixed": 0
+        },
+      ];
+    
+      this.pow2_8 = Math.pow(2, 8);
+      this.pow2_16 = Math.pow(2, 16);
+      this.pow2_23 = Math.pow(2, 23);
+      this.pow2_24 = Math.pow(2, 24);
+    },
+    
+    load: function (pos) {
+      this._destroyImage();
+
+      this._current = {
+        pos: pos,
+        urlList: this._makeUrlList(pos)
+      }
+      
+      this._load(this._current);
+    },
+
+    _makeUrlList: function (pos) {
+      var list = [];
+      for (var i = 0; i < this._demUrlList.length; i++) {
+        var demUrl = this._demUrlList[i];
+        
+        if (demUrl.maxzoom < demUrl.minzoom) {
+          var buff = demUrl.maxzoom;
+          demUrl.maxzoom = demUrl.minzoom;
+          demUrl.minzoom = buff;
+        }
+
+        var minzoom = demUrl.minzoom;
+
+        for (var z = demUrl.maxzoom; z >= minzoom; z--) {
+          list.push({
+            "title": demUrl.title,
+            "zoom": z,
+            "url": demUrl.url,
+            "fixed": demUrl.fixed
+          });
+        }
+        
+      }
+      return list;
+    },
+
+    _destroyImage: function () {
+      if (this._img) {
+        this._img.removeEventListener("load", this._imgLoadHandler);
+        this._img.removeEventListener("error", this._imgLoadErrorHandler);
+        
+        this._imgLoadHandler = null;
+        this._imgLoadErrorHandler = null;
+        
+        delete this._img;
+        this._img = null;
+      }
+    },
+
+    cancel: function () {
+      this._destroyImage();
+    },
+
+    _load: function (current) {
+      this._destroyImage();
+
+      if (this._current != current) return;
+
+      if (!this._current.urlList || this._current.urlList.length <= 0) {
+        // not found
+        this.fire("load", {
+          h: undefined,
+          pos: current.pos
+        })
+        return;
+      }
+
+      var url = this._current.urlList.shift();
+
+      var tileInfo = this._getTileInfo(this._current.pos.lat, this._current.pos.lng, url.zoom);
+      this._img = document.createElement("img");
+      this._img.setAttribute("crossorigin", "anonymous");
+      
+      this._imgLoadHandler = L.bind(this._onImgLoad, this, url, current, tileInfo, this._img);
+      this._imgLoadErrorHandler = L.bind(this._onImgLoadError, this, url, current, tileInfo, this._img);
+
+      this._img.addEventListener("load", this._imgLoadHandler);
+      this._img.addEventListener("error", this._imgLoadErrorHandler);
+
+      function makeUrl(url, tileInfo) {
+        var result = url.url.replace("{x}", tileInfo.x);
+        result = result.replace("{y}", tileInfo.y);
+        result = result.replace("{z}", url.zoom);
+        return result;
+      }
+
+      this._img.src = makeUrl(url, tileInfo);
+    },
+
+    _onImgLoad: function (url, current, tileInfo, img) {
+      if (current != this._current) return;
+
+      if (!this._canvas) {
+        this._canvas = document.createElement("canvas");
+        this._canvas.width = 256;
+        this._canvas.height = 256;
+      }
+
+      var ctx = this._canvas.getContext("2d", {willReadFrequently: true});
+      ctx.drawImage(img, 0, 0);
+
+      var imgData = ctx.getImageData(0, 0, 256, 256);
+      var idx = (tileInfo.pY * 256 * 4) + (tileInfo.pX * 4);
+      var r = imgData.data[idx + 0];
+      var g = imgData.data[idx + 1];
+      var b = imgData.data[idx + 2];
+      var h = 0;
+
+      if (r != 128 || g != 0 || b != 0) {
+        var d = r * this.pow2_16 + g * this.pow2_8 + b;
+        h = (d < this.pow2_23) ? d : d - this.pow2_24;
+        if (h == -this.pow2_23) h = 0;
+        else h *= 0.01;
+        this._destroyImage();
+
+        this.fire("load", {
+          h: h,
+          title: url.title,
+          fixed: url.fixed,
+          pos: current.pos
+        })
+      } else {
+        this._onImgLoadError(url, current, tileInfo, img);
+      }
+    },
+
+    _onImgLoadError: function (url, current, tileInfo, img) {
+      if (current != this._current) return;
+      this._load(current);
+    },
+
+    _getTileInfo: function (lat, lng, z) {
+      var lng_rad = lng * Math.PI / 180;
+      var R = 128 / Math.PI;
+      var worldCoordX = R * (lng_rad + Math.PI);
+      var pixelCoordX = worldCoordX * Math.pow(2, z);
+      var tileCoordX = Math.floor(pixelCoordX / 256);
+
+      var lat_rad = lat * Math.PI / 180;
+      var worldCoordY = -R / 2 * Math.log((1 + Math.sin(lat_rad)) / (1 - Math.sin(lat_rad))) + 128;
+      var pixelCoordY = worldCoordY * Math.pow(2, z);
+      var tileCoordY = Math.floor(pixelCoordY / 256);
+
+      return {
+        x: tileCoordX,
+        y: tileCoordY,
+        pX: Math.floor(pixelCoordX - tileCoordX * 256),
+        pY: Math.floor(pixelCoordY - tileCoordY * 256)
+      };
+    }
+  }); // L.GSIElevationLoader
+
+  console.pcMaps.getElevation = (lat, lon) => {
+    return new Promise ((ok, ng) => {
+      let loader = new L.GSIElevationLoader;
+      loader.on ("load", (e) => { ok (e.h) }); // or undefined
+      loader.on ('error', ng);
+      loader.load ({ lat, lng: lon , zoom: 17 })
+    });
+  }; // getElevation
+  
   
   L.Control.ElementControl = L.Control.extend ({
     onAdd: function (map) {
@@ -416,7 +655,7 @@
       if (e.hasAttribute ('gsi')) {
         var mm = m.querySelector ('menu-main');
         var nodes = document.createElement ('div');
-        nodes.innerHTML = '<menu-item><popup-menu data-true='+gsh+' data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main class=paco-map-menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true=gsi-photo-standard data-false=gsi-photo data-label=photo><button type=button class=paco-control-button>Photo</button><menu-main class=paco-photo-menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true='+ghs+' data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><button type=button class=paco-maptype-button data-true=none>None</button></menu-item><hr>';
+        nodes.innerHTML = '<menu-item><popup-menu data-true='+gsh+' data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main class=paco-map-menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true='+gph+' data-false=gsi-photo data-label=photo><button type=button class=paco-control-button>Photo</button><menu-main class=paco-photo-menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true='+ghs+' data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><button type=button class=paco-maptype-button data-true=none>None</button></menu-item><hr>';
         let nb = nodes.querySelector ('menu-item:last-of-type button');
         let nps = [nodes.querySelector ('.paco-photo-menu-main')];
         let mps = [nodes.querySelector ('.paco-map-menu-main')];
@@ -472,7 +711,7 @@
             m.outerHTML = '<menu-item><button type=button data-true='+gsh+' data-false=gsi-lang data-label=gsi></button></menu-item><menu-item><button type=button data-true=osm-gsi-hillshade data-false=osm data-label=osm></button></menu-item>';
           });
         }
-        
+
         pms.forEach (pm => {
           let buttons = pm.querySelectorAll ('button');
           buttons.forEach (button => {
@@ -1582,6 +1821,14 @@
           initialMapType = 'osm';
         }
         if (initialMapType) this.setMapType (initialMapType);
+
+        (this.getAttribute ('credits') || '').split (/\s+/).forEach (_ => {
+          if (_ === 'gsi') {
+            map.attributionControl.addAttribution (gsiCreditHTML)
+          } else {
+            console.log ("Bad |credits| value |"+_+"|");
+          }
+        });
 
         map.pcAddTimeSetter = (code) => {
           this.pcTimeSetters.push (code);

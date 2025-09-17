@@ -155,7 +155,7 @@
 
         var c = ev.target.getMapCenter ();
         document.querySelector ('#latlon').value = c.lat + ',' + c.lon;
-
+        
         var n = ++testRenderCount;
         ev.target.setMouseHandlers ({
           mousedown: obj => {
@@ -173,7 +173,11 @@
         var o = s.querySelector ('output[name=value]');
 
         var v = ev.target.valueAsLatLon;
-        o.textContent = [v.lat, v.lon];
+        o.textContent = [v.lat, v.lon, null];
+
+        console.pcMaps.getElevation (v.lat, v.lon).then (elevation => {
+          o.textContent = [v.lat, v.lon, elevation];
+        });
       });
     }) ();
     </script>
