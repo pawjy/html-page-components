@@ -3,6 +3,7 @@
   <meta charset=utf-8>
   <title>Map</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel=stylesheet href=https://pawjy.github.io/html-unit-number/css/default.css>
 <link rel=stylesheet href=../css/default.css>
 <style>
   body {
@@ -37,9 +38,10 @@
 <script src=../src/page-components.js async></script>
 <script src=../src/maps.js async></script>
 <script src=https://wiki.suikawiki.org/scripts/time async data-time-selector=time></script>
+<script src=https://pawjy.github.io/html-unit-number/src/unit-number.js async></script>
 
   <section id=map-section-1 lang=ja>
-    <map-area engine=leaflet controls="type typebuttons scale fullscreen currentposition zoom streetview togglelegend" gsi jma osm lat=35.2 lon=135.4 formcontrol>
+    <map-area engine=leaflet controls="type typebuttons scale fullscreen currentposition zoom streetview togglelegend coordinate" gsi jma osm lat=35.2 lon=135.4 formcontrol>
       <map-controls>ABC</map-controls>
       <map-controls position=top-left>XYZ</map-controls>
       <map-controls position=top-left><button>xyz</button></map-controls>

@@ -559,6 +559,7 @@ map-area popup-menu > menu-main > menu-item > popup-menu > button.paco-control-b
   font: inherit;
   text-align: start;
 }
+map-area .paco-more-menu > button::after,
 map-area popup-menu > menu-main > menu-item > popup-menu > button.paco-control-button::after {
   content: none;
 }
@@ -575,12 +576,15 @@ map-area[gsi] .paco-jma-weather-submenu menu-main {
   margin-top: -10em;
 }
 
-map-area .paco-timestamp-control {
+
+map-area .paco-timestamp-control,
+map-area .paco-coordinate-control {
   padding: 2px;
   line-height: 1.2;
   font-feature-settings: "palt";
 }
 
+.leaflet-left .paco-coordinate-control,
 .leaflet-left .paco-timestamp-control {
   margin-left: 5px;
   margin-bottom: 5px;
@@ -590,9 +594,22 @@ map-area .paco-timestamp-control a {
   text-decoration: none;
 }
 
+map-area .paco-coordinate-control,
 map-area .paco-jma-timestamp-control {
   background: rgba(255, 255, 255, 0.5);
   color: #333;
+}
+
+map-area .paco-coordinate-control button.paco-control-button {
+  min-height: 0;
+  padding: 0;
+  line-height: 0.8;
+  vertical-align: middle;
+}
+
+map-area .paco-coordinate-control number-value {
+  font-weight: bolder;
+  font-size: larger;
 }
 
 map-area .paco-jma-timestamp-control > time:not([hidden]) {
@@ -829,15 +846,21 @@ can-copy:lang(ja) {
   --paco-copied-message: "\30AF\30EA\30C3\30D7\30DC\30FC\30C9\306B\30B3\30D4\30FC\3057\307E\3057\305F\3002";
 }
 
-can-copy {
+can-copy, map-area {
   --paco-copy-button-label: "Copy";
+  --paco-copy-button-position: after;
 }
-can-copy:lang(ja) {
+can-copy:lang(ja), map-area:lang(ja) {
   --paco-copy-button-label: "\30B3\30D4\30FC";
 }
 
+
 can-copy time {
   --paco-copy-format: unix-tz-json;
+}
+
+can-copy:has(button[is=copy-button]) {
+  --paco-copy-button-position: none;
 }
 
 details[is=pc-map-credit-details]:not([open]):not([hidden]) {

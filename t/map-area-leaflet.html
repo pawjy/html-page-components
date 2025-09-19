@@ -823,6 +823,21 @@
 
     pp.clickable (document.createElement ('x'));
   </test-code>
+
+  <test-code name="controls=coordinate">
+    /*
+      <map-area controls=coordinate lang=en></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+    await e.ready;
+
+    var m = e.querySelector ('popup-menu');
+    let c = m.querySelector ('button[is=copy-button]');
+    this.assert.equal (c.textContent, 'Copy');
+
+    var ts = e.querySelector ('.paco-coordinate-control');
+    this.assert.equal (!!ts.offsetWidth, true);
+  </test-code>
   
   <script src=runtests.js data-maps></script>
 </body>

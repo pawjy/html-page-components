@@ -1255,7 +1255,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     }
   }); // L.GSIElevationLoader
 
-  console.pcMaps.getElevation = (lat, lon) => {
+  let getElevation = console.pcMaps.getElevation = (lat, lon) => {
     return new Promise ((ok, ng) => {
       let loader = new L.GSIElevationLoader;
       loader.on ("load", (e) => { ok (e.h) }); // or undefined
@@ -1274,6 +1274,10 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
       L.DomEvent.disableClickPropagation (e);
       return e;
     }, // onAdd
+    onRemove: function (map) {
+      let e = this.options.element;
+      if (this.options.remove) this.options.remove (e, map);
+    }, // onRemove
   });
   L.control.elementControl = function (opts) {
     return new L.Control.ElementControl (opts);
@@ -1607,6 +1611,38 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     }
     return new L.Control.ElementControl (opts);
   }; // L.control.timestampControl
+  
+  L.control.coordinateControl = function (opts) {
+    let t = document.createElement ('map-controls');
+    t.className = 'paco-coordinate-control';
+    opts.element = t;
+    t.innerHTML = '<can-copy buttonclass="paco-control-button paco-coordnate-control-button"><output><unit-number type=lat data-field=lat></unit-number> <unit-number type=lon data-field=lon></unit-number> <unit-number type=elevation data-field=elevation></unit-number></output> <popup-menu class=paco-more-menu><button type=button class=paco-control-button>\u22EF</button><menu-main><menu-item><button type=button is=copy-button>Copy</button></menu-item></menu-main></popup-menu></can-copy>'; 
+    let handler = (map) => {
+      let v = map.valueAsLatLon;
+      map.pcInternal.$fill (t, v);
+      getElevation (v.lat, v.lon).then (elevation => {
+        v.elevation = elevation;
+        map.pcInternal.$fill (t, v);
+      });
+    };
+    opts.styling = b => {
+      b.pcMap.pcAddCoordinateSetter (handler);
+      b.pcMap.attributionControl.addAttribution (gsiCreditHTML);
+
+      let e = b.pcMap.getContainer ();
+      let p = getComputedStyle (e);
+      // recompute!
+      let m = e.pcInternal.parseCSSString (p.getPropertyValue ('--paco-copy-button-label'), 'Copy');
+      t.querySelectorAll ('button[is=copy-button]').forEach (b => {
+        b.textContent = m;
+      });
+    };
+    opts.remove = (b, map) => {
+      map.pcRemoveCoordinateSetter (handler);
+      map.attributionControl.removeAttribution (gsiCreditHTML);
+    };
+    return new L.Control.ElementControl (opts);
+  }; // L.control.coordinateControl
 
   var JMAMaps = {
     hrpns: {
@@ -2158,6 +2194,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
 
         this.pcValue = {lat: 0, lon: 0};
         var initialValue = this.valueAsLatLon;
+        this.pcCoordinateSetters = [];
         if (initialValue) {
           this.setAttribute ('lat', initialValue.lat);
           this.setAttribute ('lon', initialValue.lon);
@@ -2175,7 +2212,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                             lon: parseFloat (newValue.lon)};
             if (!Number.isFinite (this.pcValue.lat)) this.pcValue.lat = 0;
             if (!Number.isFinite (this.pcValue.lon)) this.pcValue.lon = 0;
-            this.maRedraw ({valueMarker: true});
+            this.maRedraw ({valueMarker: true, valueMarkerHandlers: true});
           },
         });
 
@@ -2373,7 +2410,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             this.maGoogleMap.addListener ('click', ev => {
               var p = ev.latLng;
               this.pcMarkerMoveEnd ({lat: p.lat (), lon: p.lng ()});
-              this.maRedraw ({valueMarker: true, userActivated: true});
+              this.maRedraw ({valueMarker: true, userActivated: true,
+                              valueMarkerHandlers: true});
             });
           }
 
@@ -2493,6 +2531,19 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         if (za.match (/^\s*none\s*$/)) opts.zoomAnimation = false;
         var map = this.pcLMap = L.map (this, opts);
 
+        map.pcAddTimeSetter = (code) => {
+          this.pcTimeSetters.push (code);
+        }; // addTimeSetter
+        map.pcRemoveTimeSetter = (code) => {
+          this.pcTimeSetters = this.pcTimeSetters.filter (_ => _ !== code);
+        }; // removeTimeSetter
+        map.pcAddCoordinateSetter = (code) => {
+          this.pcCoordinateSetters.push (code);
+        }; // addCoordinateSetter
+        map.pcRemoveCoordinateSetter = (code) => {
+          this.pcCoordinateSetters = this.pcCoordinateSetters.filter (_ => _ !== code);
+        }; // removeCoordinateSetter
+
         if (controls.zoom) {
           // recompute!
           var s = getComputedStyle (this);
@@ -2534,6 +2585,12 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           this.pcInitCurrentPosition ();
         }
 
+        if (controls.coordinate) {
+          L.control.coordinateControl ({
+            position: 'topleft',
+          }).addTo (map);
+        }
+
         // Map need to be recomputed if it is initialized when not
         // shown.
         this.maISObserver = new IntersectionObserver (() => {
@@ -2557,7 +2614,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           map.on ('click', ev => {
             var p = ev.latlng;
             this.pcMarkerMoveEnd ({lat: p.lat, lon: p.lng});
-            this.maRedraw ({valueMarker: true, userActivated: true});
+            this.maRedraw ({valueMarker: true, userActivated: true,
+                            valueMarkerHandlers: true});
           });            
         }
 
@@ -2577,22 +2635,18 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         (this.getAttribute ('credits') || '').split (/\s+/).forEach (_ => {
           if (_ === 'gsi') {
             map.attributionControl.addAttribution (gsiCreditHTML)
+          } else if (_ === '') {
+            //
           } else {
             console.log ("Bad |credits| value |"+_+"|");
           }
         });
-
-        map.pcAddTimeSetter = (code) => {
-          this.pcTimeSetters.push (code);
-        }; // addTimeSetter
-        map.pcRemoveTimeSetter = (code) => {
-          this.pcTimeSetters = this.pcTimeSetters.filter (_ => _ !== code);
-        }; // removeTimeSetter
         
         new MutationObserver ((mutations) => {
           this.maRedraw ({controls: true});
         }).observe (this, {childList: true});
-        this.maRedraw ({controls: true, valueMarker: true,
+        this.maRedraw ({controls: true,
+                        valueMarker: true, valueMarkerHandlers: true,
                         relocate: true});
       }, // pcInitLeaflet
       
@@ -2761,9 +2815,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           var updateMarker = (markerName, propName, pos, opts) => {
             if (opts.redraw && this[markerName]) {
               if (this.maGoogleMap) {
-                this[markerName].setMap (null);
+                if (this[markerName].setMap) this[markerName].setMap (null);
               } else {
-                this[markerName].remove ();
+                if (this[markerName].remove) this[markerName].remove ();
               }
               delete this[markerName];
             }
@@ -2939,6 +2993,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
               draggable: !this.hasAttribute ('readonly'),
               redraw: updates.redrawMarkers,
             });
+            if (updates.valueMarkerHandlers) {
+              this.pcCoordinateSetters.forEach (_ => _ (this));
+            }
           } // valueMarker
         } // isShown
         
