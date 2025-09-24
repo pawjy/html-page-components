@@ -38,10 +38,15 @@
     m.querySelector ('button').click ();
 
     await this.wait ();
-    var a = e.querySelector ('a[href^="geo:"]');
-    this.assert.equal (a.href, 'geo:20.33,-120.7013');
+    let bc = m.querySelector ('input[value=coordinates]');
+    await this.wait ();
+    bc.click ();
 
-    var c = m.querySelector ('menu-item:nth-of-type(3) input[type=checkbox]');
+    await this.wait ();
+    var a = e.querySelector ('a[href^="geo:"]');
+    this.assert.equal (a.href, 'geo:20.33,-120.7013', "geo: URL");
+
+    var c = m.querySelector ('menu-item [data-true=gsi-hillshade-optimal_bvmap] input[type=checkbox]');
     c.click ();
     await this.wait ();
     
@@ -96,6 +101,10 @@
     this.assert.equal (!!m.offsetWidth, true, 'menu shown');
     m.querySelector ('button').click ();
 
+    await this.wait ();
+    let b = m.querySelector ('input[value=coordinates]');
+    b.click ();
+    
     await this.wait ();
     var a = e.querySelector ('a[href^="geo:"]');
     this.assert.equal (a.href, 'geo:20.33,-120.7013');
