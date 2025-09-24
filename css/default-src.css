@@ -226,6 +226,8 @@ map-area {
   --paco-open-openstreetmap-text: "Open in OpenStreetMap";
   --paco-open-geohack-text: "Open in others...";
   --paco-copy-center-text: "Copy center coordinates";
+  --paco-show-coordinates-text: "Coordinates";
+  --paco-copy-geourl-text: "Copy geo: URL";
   --paco--gsi-lang: gsi-standard;
   --paco-maptype-map-text: 'Map';
   --paco-maptype-maplabel-text: 'Labels';
@@ -279,6 +281,8 @@ map-area:lang(ja) {
   --paco-open-openstreetmap-text: "OpenStreetMap \3067\958B\304F";
   --paco-open-geohack-text: "\305D\306E\4ED6\3067\958B\304F...";
   --paco-copy-center-text: "\4E2D\5FC3\306E\5EA7\6A19\3092\30B3\30D4\30FC";
+  --paco-show-coordinates-text: "\5EA7\6A19";
+  --paco-copy-geourl-text: "geo: URL \3092\30B3\30D4\30FC";
   --paco-maptype-map-text: '\5730\56F3';
   --paco-maptype-maplabel-text: '\30E9\30D9\30EB';
   --paco-maptype-hillshade-text: '\5730\5F62'; /* '\9670\5F71\8D77\4F0F' */
@@ -578,13 +582,13 @@ map-area[gsi] .paco-jma-weather-submenu menu-main {
 
 
 map-area .paco-timestamp-control,
-map-area .paco-coordinate-control {
+map-area .paco-coordinates-control {
   padding: 2px;
   line-height: 1.2;
   font-feature-settings: "palt";
 }
 
-.leaflet-left .paco-coordinate-control,
+.leaflet-left .paco-coordinates-control,
 .leaflet-left .paco-timestamp-control {
   margin-left: 5px;
   margin-bottom: 5px;
@@ -594,20 +598,20 @@ map-area .paco-timestamp-control a {
   text-decoration: none;
 }
 
-map-area .paco-coordinate-control,
+map-area .paco-coordinates-control,
 map-area .paco-jma-timestamp-control {
   background: rgba(255, 255, 255, 0.5);
   color: #333;
 }
 
-map-area .paco-coordinate-control button.paco-control-button {
+map-area .paco-coordinates-control button.paco-control-button {
   min-height: 0;
   padding: 0;
   line-height: 0.8;
   vertical-align: middle;
 }
 
-map-area .paco-coordinate-control number-value {
+map-area .paco-coordinates-control number-value {
   font-weight: bolder;
   font-size: larger;
 }

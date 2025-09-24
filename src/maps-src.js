@@ -611,7 +611,7 @@
     var m = document.createElement ('popup-menu');
     m.className = 'paco-map-type-menu';
     m.setAttribute ('menucontainer', 'map-area');
-    m.innerHTML = '<button type=button class="paco-control-button paco-maptype-control-button">\u{1F5FA}</button><menu-main><menu-item><a data-href-template="https://www.google.com/maps?ll={lat},{lon}&z={zoomLevel}" target=_blank rel=noreferrer>Google Maps</a></menu-item><menu-item><a data-href-template="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom={zoomLevel}" target=_blank rel=noreferrer>OpenStreetMap</a></menu-item><menu-item><a data-href-template="https://geohack.toolforge.org/geohack.php?params={lat};{lon}" target=_blank rel=noreferrer>Others...</a></menu-item><menu-item><a data-href-template="geo:{lat},{lon}" is=copy-url>Copy</a></menu-item></menu-main>';
+    m.innerHTML = '<button type=button class="paco-control-button paco-maptype-control-button">\u{1F5FA}</button><menu-main><menu-item><label><input type=checkbox class=paco-map-state-control value=coordinates><span>Coordinates</span></label></menu-item><menu-item><a data-href-template="https://www.google.com/maps?ll={lat},{lon}&z={zoomLevel}" target=_blank rel=noreferrer>Google Maps</a></menu-item><menu-item><a data-href-template="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom={zoomLevel}" target=_blank rel=noreferrer>OpenStreetMap</a></menu-item><menu-item><a data-href-template="https://geohack.toolforge.org/geohack.php?params={lat};{lon}" target=_blank rel=noreferrer>Others...</a></menu-item></menu-main>';
     m.addEventListener ('toggle', ev => {
       if (m.hasAttribute ('open')) {
         var e = c.pcMap.getContainer ();
@@ -637,8 +637,13 @@
       mi[0].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-open-googlemaps-text'), 'Open in Google Maps');
       mi[1].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-open-openstreetmap-text'), 'Open in OpenStreetMap');
       mi[2].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-open-geohack-text'), 'Open in others...');
-      mi[3].textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-copy-center-text'), 'Copy center coordinates');
-
+      {
+        let coords = m.querySelector ('input[value=coordinates]');
+        coords.checked = !! e.pc_CoordinatesControl;
+        coords.onclick = () => e.pc_ToggleCoordinatesControl (coords.checked);
+        coords.nextElementSibling.textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-show-coordinates-text'), 'Show coordinates');
+      }
+      
       if (e.hasAttribute ('jma')) {
         var mm = m.querySelector ('menu-main');
         var nodes = document.createElement ('div');
@@ -860,37 +865,46 @@
     return new L.Control.ElementControl (opts);
   }; // L.control.timestampControl
   
-  L.control.coordinateControl = function (opts) {
+  L.control.coordinatesControl = function (opts) {
     let t = document.createElement ('map-controls');
-    t.className = 'paco-coordinate-control';
+    t.className = 'paco-coordinates-control';
     opts.element = t;
-    t.innerHTML = '<can-copy buttonclass="paco-control-button paco-coordnate-control-button"><output><unit-number type=lat data-field=lat></unit-number> <unit-number type=lon data-field=lon></unit-number> <unit-number type=elevation data-field=elevation></unit-number></output> <popup-menu class=paco-more-menu><button type=button class=paco-control-button>\u22EF</button><menu-main><menu-item><button type=button is=copy-button>Copy</button></menu-item></menu-main></popup-menu></can-copy>'; 
-    let handler = (map) => {
-      let v = map.valueAsLatLon;
+    t.innerHTML = '<can-copy buttonclass="paco-control-button paco-coordnate-control-button"><output><unit-number type=lat data-field=lat></unit-number> <unit-number type=lon data-field=lon></unit-number> <unit-number type=elevation data-field=elevation></unit-number></output> <popup-menu class=paco-more-menu><button type=button class=paco-control-button>\u22EF</button><menu-main><menu-item><button type=button is=copy-button>Copy</button></menu-item><menu-item><a data-href-template=geo:{lat},{lon} is=copy-url>Copy</a></menu-main></popup-menu></can-copy>'; 
+    let handler = (map, changes) => {
+      let v;
+      if (map.pcValueMarker && !map.pcValueMarker.none) {
+        if (!changes.value) return;
+        v = map.valueAsLatLon;
+      } else {
+        if (!changes.redraw) return;
+        v = map.getMapCenter ();
+      }
       map.pcInternal.$fill (t, v);
       getElevation (v.lat, v.lon).then (elevation => {
-        v.elevation = elevation;
+        v.elevation = elevation || 0;
         map.pcInternal.$fill (t, v);
       });
     };
     opts.styling = b => {
-      b.pcMap.pcAddCoordinateSetter (handler);
+      b.pcMap.pcAddCoordinatesSetter (handler);
       b.pcMap.attributionControl.addAttribution (gsiCreditHTML);
 
       let e = b.pcMap.getContainer ();
-      let p = getComputedStyle (e);
+      let s = getComputedStyle (e);
       // recompute!
-      let m = e.pcInternal.parseCSSString (p.getPropertyValue ('--paco-copy-button-label'), 'Copy');
       t.querySelectorAll ('button[is=copy-button]').forEach (b => {
-        b.textContent = m;
+        b.textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-copy-button-label'), 'Copy');
+      });
+      t.querySelectorAll ('a[is=copy-url]').forEach (b => {
+        b.textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-copy-geourl-text'), 'Copy coordinates URL');
       });
     };
     opts.remove = (b, map) => {
-      map.pcRemoveCoordinateSetter (handler);
+      map.pcRemoveCoordinatesSetter (handler);
       map.attributionControl.removeAttribution (gsiCreditHTML);
     };
     return new L.Control.ElementControl (opts);
-  }; // L.control.coordinateControl
+  }; // L.control.coordinatesControl
 
   var JMAMaps = {
     hrpns: {
@@ -1442,7 +1456,7 @@
 
         this.pcValue = {lat: 0, lon: 0};
         var initialValue = this.valueAsLatLon;
-        this.pcCoordinateSetters = [];
+        this.pcCoordinatesSetters = [];
         if (initialValue) {
           this.setAttribute ('lat', initialValue.lat);
           this.setAttribute ('lon', initialValue.lon);
@@ -1785,12 +1799,12 @@
         map.pcRemoveTimeSetter = (code) => {
           this.pcTimeSetters = this.pcTimeSetters.filter (_ => _ !== code);
         }; // removeTimeSetter
-        map.pcAddCoordinateSetter = (code) => {
-          this.pcCoordinateSetters.push (code);
-        }; // addCoordinateSetter
-        map.pcRemoveCoordinateSetter = (code) => {
-          this.pcCoordinateSetters = this.pcCoordinateSetters.filter (_ => _ !== code);
-        }; // removeCoordinateSetter
+        map.pcAddCoordinatesSetter = (code) => {
+          this.pcCoordinatesSetters.push (code);
+        }; // addCoordinatesSetter
+        map.pcRemoveCoordinatesSetter = (code) => {
+          this.pcCoordinatesSetters = this.pcCoordinatesSetters.filter (_ => _ !== code);
+        }; // removeCoordinatesSetter
 
         if (controls.zoom) {
           // recompute!
@@ -1833,10 +1847,8 @@
           this.pcInitCurrentPosition ();
         }
 
-        if (controls.coordinate) {
-          L.control.coordinateControl ({
-            position: 'topleft',
-          }).addTo (map);
+        if (controls.coordinates) {
+          this.pc_ToggleCoordinatesControl (true);
         }
 
         // Map need to be recomputed if it is initialized when not
@@ -1906,6 +1918,7 @@
         var isShown = this.offsetWidth > 0 && this.offsetHeight > 0;
         if (!isShown) return;
         
+        this.pcCoordinatesSetters.forEach (_ => _ (this, {redraw: true}));
         this.dispatchEvent (new Event ('pcRedraw', {bubbles: true}));
       }, // ma_RedrawEvent
       maRedraw: function (opts) {
@@ -2096,7 +2109,7 @@
             var v = computedStyle.getPropertyValue (propName) || 'none';
 
             if (v.match (/^\s*none\s*$/)) {
-              this[markerName] = {setLatLng: () => {}};
+              this[markerName] = {setLatLng: () => {}, none: true};
               return;
             }
 
@@ -2242,7 +2255,7 @@
               redraw: updates.redrawMarkers,
             });
             if (updates.valueMarkerHandlers) {
-              this.pcCoordinateSetters.forEach (_ => _ (this));
+              this.pcCoordinatesSetters.forEach (_ => _ (this, {value: true}));
             }
           } // valueMarker
         } // isShown
@@ -3020,6 +3033,32 @@
         this.classList.toggle ('paco-maptype-none', type === 'none');
         this.dispatchEvent (new Event ('pcMapTypeChange'));
       }, // pcChangeMapType
+
+      pc_ToggleCoordinatesControl: function (state) {
+        if (state === undefined) {
+          state = this.pc_CoordinatesControl ? false : true;
+        }
+        if (state) {
+          if (this.pc_CoordinatesControl) {
+            //
+          } else {
+            let map = this.pcLMap;
+            if (map) {
+              this.pc_CoordinatesControl = L.control.coordinatesControl ({
+                position: 'topleft',
+              }).addTo (map);
+              Promise.resolve ().then (() => this.pcCoordinatesSetters.forEach (_ => _ (this, {value: true, redraw: true})));
+              this.querySelectorAll ('.paco-map-state-control[value=coordinates]').forEach (c => c.checked = true);
+            }
+          }
+        } else {
+          if (this.pc_CoordinatesControl) {
+            this.pc_CoordinatesControl.remove ();
+            delete this.pc_CoordinatesControl;
+            this.querySelectorAll ('.paco-map-state-control[value=coordinates]').forEach (c => c.checked = false);
+          }
+        }
+      }, // pc_ToggleCoordinatesControl
 
       pcInitCurrentPosition: function () {
         if (navigator.permissions && navigator.permissions.query) {

@@ -824,9 +824,9 @@
     pp.clickable (document.createElement ('x'));
   </test-code>
 
-  <test-code name="controls=coordinate">
+  <test-code name="controls=coordinates">
     /*
-      <map-area controls=coordinate lang=en></map-area>
+      <map-area controls=coordinates lang=en></map-area>
     */
     var e = this.currentScript.querySelector ('map-area');
     await e.ready;
@@ -835,7 +835,7 @@
     let c = m.querySelector ('button[is=copy-button]');
     this.assert.equal (c.textContent, 'Copy');
 
-    var ts = e.querySelector ('.paco-coordinate-control');
+    var ts = e.querySelector ('.paco-coordinates-control');
     this.assert.equal (!!ts.offsetWidth, true);
   </test-code>
   
