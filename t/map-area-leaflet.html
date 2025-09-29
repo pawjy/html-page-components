@@ -675,7 +675,7 @@
       events.push (ev);
     });
     
-    e.pcMarkerMoveEnd ({lat: 32.444, lon: -130.12});
+    e.pc_MarkerMoveEnd ("pc_ValueMarker", {lat: 32.444, lon: -130.12});
     await this.wait ();
 
     f.querySelector ('button').click ();
@@ -837,6 +837,31 @@
 
     var ts = e.querySelector ('.paco-coordinates-control');
     this.assert.equal (!!ts.offsetWidth, true);
+  </test-code>
+
+  <test-code name="distance">
+    /*
+      <map-area controls lang=en></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+    await e.ready;
+
+    let m = e.querySelector ('popup-menu');
+    m.click ();
+    await this.wait ();
+    
+    let c = m.querySelector ('[value=distance]');
+    c.click ();
+    await this.wait ();
+
+    var ts = e.querySelector ('.paco-distance-control');
+    this.assert.equal (!!ts.offsetWidth, true);
+
+    let cb = ts.querySelector ('[is=paco-map-close-button]');
+    cb.click ();
+    await this.wait ();
+
+    this.assert.equal (!!ts.offsetWidth, false);
   </test-code>
   
   <script src=runtests.js data-maps></script>
