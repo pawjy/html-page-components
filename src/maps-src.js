@@ -148,6 +148,49 @@
     }); // colors
   } // computeColorOpacities
 
+
+  // Hubeny's distance with WGS84
+  let distanceH84 = function (p1, p2) {
+    var d2r = (deg) => deg * Math.PI / 180;
+
+    var lat1 = d2r (p1.lat);
+    var lat2 = d2r (p2.lat);
+
+    var latDelta = lat1 - lat2;
+    var lonDelta = Math.abs (d2r (p1.lon) - d2r (p2.lon));
+    if (lonDelta > Math.PI) lonDelta = 2 * Math.PI - lonDelta;
+    var latAvg = (lat1 + lat2) / 2;
+
+    // WGS84
+    var a = 6378137.000;
+    var e2 = 0.00669437999019758; // e^2 = (a^2 - b^2) / a^2
+    var a1e2 = 6335439.32729246; // a * (1 - e^2)
+
+    var W2 = 1 - e2 * Math.pow (Math.sin (latAvg), 2);
+    var W = Math.pow (W2, 0.5);
+    var M = a1e2 / (W2 * W);
+    var N = a / W;
+
+    return Math.sqrt (Math.pow (latDelta * M, 2) +
+                      Math.pow (lonDelta * N * Math.cos (latAvg), 2));
+  }; // distanceH84
+
+  let sphereDistance = function (p1, p2) {
+    var d2r = (deg) => deg * Math.PI / 180;
+
+    var lat1 = d2r (p1.lat);
+    var lat2 = d2r (p2.lat);
+    var avgLat = (lat1 - lat2) / 2;
+    var avgLon = (d2r (p1.lon) - d2r (p2.lon)) / 2;
+
+    return 2 * Math.asin (Math.sqrt (
+      Math.pow (Math.sin (avgLat), 2) +
+      Math.cos (lat1) * Math.cos (lat2) * Math.pow (Math.sin (avgLon), 2)
+    )) * 6378137;
+  }; // sphereDistance
+
+  
+  
   L.GridLayer.TileImages = L.GridLayer.extend ({
     createTile: function (coords, done) {
       var img = document.createElement ('img');
@@ -611,7 +654,7 @@
     var m = document.createElement ('popup-menu');
     m.className = 'paco-map-type-menu';
     m.setAttribute ('menucontainer', 'map-area');
-    m.innerHTML = '<button type=button class="paco-control-button paco-maptype-control-button">\u{1F5FA}</button><menu-main><menu-item><label><input type=checkbox class=paco-map-state-control value=coordinates><span>Coordinates</span></label></menu-item><menu-item><a data-href-template="https://www.google.com/maps?ll={lat},{lon}&z={zoomLevel}" target=_blank rel=noreferrer>Google Maps</a></menu-item><menu-item><a data-href-template="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom={zoomLevel}" target=_blank rel=noreferrer>OpenStreetMap</a></menu-item><menu-item><a data-href-template="https://geohack.toolforge.org/geohack.php?params={lat};{lon}" target=_blank rel=noreferrer>Others...</a></menu-item></menu-main>';
+    m.innerHTML = '<button type=button class="paco-control-button paco-maptype-control-button">\u{1F5FA}</button><menu-main><menu-item><label><input type=checkbox class=paco-map-state-control value=coordinates> <span>Coordinates</span></label></menu-item><menu-item><label><input type=checkbox class=paco-map-state-control value=distance> <span>Distance</span></label></menu-item><menu-item><a data-href-template="https://www.google.com/maps?ll={lat},{lon}&z={zoomLevel}" target=_blank rel=noreferrer>Google Maps</a></menu-item><menu-item><a data-href-template="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom={zoomLevel}" target=_blank rel=noreferrer>OpenStreetMap</a></menu-item><menu-item><a data-href-template="https://geohack.toolforge.org/geohack.php?params={lat};{lon}" target=_blank rel=noreferrer>Others...</a></menu-item></menu-main>';
     m.addEventListener ('toggle', ev => {
       if (m.hasAttribute ('open')) {
         var e = c.pcMap.getContainer ();
@@ -642,6 +685,12 @@
         coords.checked = !! e.pc_CoordinatesControl;
         coords.onclick = () => e.pc_ToggleCoordinatesControl (coords.checked);
         coords.nextElementSibling.textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-show-coordinates-text'), 'Show coordinates');
+      }
+      {
+        let button = m.querySelector ('input[value=distance]');
+        button.checked = !! e.pc_DistanceControl;
+        button.onclick = () => e.pc_ToggleDistanceMode (button.checked);
+        button.nextElementSibling.textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-show-distance-text'), 'Distance');
       }
       
       if (e.hasAttribute ('jma')) {
@@ -869,10 +918,10 @@
     let t = document.createElement ('map-controls');
     t.className = 'paco-coordinates-control';
     opts.element = t;
-    t.innerHTML = '<can-copy buttonclass="paco-control-button paco-coordnate-control-button"><output><unit-number type=lat data-field=lat></unit-number> <unit-number type=lon data-field=lon></unit-number> <unit-number type=elevation data-field=elevation></unit-number></output> <popup-menu class=paco-more-menu><button type=button class=paco-control-button>\u22EF</button><menu-main><menu-item><button type=button is=copy-button>Copy</button></menu-item><menu-item><a data-href-template=geo:{lat},{lon} is=copy-url>Copy</a></menu-main></popup-menu></can-copy>'; 
+    t.innerHTML = '<can-copy buttonclass="paco-control-button paco-coordnates-control-button"><output><unit-number type=lat data-field=lat></unit-number> <unit-number type=lon data-field=lon></unit-number> <unit-number type=elevation data-field=elevation></unit-number></output> <popup-menu class=paco-more-menu><button type=button class=paco-control-button>\u22EF</button><menu-main><menu-item><button type=button is=copy-button>Copy</button></menu-item><menu-item><a data-href-template=geo:{lat},{lon} is=copy-url>Copy</a></menu-main></popup-menu></can-copy>'; 
     let handler = (map, changes) => {
       let v;
-      if (map.pcValueMarker && !map.pcValueMarker.none) {
+      if (map.pc_ValueMarker && !map.pc_ValueMarker.none) {
         if (!changes.value) return;
         v = map.valueAsLatLon;
       } else {
@@ -905,6 +954,60 @@
     };
     return new L.Control.ElementControl (opts);
   }; // L.control.coordinatesControl
+  
+  L.control.distanceControl = function (opts) {
+    let t = document.createElement ('map-controls');
+    t.className = 'paco-distance-control';
+    opts.element = t;
+    t.innerHTML = '<button type=button is=paco-map-close-button class=paco-control-button>\u00D7</button> <can-copy buttonclass="paco-control-button paco-distance-control-button"><output><unit-number type=distance data-field=distance></unit-number> <unit-number type=elevation delta data-field=deltaElevation></unit-number></output> <popup-menu class=paco-more-menu><button type=button class=paco-control-button>\u22EF</button><menu-main><menu-item><button type=button is=copy-button>Copy</button></menu-item></popup-menu></can-copy>';
+    let handler = (map) => {
+      let pp = map.pc_DistancePoints || [];
+      let d = 0;
+      for (let i = 1; i < pp.length; i++) {
+        d += distanceH84 (pp[i-1], pp[i]);
+      }
+      map.pcInternal.$fill (t, {distance: d, deltaElevation: 0});
+      if (pp.length > 1) {
+        Promise.all ([
+          getElevation (pp.at (-1).lat, pp.at (-1).lon),
+          getElevation (pp[0].lat, pp[0].lon),
+        ]).then (([a, b]) => map.pcInternal.$fill (t, {
+          distance: d, deltaElevation: (a||0) - (b||0),
+        }));
+      }
+    }; // distanceHandler
+    opts.styling = b => {
+      b.pcMap.pcAddDistanceSetter (handler);
+      
+      let e = b.pcMap.getContainer ();
+      let s = getComputedStyle (e);
+      // recompute!
+      t.querySelectorAll ('button[is=copy-button]').forEach (b => {
+        b.textContent = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-copy-button-label'), 'Copy');
+      });
+      t.querySelectorAll ('button[is=paco-map-close-button]').forEach (b => {
+        b.onclick = () => e.pc_ToggleDistanceMode (false);
+      });
+
+      if (!e.pc_DistancePoints) {
+        let points = [];
+        let bb = e.getMapBounds ();
+        let lat = (bb.north + bb.south) / 2;
+        let w = Math.abs (bb.east - bb.west);
+        points.push ({lat, lon: bb.west + w/4});
+        points.push ({lat, lon: bb.west + w/4 + w/2});
+        e.pc_DistancePoints = points;
+        e.maRedraw ({distanceMarkers: true});
+        handler (e);
+      }
+    };
+    opts.remove = (b, map) => {
+      map.pcRemoveDistanceSetter (handler);
+      let e = map.getContainer ();
+      e.maRedraw ({distanceMarkers: true, distanceLines: true});
+    };
+    return new L.Control.ElementControl (opts);
+  }; // L.control.distanceControl
 
   var JMAMaps = {
     hrpns: {
@@ -1457,6 +1560,7 @@
         this.pcValue = {lat: 0, lon: 0};
         var initialValue = this.valueAsLatLon;
         this.pcCoordinatesSetters = [];
+        this.pcDistanceSetters = [];
         if (initialValue) {
           this.setAttribute ('lat', initialValue.lat);
           this.setAttribute ('lon', initialValue.lon);
@@ -1671,7 +1775,8 @@
           if (v.match (/^\s*set-value\s*$/)) {
             this.maGoogleMap.addListener ('click', ev => {
               var p = ev.latLng;
-              this.pcMarkerMoveEnd ({lat: p.lat (), lon: p.lng ()});
+              this.pc_MarkerMoveEnd
+                  ('pc_ValueMarker', {lat: p.lat (), lon: p.lng ()});
               this.maRedraw ({valueMarker: true, userActivated: true,
                               valueMarkerHandlers: true});
             });
@@ -1781,7 +1886,6 @@
 
         // recompute!
         var s = getComputedStyle (this);
-        var v = s.getPropertyValue ('--paco-map-click-action') || 'none';
         var w = s.getPropertyValue ('--paco-map-touch-scroll-viewport') || 'auto';
         var za = s.getPropertyValue ('--paco-map-zoom-animation') || 'auto';
 
@@ -1805,6 +1909,12 @@
         map.pcRemoveCoordinatesSetter = (code) => {
           this.pcCoordinatesSetters = this.pcCoordinatesSetters.filter (_ => _ !== code);
         }; // removeCoordinatesSetter
+        map.pcAddDistanceSetter = (code) => {
+          this.pcDistanceSetters.push (code);
+        }; // addDistanceSetter
+        map.pcRemoveDistanceSetter = (code) => {
+          this.pcDistanceSetters = this.pcDistanceSetters.filter (_ => _ !== code);
+        }; // removeDistanceSetter
 
         if (controls.zoom) {
           // recompute!
@@ -1869,15 +1979,22 @@
           this.maRedrawEvent ();
         });
         map.setView (this.maCenter, this.pcZoomLevel);
-        
-        if (v.match (/^\s*set-value\s*$/)) {
-          map.on ('click', ev => {
-            var p = ev.latlng;
-            this.pcMarkerMoveEnd ({lat: p.lat, lon: p.lng});
+
+        map.on ('click', ev => {
+          // recompute!
+          let v = s.getPropertyValue ('--paco-map-click-action') || 'none';
+          if (v.match (/^\s*set-value\s*$/)) {
+            let p = ev.latlng;
+            this.pc_MarkerMoveEnd ('pc_ValueMarker', {lat: p.lat, lon: p.lng});
             this.maRedraw ({valueMarker: true, userActivated: true,
                             valueMarkerHandlers: true});
-          });            
-        }
+          } else if (v.match (/^\s*add-distance-point\s*$/)) {
+            let p = ev.latlng;
+            this.pc_MarkerMoveEnd (['pc_DistanceMarker', null], {lat: p.lat, lon: p.lng});
+            this.maRedraw ({distanceMarkers: true, userActivated: true,
+                            distanceHandlers: true});
+          }
+        });
 
         if (w.match (/^\s*none\s*$/)) {
           this.classList.toggle ('paco-touch-scroll-viewport-none', true);
@@ -2072,15 +2189,18 @@
             }
           } // controls
 
-          var computedStyle;
+          let computedStyle;
           var updateMarker = (markerName, propName, pos, opts) => {
-            if (opts.redraw && this[markerName]) {
-              if (this.maGoogleMap) {
+            if (opts.redraw || opts.remove) {
+              if (!this[markerName]) {
+                //
+              } else if (this.maGoogleMap) {
                 if (this[markerName].setMap) this[markerName].setMap (null);
               } else {
                 if (this[markerName].remove) this[markerName].remove ();
               }
               delete this[markerName];
+              if (opts.remove) return;
             }
             if (this[markerName]) {
               if (this[markerName].setLatLng) {
@@ -2124,9 +2244,10 @@
                 mc.textContent = m[2];
                 var ms = document.createElement ('span');
                 ms.textContent = m[3];
-                icon = {iconSize: [m[3], m[3]]};
+                icon = {iconSize: [m[3], m[3]],
+                        iconAnchor: [m[3]/2, m[3]/2]};
                 var mss = ms.innerHTML;
-                icon.iconUrl = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+mss+' '+mss+'"><text x="calc('+mss+'/2)" y="calc('+mss+'/2)" width="'+mss+'" height="'+mss+'" font-size="'+mss+'" text-anchor="middle" alignment-baseline="central" fill="'+mc.innerHTML+'">'+mt.innerHTML+'</text></svg>');
+                icon.iconUrl = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" width="'+parseFloat(mss)+'" height="'+parseFloat(mss)+'"><text x="calc('+mss+'/2)" y="calc('+mss+'/2)" width="'+mss+'" height="'+mss+'" font-size="'+mss+'" text-anchor="middle" alignment-baseline="central" fill="'+mc.innerHTML+'">'+mt.innerHTML+'</text></svg>');
               }
             } else {
               let m = v.match (/^\s*url\(((?:[^()"'\\]|\\[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E])+)\)\s+([0-9.]+)px\s+([0-9.]+)px\s*$/);
@@ -2148,14 +2269,18 @@
                   };
                   icon.iconUrl = m[1].replace (/\\(.)/g, (_, v) => v);
                 } else {
-                  m = v.match (/^\s*circle\s+(\S+)\s+([0-9.]+)px\s*$/);
+                  m = v.match (/^\s*circle\s+(\S+)\s+(?:([0-9.]+)px\s+(\S+)\s+|)([0-9.]+)px\s*$/);
                   if (m) {
-                    var c = m[1];
                     var s = document.createElement ('span');
-                    s.textContent = c;
-                    var r = parseFloat (m[2]);
+                    s.textContent = m[1];
+                    let c1 = s.innerHTML;
+                    s.textContent = m[3] || m[1];
+                    let c2 = s.innerHTML;
+                    let w = parseFloat (m[2]);
+                    var r = parseFloat (m[4]);
+                    let d = (w + r) * 2;
                     icon = {iconSize: [r*2, r*2]};
-                    icon.iconUrl = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+r*2+'px '+r*2+'px"><circle cx="'+r+'" cy="'+r+'" r="'+r+'" fill="'+s.innerHTML+'"/></svg>');
+                    icon.iconUrl = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" width="'+d+'" height="'+d+'"><circle cx="'+(w+r)+'" cy="'+(w+r)+'" r="'+r+'" stroke="'+c1+'" stroke-width="'+w+'" fill="'+c2+'"/></svg>');
                   }
                 }
               }
@@ -2170,7 +2295,7 @@
                 }).addTo (this.pcLMap);
                 this[markerName].on ('moveend', ev => {
                   var p = this[markerName].getLatLng ();
-                  this.pcMarkerMoveEnd ({
+                  this.pc_MarkerMoveEnd (markerName, {
                     lat: p.lat,
                     lon: p.lng,
                   });
@@ -2198,7 +2323,7 @@
                 });
                 this[markerName].addListener ('dragend', ev => {
                   var p = ev.latLng;
-                  this.pcMarkerMoveEnd ({
+                  this.pc_MarkerMoveEnd (markerName, {
                     lat: p.lat (),
                     lon: p.lng (),
                   });
@@ -2249,15 +2374,75 @@
             }
           } // currentPositionMarker
 
-          if (updates.valueMarker || updates.readonly || updates.all) {
-            updateMarker ('pcValueMarker', '--paco-marker-value', this.pcValue, {
-              draggable: !this.hasAttribute ('readonly'),
-              redraw: updates.redrawMarkers,
-            });
+          if (updates.valueMarker || updates.readonly ||
+              updates.valueMarkerHandlers || updates.all) {
+            if (updates.valueMarker || updates.readonly || updates.all) {
+              updateMarker ('pc_ValueMarker', '--paco-marker-value', this.pcValue, {
+                draggable: !this.hasAttribute ('readonly'),
+                redraw: updates.redrawMarkers,
+              });
+            }
             if (updates.valueMarkerHandlers) {
               this.pcCoordinatesSetters.forEach (_ => _ (this, {value: true}));
             }
           } // valueMarker
+
+          if (updates.distanceMarkers || updates.distanceLines ||
+              updates.distanceHandlers || updates.all) {
+            if (updates.distanceMarkers || updates.distanceLines ||
+                updates.all) {
+              let pp = this.pc_DistancePoints || [];
+              if (updates.distanceMarkers || updates.all) {
+                for (let i = pp.length; i < this.pc_DistanceMarkerLength || 0; i++) {
+                  updateMarker (['pc_DistanceMarker', i], '--', {}, {
+                    remove: true,
+                  });
+                }
+              }
+              if (pp.length) {
+                if (!this.pc_DistanceLines) {
+                  // recompute!
+                  computedStyle = computedStyle || getComputedStyle (this);
+                  let v = computedStyle.getPropertyValue
+                      ('--paco-line-distance') || 'none';
+                  this.pc_DistanceLines = [];
+                  for (let w of v.split (/\s+\/\s+/)) {
+                    let m = w.match (/^\s*(\S+)\s+([0-9.]+)px\s*$/);
+                    if (m) {
+                      this.pc_DistanceLines.push (L.polyline ([], {
+                        color: m[1],
+                        weight: parseFloat (m[2]),
+                      }).addTo (this.pcLMap));
+                    } else {
+                      console.log ("Bad |--paco-line-distance| property value: |"+v+"|");
+                      delete this.pc_DistanceLines;
+                      break;
+                    }
+                  } // w
+                }
+                (this.pc_DistanceLines || []).forEach
+                    (_ => _.setLatLngs (pp.map (_ => ({lat: _.lat, lng: _.lon}))));
+              } else {
+                if (this.pc_DistanceLines) {
+                  this.pc_DistanceLines.forEach (_ => _.remove ());
+                  delete this.pc_DistanceLines;
+                }
+              }
+              if (updates.distanceMarkers) {
+                let i = 0;
+                (this.pc_DistancePoints || []).forEach ((p) => {
+                  updateMarker (['pc_DistanceMarker', i++], '--paco-marker-distance-point', p, {
+                    draggable: true,
+                    redraw: updates.redrawMarkers,
+                  });
+                });
+                this.pc_DistanceMarkerLength = i;
+              }
+            }
+            if (updates.distanceHandlers) {
+              this.pcDistanceSetters.forEach (_ => _ (this));
+            }
+          }
         } // isShown
         
         if (updates.onready) {
@@ -3059,6 +3244,33 @@
           }
         }
       }, // pc_ToggleCoordinatesControl
+      pc_ToggleDistanceMode: function (state) {
+        if (state === undefined) {
+          state = this.pc_DistanceControl ? false : true;
+        }
+        if (state) {
+          if (this.pc_DistanceControl) {
+            //
+          } else {
+            let map = this.pcLMap;
+            if (map) {
+              this.pc_DistanceControl = L.control.distanceControl ({
+                position: 'topleft',
+              }).addTo (map);
+              this.querySelectorAll ('.paco-map-state-control[value=distance]').forEach (c => c.checked = true);
+              this.classList.toggle ('paco-map-distance-mode', true);
+            }
+          }
+        } else {
+          if (this.pc_DistanceControl) {
+            this.pc_DistanceControl.remove ();
+            delete this.pc_DistanceControl;
+            delete this.pc_DistancePoints;
+            this.querySelectorAll ('.paco-map-state-control[value=distance]').forEach (c => c.checked = false);
+            this.classList.toggle ('paco-map-distance-mode', false);
+          }
+        }
+      }, // pc_ToggleDistanceControl
 
       pcInitCurrentPosition: function () {
         if (navigator.permissions && navigator.permissions.query) {
@@ -3121,11 +3333,19 @@
         });
       }, // pcStartStreetViewDragMode
 
-      pcMarkerMoveEnd: function (p) {
-        this.pcValue = p;
-        this.dispatchEvent (new Event ('input', {bubbles: true, composed: true}));
-        this.dispatchEvent (new Event ('change', {bubbles: true}));
-      }, // pcMarkerMoveEnd
+      pc_MarkerMoveEnd: function (markerName, p) {
+        if (markerName === 'pc_ValueMarker') {
+          this.pcValue = p;
+          this.dispatchEvent (new Event ('input', {bubbles: true, composed: true}));
+          this.dispatchEvent (new Event ('change', {bubbles: true}));
+          this.maRedraw ({valueMarkerHandlers: true, userActivated: true});
+        } else if (markerName[0] === 'pc_DistanceMarker') {
+          if (markerName[1] == null) markerName[1] = this.pc_DistanceMarkerLength++;
+          this.pc_DistancePoints[markerName[1]] = p;
+          this.maRedraw ({distanceLines: true, userActivated: true,
+                          distanceHandlers: true});
+        }
+      }, // pc_MarkerMoveEnd
 
       addElementOverlays: function (elements, redraw) {
         var map = this.maGoogleMap;

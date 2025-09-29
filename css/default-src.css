@@ -227,6 +227,7 @@ map-area {
   --paco-open-geohack-text: "Open in others...";
   --paco-copy-center-text: "Copy center coordinates";
   --paco-show-coordinates-text: "Coordinates";
+  --paco-show-distance-text: "Distance and elevation";
   --paco-copy-geourl-text: "Copy geo: URL";
   --paco--gsi-lang: gsi-standard;
   --paco-maptype-map-text: 'Map';
@@ -260,6 +261,8 @@ map-area {
   --paco-maptype-gsi-text: 'GSI Tile';
   --paco-maptype-menu-meteorological: 'Meteorological';
   --paco-marker-currentposition: "\25CF" purple 24px;
+  --paco-marker-distance-point: circle gray 3px white 9px;
+  --paco-line-distance: rgba(255,255,255,0.7) 9px / gray 3px;
   --paco-marker-value: none;
   --paco-legend-show-text: "Show legend";
   --paco-legend-hide-text: "Hide legend";
@@ -281,7 +284,8 @@ map-area:lang(ja) {
   --paco-open-openstreetmap-text: "OpenStreetMap \3067\958B\304F";
   --paco-open-geohack-text: "\305D\306E\4ED6\3067\958B\304F...";
   --paco-copy-center-text: "\4E2D\5FC3\306E\5EA7\6A19\3092\30B3\30D4\30FC";
-  --paco-show-coordinates-text: "\5EA7\6A19";
+  --paco-show-coordinates-text: "\4F4D\7F6E\5EA7\6A19";
+  --paco-show-distance-text: "\79FB\52D5\8DDD\96E2\3068\6A19\9AD8\5DEE";
   --paco-copy-geourl-text: "geo: URL \3092\30B3\30D4\30FC";
   --paco-maptype-map-text: '\5730\56F3';
   --paco-maptype-maplabel-text: '\30E9\30D9\30EB';
@@ -327,6 +331,10 @@ map-area:lang(ja) {
 map-area[formcontrol] {
   --paco-marker-value: url(https://raw.githubusercontent.com/wakaba/html-page-components/master/intermediate/leaflet/marker-icon.png) 12px 41px;
   --paco-map-click-action: set-value;
+}
+
+map-area.paco-map-distance-mode {
+  --paco-map-click-action: add-distance-point;
 }
 
 map-area > iframe.googlemapsembed:not([hidden]) {
@@ -386,6 +394,11 @@ map-area button.paco-control-button:hover,
 map-area button.paco-control-toggle-button:hover {
   background-color: var(--paco-leaflet-control-hover-background-color);
   color: var(--paco-leaflet-control-hover-color);
+}
+
+map-area button.paco-control-button[is=paco-map-close-button] {
+  min-width: 1em;
+  min-height: 1em;
 }
 
 map-area button.paco-control-toggle-button {
@@ -582,13 +595,15 @@ map-area[gsi] .paco-jma-weather-submenu menu-main {
 
 
 map-area .paco-timestamp-control,
-map-area .paco-coordinates-control {
+map-area .paco-coordinates-control,
+map-area .paco-distance-control {
   padding: 2px;
   line-height: 1.2;
   font-feature-settings: "palt";
 }
 
 .leaflet-left .paco-coordinates-control,
+.leaflet-left .paco-distance-control,
 .leaflet-left .paco-timestamp-control {
   margin-left: 5px;
   margin-bottom: 5px;
@@ -599,21 +614,49 @@ map-area .paco-timestamp-control a {
 }
 
 map-area .paco-coordinates-control,
+map-area .paco-distance-control,
 map-area .paco-jma-timestamp-control {
   background: rgba(255, 255, 255, 0.5);
   color: #333;
 }
 
-map-area .paco-coordinates-control button.paco-control-button {
+map-area .paco-coordinates-control button.paco-control-button,
+map-area .paco-distance-control button.paco-control-button {
   min-height: 0;
   padding: 0;
   line-height: 0.8;
   vertical-align: middle;
 }
 
-map-area .paco-coordinates-control number-value {
+map-area .paco-coordinates-control unit-number + unit-number,
+map-area .paco-distance-control unit-number + unit-number {
+  margin-inline-start: .5em;
+}
+
+map-area .paco-coordinates-control output,
+map-area .paco-distance-control output {
+  vertical-align: middle;
+}
+
+map-area .paco-coordinates-control output + popup-menu,
+map-area .paco-distance-control output + popup-menu,
+map-area .paco-distance-control button + can-copy {
+  margin-inline-start: .3em;
+}
+
+map-area .paco-coordinates-control number-value,
+map-area .paco-distance-control number-sign,
+map-area .paco-distance-control number-value {
   font-weight: bolder;
   font-size: larger;
+}
+
+map-area .paco-distance-control number-sign:not([hidden]) {
+  display: inline-block;
+}
+map-area .paco-distance-control number-sign {
+  min-width: 1em;
+  text-align: center;
 }
 
 map-area .paco-jma-timestamp-control > time:not([hidden]) {
