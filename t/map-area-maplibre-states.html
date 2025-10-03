@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+  <style>
+    map-area {
+      width: 977px !important;
+    }
+  </style>
+</head>
+<body id=for-screenshot>
+
+  <!-- XXX
+  <test-code name="map-area timestamp tzoffset">
+    /*
+      <map-area engine=maplibre lat=20.33 lon=-120.7013 controls jma tzoffset=-3600 lang=ja></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+    await e.ready;
+
+    var m = e.querySelector ('popup-menu');
+    this.assert.equal (!!m.offsetWidth, true, 'menu shown');
+    m.querySelector ('button').click ();
+
+    await this.wait ();
+    var input = e.querySelector ('input[type=checkbox]');
+    this.assert.equal (input.parentNode.querySelector ('span').textContent, '雨雲の動き');
+
+    input.click ();
+    var ts = e.querySelector ('.paco-jma-timestamp-control');
+    this.assert.equal (!!ts.offsetWidth, true);
+    this.assert.equal (!!ts.querySelector ('time').textContent, true);
+    this.assert.equal (ts.querySelector ('time').getAttribute ('data-tzoffset'), '-3600');
+  </test-code>
+  -->
+
+  <test-code name="formdata 1">
+    /*
+      <form is=save-data data-saver=formDataTest1 action method=post>
+        <map-area formcontrol latname=foo lonname=bar></map-area>
+        <button type=submit>Submit</button>
+      </form>
+    */
+    var f = this.currentScript.querySelector ('form');
+    var e = f.querySelector ('map-area');
+    await this.wait ();
+
+    f.querySelector ('button').click ();
+
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'saver');
+      handler.setAttribute ('name', 'formDataTest1');
+      handler.pcHandler = function (fd) {
+        ok (fd);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var fd = await promise;
+
+    this.assert.equal (fd.get ('foo'), '0');
+    this.assert.equal (fd.get ('bar'), '0');
+  </test-code>
+
+  <test-code name="formdata 2">
+    /*
+      <form is=save-data data-saver=formDataTest2 action method=post>
+        <map-area formcontrol latname=foo lonname=bar></map-area>
+        <button type=submit>Submit</button>
+      </form>
+    */
+    var f = this.currentScript.querySelector ('form');
+    var e = f.querySelector ('map-area');
+    e.setAttribute ('lat', 32.444);
+    e.setAttribute ('lon', -130.12);
+    await this.wait ();
+
+    f.querySelector ('button').click ();
+
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'saver');
+      handler.setAttribute ('name', 'formDataTest2');
+      handler.pcHandler = function (fd) {
+        ok (fd);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var fd = await promise;
+
+    this.assert.equal (fd.get ('foo'), '32.444');
+    this.assert.equal (fd.get ('bar'), '-130.12');
+  </test-code>
+
+  <test-code name="formdata 3">
+    /*
+      <form is=save-data data-saver=formDataTest3 action method=post>
+        <map-area formcontrol latname=foo lonname=bar></map-area>
+        <button type=submit>Submit</button>
+      </form>
+    */
+    var f = this.currentScript.querySelector ('form');
+    var e = f.querySelector ('map-area');
+
+    var events = [];
+    e.parentNode.addEventListener ('input', ev => {
+      events.push (ev);
+    });
+    e.parentNode.addEventListener ('change', ev => {
+      events.push (ev);
+    });
+    
+    e.pc_MarkerMoveEnd ("pc_ValueMarker", {lat: 32.444, lon: -130.12});
+    await this.wait ();
+
+    f.querySelector ('button').click ();
+
+    var promise = new Promise ((ok, ng) => {
+      var handler = document.createElementNS ('data:,pc', 'saver');
+      handler.setAttribute ('name', 'formDataTest3');
+      handler.pcHandler = function (fd) {
+        ok (fd);
+      };
+      document.head.appendChild (handler);
+    });
+
+    var fd = await promise;
+
+    this.assert.equal (fd.get ('foo'), '32.444');
+    this.assert.equal (fd.get ('bar'), '-130.12');
+
+    this.assert.equal (events.length, 2);
+    this.assert.equal (events[0].type, 'input');
+    this.assert.equal (events[0].target, e);
+    this.assert.equal (events[1].type, 'change');
+    this.assert.equal (events[1].target, e);
+  </test-code>
+
+  <!-- XXX
+  <test-code name="setMouseHandlers">
+    /*
+      <map-area engine=maplibre></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+
+    var objs = [];
+    e.setMouseHandlers ({
+      mousedown: obj => objs.push (obj),
+      mousemove: obj => objs.push (obj),
+      mouseup: obj => objs.push (obj),
+    });
+
+    var bounds = e.getMapBounds ();
+    
+    e.dispatchEvent (new MouseEvent ('mousedown', {bubbles: true}));
+    e.dispatchEvent (new MouseEvent ('mousemove', {bubbles: true}));
+    e.dispatchEvent (new MouseEvent ('mouseup', {bubbles: true}));
+    
+    this.assert.equal (objs.length, 4);
+    this.assert.equal (objs[0].event.type, 'mousedown');
+    this.assert.equal (objs[0].getMouseButton (), 'left');
+    this.assert.equal (bounds.south - 1 <= objs[0].getPoint ().lat, true, objs[0].getPoint ().lat);
+    this.assert.equal (objs[0].getPoint ().lat <= bounds.north + 1, true);
+    this.assert.equal (bounds.west - 1 <= objs[0].getPoint ().lon, true, objs[0].getPoint ().lon);
+    this.assert.equal (objs[0].getPoint ().lon <= bounds.east + 1, true, [bounds.west, bounds.east]);
+    this.assert.equal (objs[1].event.type, 'mousemove');
+    this.assert.equal (objs[2].event.type, 'mouseup');
+    this.assert.equal (objs[3].event.type, 'mouseup');
+
+    e.setMouseHandlers ({
+      mousedown: obj => objs.push (1),
+      mousemove: obj => objs.push (2),
+      mouseup: obj => objs.push (3),
+    });
+    
+    e.dispatchEvent (new MouseEvent ('mousedown', {bubbles: true}));
+    e.dispatchEvent (new MouseEvent ('mousemove', {bubbles: true}));
+    e.dispatchEvent (new MouseEvent ('mousemove', {bubbles: true}));
+    e.dispatchEvent (new MouseEvent ('mouseup', {bubbles: true}));
+
+    this.assert.equal (objs.length, 9);
+    this.assert.equal (objs[4], 1);
+    this.assert.equal (objs[5], 2);
+    this.assert.equal (objs[6], 2);
+    this.assert.equal (objs[7], 2);
+    this.assert.equal (objs[8], 3);
+  </test-code>
+  -->
+  
+  <script src=runtests.js data-maps></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->

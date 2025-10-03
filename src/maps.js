@@ -794,7 +794,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     {"lat":16.53723722190111,"lon":138.13503721601717},
     {"lat":20.22565975490805,"lon":140.48645650704304},
     {"lat":24.577877843701554,"lon":146.08591144544644},
-    {"lat":18.180686409947512,"lon":155.28310995076697},
+    {"lat":18.180686409947512,"lon":157.28310995076697},
     {"lat":23.502592722918372,"lon":160.08685089215786},
     {"lat":49.547861062839964,"lon":159.3554522102241},
     {"lat":56.39427546745975,"lon":144.1097173256088},
@@ -819,7 +819,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     {"lat":16.53723722190111,"lon":138.13503721601717},
     {"lat":20.22565975490805,"lon":140.48645650704304},
     {"lat":24.577877843701554,"lon":146.08591144544644},
-    {"lat":18.180686409947512,"lon":155.28310995076697},
+    {"lat":18.180686409947512,"lon":157.28310995076697},
     {"lat":46.7195903678211,"lon":148.71198705249572},
     {"lat":45.31730227791727,"lon":145.14328950844268},
     {"lat":45.97493268294697,"lon":140.02162914620013},
@@ -1315,6 +1315,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
       if (this.options.isLegend) e.classList.toggle ('paco-legend-control', true);
       if (this.options.styling) this.options.styling (e);
       L.DomEvent.disableClickPropagation (e);
+      ['change'].forEach (x => e.addEventListener (x, ev => ev.stopPropagation ()));
       return e;
     }, // onAdd
     onRemove: function (map) {
@@ -1325,6 +1326,47 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
   L.control.elementControl = function (opts) {
     return new L.Control.ElementControl (opts);
   };
+  class MLElementControl {
+    constructor (e, opts) {
+      this.element = e;
+      this.options = opts;
+    };
+    onAdd (map) {
+      let e = this.element;
+      e.pcMap = map;
+      e.classList.toggle ('maplibregl-ctrl', true);
+      if (this.options.isLegend) e.classList.toggle ('paco-legend-control', true);
+      if (this.options.styling) this.options.styling (e);
+      ['click', 'dblclick', 'mousedown', 'touchstart',
+       'change'].forEach (x => e.addEventListener (x, ev => ev.stopPropagation ()));
+
+      if (this.options.attribution) {
+        map.getContainer ().pc_AddAttribution (this.options.attribution);
+      }
+      
+      return e;
+    };
+    onRemove (map) {
+      let e = this.element;
+      if (this.options.remove) this.options.remove (e, map);
+      map.getContainer ().pc_RemoveAttribution (this.options.attribution);
+      e.remove ();
+    };
+  }; // MLElementControl
+  function ElementControl (code) {
+    let l = function (opts) {
+      code (opts);
+      return new L.Control.ElementControl (opts);
+    };
+    let ml = class extends MLElementControl {
+      constructor (opts) {
+        code (opts);
+        return super (opts.element, opts);
+      };
+    };
+    return [l, ml];
+  } // ElementControl
+  
   L.control.fullscreenButton = function (opts) {
     var c = document.createElement ('div');
     c.className = 'paco-button-container';
@@ -1352,6 +1394,35 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     
     return new L.Control.ElementControl (opts);
   }; // L.control.fullscreenButton
+  class MLFullscreenButtonControl extends MLElementControl {
+    constructor (opts) {
+      let c = document.createElement ('div');
+      c.className = 'paco-button-container';
+      opts.styling = c => {
+        var e = c.pcMap.getContainer ();
+        // recompute!
+        var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-fullscreen-title'), 'Fullscreen');
+        c.title = m;
+      };
+      
+      var b = document.createElement ('button');
+      b.className = 'paco-control-button paco-fullscreen-control-button';
+      b.type = 'button';
+      b.textContent = '\u26F6';
+      b.onclick = async () => {
+        var e = c.pcMap.getContainer ();
+        if (document.fullscreenElement) {
+          document.exitFullscreen ();
+        } else {
+          e.requestFullscreen ();
+        }
+      };
+      c.appendChild (b);
+
+      return super (c, opts);
+    };
+  }; // MLFullscreenButtonControl
+  
   L.control.currentPositionButton = function (opts) {
     var c = document.createElement ('div');
     c.className = 'paco-button-container';
@@ -1375,6 +1446,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     
     return new L.Control.ElementControl (opts);
   }; // L.control.currentPositionButton
+  
   L.control.streetViewButton = function (opts) {
     var c = document.createElement ('div');
     c.className = 'paco-button-container';
@@ -1399,7 +1471,36 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     
     return new L.Control.ElementControl (opts);
   }; // L.control.streetViewButton
-  L.control.mapTypeMenu = function (opts) {
+  class MLStreetViewButtonControl extends MLElementControl {
+    constructor (opts) {
+    var c = document.createElement ('div');
+    c.className = 'paco-button-container';
+    opts.element = c;
+    opts.styling = c => {
+      var e = c.pcMap.getContainer ();
+      // recompute!
+      var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-streetview-title'), 'Street View');
+      c.title = m;
+    };
+
+    var b = document.createElement ('button');
+    b.className = 'paco-control-button paco-streetview-control-button';
+    b.type = 'button';
+    b.textContent = '\u{1F6B6}';
+    b.setAttribute ('draggable', 'true');
+    b.ondragstart = () => {
+      var e = c.pcMap.getContainer ();
+      e.pcStartStreetViewDragMode (b);
+    };
+    c.appendChild (b);
+      
+      return super (c, opts);
+    };
+  }; // MLStreetViewButtonControl
+
+
+  let MLMapTypeMenuControl;
+  [L.control.mapTypeMenu, MLMapTypeMenuControl] = ElementControl ((opts) => {
     var c = document.createElement ('span');
     c.className = 'paco-menu-container';
     
@@ -1580,9 +1681,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         });
       });
     };
-
-    return new L.Control.ElementControl (opts);
-  }; // L.control.mapTypeMenu
+  }); // map type menu
 
   L.control.legendToggleButton = function (opts) {
     var c = document.createElement ('div');
@@ -1628,6 +1727,52 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     
     return new L.Control.ElementControl (opts);
   }; // L.control.legendToggleButton
+  class MLLegendToggleButtonControl extends MLElementControl {
+    constructor (opts) {
+      let c = document.createElement ('div');
+    c.className = 'paco-button-container paco-legend-toggle-button-container';
+    opts.element = c;
+    
+    var b = document.createElement ('button');
+    b.className = 'paco-control-toggle-button paco-control-legend-toggle-button';
+    b.type = 'button';
+    c.appendChild (b);
+
+    var active = true;
+    var sync = () => {
+      var e = c.pcMap.getContainer ();
+      e.classList.toggle ('paco-legend-hidden', !active);
+
+      b.classList.toggle ('active', active);
+      if (active) {
+        b.textContent = b.getAttribute ('data-hide-text');
+      } else {
+        b.textContent = b.getAttribute ('data-show-text');
+      }
+    }; // sync
+    
+    b.onclick = async () => {
+      active = !active;
+      sync ();
+    };
+    opts.styling = c => {
+      var e = c.pcMap.getContainer ();
+      var p = getComputedStyle (e);
+      // recompute!
+      var m1 = e.pcInternal.parseCSSString (p.getPropertyValue ('--paco-legend-show-text'), 'Show legend');
+      var m2 = e.pcInternal.parseCSSString (p.getPropertyValue ('--paco-legend-hide-text'), 'Hide legend');
+      var initial = (p.getPropertyValue ('--paco-map-legend-initial') || 'shown').replace (/^\s+/, '').replace (/\s+$/, '');
+
+      if (initial === 'hidden') active = false;
+      
+      b.setAttribute ('data-show-text', m1);
+      b.setAttribute ('data-hide-text', m2);
+      sync ();
+    };
+            
+      return super (c, opts);
+    };
+  }; // MLLegendToggleButtonControl
   
   L.control.timestampControl = function (opts) {
     var t = document.createElement ('map-controls');
@@ -1666,7 +1811,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     return new L.Control.ElementControl (opts);
   }; // L.control.timestampControl
   
-  L.control.coordinatesControl = function (opts) {
+  let MLCoordinatesControl;
+  [L.control.coordinatesControl, MLCoordinatesControl] = ElementControl ((opts) => {
     let t = document.createElement ('map-controls');
     t.className = 'paco-coordinates-control';
     opts.element = t;
@@ -1686,9 +1832,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         map.pcInternal.$fill (t, v);
       });
     };
+    opts.attribution = gsiCreditHTML;
     opts.styling = b => {
       b.pcMap.pcAddCoordinatesSetter (handler);
-      b.pcMap.attributionControl.addAttribution (gsiCreditHTML);
 
       let e = b.pcMap.getContainer ();
       let s = getComputedStyle (e);
@@ -1702,12 +1848,12 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     };
     opts.remove = (b, map) => {
       map.pcRemoveCoordinatesSetter (handler);
-      map.attributionControl.removeAttribution (gsiCreditHTML);
     };
     return new L.Control.ElementControl (opts);
-  }; // L.control.coordinatesControl
+  }); // L.control.coordinatesControl
   
-  L.control.distanceControl = function (opts) {
+  let MLDistanceControl;
+  [L.control.distanceControl, MLDistanceControl] = ElementControl ((opts) => {
     let t = document.createElement ('map-controls');
     t.className = 'paco-distance-control';
     opts.element = t;
@@ -1758,8 +1904,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
       let e = map.getContainer ();
       e.maRedraw ({distanceMarkers: true, distanceLines: true});
     };
-    return new L.Control.ElementControl (opts);
-  }; // L.control.distanceControl
+  }); // distance
 
   var JMAMaps = {
     hrpns: {
@@ -2366,6 +2511,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           return this.maInitGoogleMaps ();
         } else if (this.maEngine === 'googlemapsembed') {
           return this.maInitGoogleMapsEmbed ();
+        } else if (this.maEngine === 'maplibre') { // MapLibre GL JS
+          return this.pc_InitMapLibre ();
         } else {
           this.maEngine = 'leaflet';
           return this.pcInitLeaflet ();
@@ -2590,6 +2737,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           lat: this.maAttrFloat ('lat', 0),
           lon: this.maAttrFloat ('lon', 0),
         };
+        this.pc_GMEmbed = true;
         return Promise.resolve ().then (() => this.maRedraw ({all: true}));
       }, // maInitGoogleMapsEmbed
       pcInitLeaflet: function () {
@@ -2763,7 +2911,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
 
         (this.getAttribute ('credits') || '').split (/\s+/).forEach (_ => {
           if (_ === 'gsi') {
-            map.attributionControl.addAttribution (gsiCreditHTML)
+            this.pc_AddAttribution (gsiCreditHTML);
           } else if (_ === '') {
             //
           } else {
@@ -2778,6 +2926,229 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                         valueMarker: true, valueMarkerHandlers: true,
                         relocate: true});
       }, // pcInitLeaflet
+      pc_InitMapLibre: function () {
+        (new MutationObserver ((mutations) => {
+          var latlon = false;
+          mutations.forEach (mr => {
+            if (mr.attributeName === 'lat' ||
+                mr.attributeName === 'lon') {
+              latlon = true;
+            } else if (mr.attributeName === 'readonly') {
+              this.maRedraw ({readonly: true});
+            } else if (mr.attributeName === 'zoom') {
+              this.pcZoomLevel = this.maAttrFloat ('zoom', 8);
+              this.maRedraw ({zoom: true});
+            } else if (mr.attributeName === 'maptype') {
+              this.setMapType (this.getAttribute ('maptype'));
+            }
+          });
+
+          if (latlon) this.maRedraw ({
+            center: {
+              lat: this.maAttrFloat ('lat', 0),
+              lon: this.maAttrFloat ('lon', 0),
+            },
+            value: true,
+          });
+        })).observe (this, {attributeFilter: ['lat', 'lon', 'readonly',
+                                              'zoom', 'maptype']});
+        this.maCenter = this.pcValue = {
+          lat: this.maAttrFloat ('lat', 0),
+          lon: this.maAttrFloat ('lon', 0),
+        };
+
+        var c = this.getAttribute ('controls');
+        var controls = {};
+        if (c !== null) {
+          c = c.split (/\s+/).filter (_ => _.length);
+          if (c.length) {
+            c.forEach (_ => controls[_] = true);
+          } else {
+            controls = {zoom: true, scale: true, fullscreen: true,
+                        currentposition: true, type: true,
+                        streetview: true};
+          }
+        }
+
+        // recompute!
+        var s = getComputedStyle (this);
+        var w = s.getPropertyValue ('--paco-map-touch-scroll-viewport') || 'auto';
+        var za = s.getPropertyValue ('--paco-map-zoom-animation') || 'auto';
+
+        if (za.match (/^\s*none\s*$/)) opts.zoomAnimation = false;
+        let map = new maplibregl.Map ({
+          container: this,
+          //center: [139.7671, 35.6812],
+          //zoom: 12,
+          style: {
+            version: 8,
+            sources: {},
+            layers: [],
+          },
+        });
+        
+        map.scrollZoom.setWheelZoomRate (1 / (60 * 3));
+        if (this.pcNoMapDraggable) {
+          map.dragPan.disable ();
+        } else {
+          map.dragPan.enable ();
+        }
+        
+        map.pcAddTimeSetter = (code) => {
+          this.pcTimeSetters.push (code);
+        }; // addTimeSetter
+        map.pcRemoveTimeSetter = (code) => {
+          this.pcTimeSetters = this.pcTimeSetters.filter (_ => _ !== code);
+        }; // removeTimeSetter
+        map.pcAddCoordinatesSetter = (code) => {
+          this.pcCoordinatesSetters.push (code);
+        }; // addCoordinatesSetter
+        map.pcRemoveCoordinatesSetter = (code) => {
+          this.pcCoordinatesSetters = this.pcCoordinatesSetters.filter (_ => _ !== code);
+        }; // removeCoordinatesSetter
+        map.pcAddDistanceSetter = (code) => {
+          this.pcDistanceSetters.push (code);
+        }; // addDistanceSetter
+        map.pcRemoveDistanceSetter = (code) => {
+          this.pcDistanceSetters = this.pcDistanceSetters.filter (_ => _ !== code);
+        }; // removeDistanceSetter
+
+        // recompute!
+        let cs = getComputedStyle (this);
+        this.querySelectorAll ('.maplibregl-ctrl-attrib-button').forEach (at => {
+          at.title = at.ariaLabel = this.pcInternal.parseCSSString
+              (cs.getPropertyValue ('--paco-toggle-attribution'), 'Attribution');
+        });
+
+        if (controls.zoom) {
+          var zoomInTitle = this.pcInternal.parseCSSString (cs.getPropertyValue ('--paco-zoomin-title'), 'Zoom in');
+          var zoomOutTitle = this.pcInternal.parseCSSString (cs.getPropertyValue ('--paco-zoomout-title'), 'Zoom out');
+          map.addControl (new maplibregl.NavigationControl ({}), 'bottom-right');
+          this.querySelectorAll ('.maplibregl-ctrl-zoom-in').forEach (b => {
+            b.title = b.ariaLabel = zoomInTitle;
+          });
+          this.querySelectorAll ('.maplibregl-ctrl-zoom-out').forEach (b => {
+            b.title = b.ariaLabel = zoomOutTitle;
+          });
+          // XXX .maplibregl-ctrl-compass "Reset bearing to north"
+        }
+
+        if (controls.togglelegend) {
+          map.addControl (new MLLegendToggleButtonControl ({}), 'bottom-left');
+        }
+        
+        if (controls.scale) {
+          map.addControl (new maplibregl.ScaleControl ({
+            //maxWidth: 80,
+            unit: 'imperial',
+          }));
+          map.addControl (new maplibregl.ScaleControl ({
+            //maxWidth: 80,
+          }));
+        }
+
+        if (controls.type) {
+          map.addControl (new MLMapTypeMenuControl ({
+            buttons: controls.typebuttons,
+          }), 'top-left');
+        }
+        if (controls.fullscreen && this.requestFullscreen) {
+          map.addControl (new MLFullscreenButtonControl ({}));
+        }
+
+        //XXX
+        map.addControl (new maplibregl.GlobeControl ({}));
+        map.addControl (new maplibregl.TerrainControl ({}));
+
+        if (controls.streetview) {
+          map.addControl (new MLStreetViewButtonControl ({}), 'bottom-right');
+        }
+
+        if (controls.currentposition) {
+          map.addControl (new maplibregl.GeolocateControl ({}), 'bottom-right');
+          //this.pcInitCurrentPosition ();
+        }
+
+        // Map need to be recomputed if it is initialized when not
+        // shown.
+        this.maISObserver = new IntersectionObserver (() => {
+          this.maRedraw ({relocate: true});
+        });
+        this.maISObserver.observe (this);
+        this.maRSObserver = new ResizeObserver (() => {
+          this.maRedraw ({relocate: true});
+        });
+        this.maRSObserver.observe (this);
+
+        map.setZoom (this.pcZoomLevel);
+        map.setCenter (this.maCenter);
+        // Executed soon
+        map.on ('moveend', () => {
+          let c = map.getCenter ();
+          this.maCenter = {lat: c.lat, lon: c.lng};
+          this.pcZoomLevel = map.getZoom ();
+          this.maRedrawEvent ();
+        });
+        //map.on('zoomend', () => { })
+
+        map.on ('click', ev => {
+          // recompute!
+          let v = s.getPropertyValue ('--paco-map-click-action') || 'none';
+          if (v.match (/^\s*set-value\s*$/)) {
+            let p = ev.lngLat;
+            this.pc_MarkerMoveEnd ('pc_ValueMarker', {lat: p.lat, lon: p.lng});
+            this.maRedraw ({valueMarker: true, userActivated: true,
+                            valueMarkerHandlers: true});
+          } else if (v.match (/^\s*add-distance-point\s*$/)) {
+            let p = ev.lngLat;
+            this.pc_MarkerMoveEnd (['pc_DistanceMarker', null],
+                                   {lat: p.lat, lon: p.lng});
+            this.maRedraw ({distanceMarkers: true, userActivated: true,
+                            distanceHandlers: true});
+          }
+        });
+
+        if (w.match (/^\s*none\s*$/)) {
+          this.classList.toggle ('paco-touch-scroll-viewport-none', true);
+        }
+
+        var initialMapType = this.getAttribute ('maptype');
+        if (this.hasAttribute ('gsi') && !initialMapType) {
+          initialMapType = 'gsi-lang';
+        }
+        if (this.hasAttribute ('osm') && !initialMapType) {
+          initialMapType = 'osm';
+        }
+        if (initialMapType) this.setMapType (initialMapType);
+
+        this.pc_AttributionHTMLs = [];
+        (this.getAttribute ('credits') || '').split (/\s+/).forEach (_ => {
+          if (_ === 'gsi') {
+            this.pc_AddAttribution (gsiCreditHTML);
+          } else if (_ === '') {
+            //
+          } else {
+            console.log ("Bad |credits| value |"+_+"|");
+          }
+        });
+
+        map.on ('load', () => {
+          this.pc_MLMap = map;
+
+          if (controls.coordinates) {
+            this.pc_ToggleCoordinatesControl (true);
+          }
+          
+          new MutationObserver ((mutations) => {
+            this.maRedraw ({controls: true});
+          }).observe (this, {childList: true});
+          this.maRedraw ({controls: true,
+                          valueMarker: true, valueMarkerHandlers: true,
+                          relocate: true,
+                          mapType: true});
+          this.maRedrawEvent ();
+        });
+      }, // pc_InitMapLibre
       
       maRedrawEvent: function () {
         clearTimeout (this.maRedrawEventTimer);
@@ -2800,11 +3171,10 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             lat: this.maRedrawNeedUpdated.center.lat,
             lng: this.maRedrawNeedUpdated.center.lon,
           };
-          if (this.pcLMap) {
-            this.pcLMap.panTo (p);
-          } else if (this.maGoogleMap) {
-            this.maGoogleMap.panTo (p);
-          } else {
+          if (this.pcLMap) this.pcLMap.panTo (p);
+          if (this.pc_MLMap) this.pc_MLMap.panTo (p);
+          if (this.maGoogleMap) this.maGoogleMap.panTo (p);
+          if (this.pc_GMEmbed) {
             this.maCenter = this.maRedrawNeedUpdated.center;
             this.maRedrawNeedUpdated.all = true;
           }
@@ -2817,11 +3187,10 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           delete this.maRedrawNeedUpdated.pan;
         } // center
 
-        if (this.maRedrawNeedUpdated.zoom ||
-            this.maRedrawNeedUpdated.all) {
-          if (this.pcLMap || this.maGoogleMap) {
-            (this.pcLMap || this.maGoogleMap).setZoom (this.pcZoomLevel);
-          }
+        if (this.maRedrawNeedUpdated.zoom || this.maRedrawNeedUpdated.all) {
+          if (this.pcLMap) this.pcLMap.setZoom (this.pcZoomLevel);
+          if (this.pc_MLMap) this.pc_MLMap.setZoom (this.pcZoomLevel);
+          if (this.maGoogleMap) this.maGoogleMap.setZoom (this.pcZoomLevel);
         }
 
         if (this.maRedrawNeedUpdated.mapDraggable) {
@@ -2831,16 +3200,23 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             } else {
               this.pcLMap.dragging.enable ();
             }
-          } else if (this.maGoogleMap) {
+          }
+          if (this.pc_MLMap) {
+            if (this.pcNoMapDraggable) {
+              this.pc_MLMap.dragPan.disable ();
+            } else {
+              this.pc_MLMap.dragPan.enable ();
+            }
+          }
+          if (this.maGoogleMap) {
             this.maGoogleMap.setOptions ({draggable: !this.pcNoMapDraggable});
           }
           delete this.maRedrawNeedUpdated.mapDraggable;
         }
         
         if (this.maRedrawNeedUpdated.relocate) {
-          if (this.maEngine === 'leaflet') {
-            this.pcLMap.invalidateSize ();
-          } else if (this.maEngine === 'googlemaps') {
+          if (this.pcLMap) this.pcLMap.invalidateSize ();
+          if (this.maGoogleMap) {
             if (this.maCenter) this.maGoogleMap.setCenter ({
               lat: this.maCenter.lat,
               lng: this.maCenter.lon,
@@ -2850,7 +3226,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         }
 
         if (this.maRedrawNeedUpdated.mapType) {
-          if (this.maEngine === 'leaflet') {
+          if (this.pcLMap || this.pc_MLMap) {
             this.pcChangeMapType ();
           }
           delete this.maRedrawNeedUpdated.mapType;
@@ -2872,14 +3248,13 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           this.maRedrawNeedUpdated = {};
 
           if (updates.size || updates.all) {
-            if (this.maEngine === 'googlemaps') {
+            if (this.pcLMap) this.pcLMap.invalidateSize ();
+            if (this.maGoogleMap) {
               google.maps.event.trigger (this.maGoogleMap, 'resize');
-            } else if (this.maEngine === 'leaflet') {
-              this.pcLMap.invalidateSize ();
             }
           }
           if (updates.size || updates.zoom || updates.all) {
-            if (this.maEngine === 'googlemapsembed') {
+            if (this.pc_GMEmbed) {
               if (!this.maIframe) {
                 this.maIframe = document.createElement ('iframe');
                 this.maIframe.className = 'googlemapsembed';
@@ -2894,20 +3269,20 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           }
 
           if (updates.controls || updates.all) {
-            if (this.maEngine === 'leaflet') {
+            if (this.pcLMap) {
               Array.prototype.slice.call (this.children).forEach (e => {
                 if (e.localName === 'map-controls') {
                   var position = {
                     'top-left': 'topleft',
-                    'top-center': 'topleft',
+                    'top-center': 'topleft', // not supported
                     'top-right': 'topright',
                     'bottom-left': 'bottomleft',
-                    'bottom-center': 'bottomleft',
+                    'bottom-center': 'bottomleft', // not supported
                     'left-top': 'topleft',
-                    'left-center': 'topleft',
+                    'left-center': 'topleft', // not supported
                     'left-bottom': 'bottomleft',
                     'right-top': 'topright',
-                    'right-center': 'topright',
+                    'right-center': 'topright', // not supported
                     'right-bottom': 'bottomright',
                   }[e.getAttribute ('position')] || 'bottomright';
                   var c = L.control.elementControl ({
@@ -2918,7 +3293,30 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                   c.addTo (this.pcLMap);
                 }
               });
-            } else if (this.maEngine === 'googlemaps') {
+            }
+            if (this.pc_MLMap) {
+              Array.prototype.slice.call (this.children).forEach (e => {
+                if (e.localName === 'map-controls') {
+                  let position = {
+                    'top-left': 'top-left',
+                    'top-center': 'top-left', // not supported
+                    'top-right': 'top-right',
+                    'bottom-left': 'bottom-left',
+                    'bottom-center': 'bottom-left', // not supported
+                    'left-top': 'top-left',
+                    'left-center': 'top-left', // not supported
+                    'left-bottom': 'bottom-left',
+                    'right-top': 'top-right',
+                    'right-center': 'top-right', // not supported
+                    'right-bottom': 'bottom-right',
+                  }[e.getAttribute ('position')] || 'bottom-right';
+                  this.pc_MLMap.addControl (new MLElementControl (e, {
+                    isLegend: e.hasAttribute ('legend'),
+                  }), position);
+                }
+              });
+            }
+            if (this.maGoogleMap) {
               Array.prototype.slice.call (this.children).forEach (e => {
                 if (e.localName === 'map-controls') {
                   // <https://developers.google.com/maps/documentation/javascript/controls>
@@ -2943,14 +3341,16 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
 
           let computedStyle;
           var updateMarker = (markerName, propName, pos, opts) => {
+            if (this.pc_MLMap) return; // XXX
+            
             if (opts.redraw || opts.remove) {
               if (!this[markerName]) {
                 //
               } else if (this.maGoogleMap) {
                 if (this[markerName].setMap) this[markerName].setMap (null);
-              } else {
+              } else if (this.pcLMap) {
                 if (this[markerName].remove) this[markerName].remove ();
-              }
+              } // XXX this.pc_MLMap
               delete this[markerName];
               if (opts.remove) return;
             }
@@ -3053,6 +3453,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                   });
                 });
                 return;
+                // XXXX this.pc_MLMap
               } else if (this.maGoogleMap) {
                 var size = null;
                 if (icon.iconSize) size = { // must be in px
@@ -3099,6 +3500,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                   weight: strokeSize,
                 }).addTo (this.pcLMap);
                 return;
+                // XXX this.pc_MLMap
               } else if (this.maGoogleMap) {
                 this[markerName] = new google.maps.Circle ({
                   center: {
@@ -3216,8 +3618,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         return this.maCenter; // or null
       }, // getMapCenter
       getMapBounds: function () {
-        if (this.pcLMap) {
-          var bounds = this.pcLMap.getBounds ();
+        if (this.pcLMap || this.pc_MLMap) {
+          let bounds = (this.pcLMap || this.pc_MLMap).getBounds ();
           return {
             north: bounds.getNorthEast ().lat,
             east: bounds.getNorthEast ().lng,
@@ -3236,7 +3638,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           };
         }
 
-        throw new DOMException ('The map engine does not support this operation', 'NotSupportedError');
+        throw new DOMException
+            ('The map engine does not support this operation',
+             'NotSupportedError');
       }, // getMapBounds
 
       pcScroll: function (opts) {
@@ -3294,6 +3698,10 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
               [bounds.north, bounds.west],
               [bounds.south, bounds.east],
             ]);
+            if (this.pc_MLMap) this.pc_MLMap.fitBounds ([
+              [bounds.west, bounds.south],
+              [bounds.east, bounds.north],
+            ]);
             if (this.maGoogleMap) this.maGoogleMap.fitBounds (bounds);
           }
         }
@@ -3306,6 +3714,62 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           }
         }
       }, // pcScroll
+
+      pc_AddAttribution: function (html) {
+        if (this.pcLMap) this.pcLMap.attributionControl.addAttribution (html);
+        if (this.pc_AttributionHTMLs) {
+          this.pc_AttributionHTMLs.push (html);
+          this.pc_UpdateAttribution ();
+        }
+      }, // pc_AddAttribution
+      pc_RemoveAttribution: function (html) {
+        if (this.pcLMap) this.pcLMap.attributionControl.removeAttribution (html);
+        if (this.pc_AttributionHTMLs) {
+          let index = this.pc_AttributionHTMLs.indexOf (html);
+          if (index !== -1) this.pc_AttributionHTMLs.splice (index, 1);
+          this.pc_UpdateAttribution ();
+        }
+      }, // pc_RemoveAttribution
+      pc_UpdateAttribution: function (html) {
+        if (this.pc_MLMap) {
+          let map = this.pc_MLMap;
+          let layers = (map.getStyle () || {}).layers || [];
+          let ll = layers.filter (_ => _.id.match (/^paco-attribution-/));
+          ll.forEach (_ => [map.removeLayer (_.id), map.removeSource (_.id)]);
+
+          if (layers.length === 0 && this.pc_AttributionHTMLs.length === 0) {
+            // Some of MapLibre GL features are broken when there is no layer.
+            {
+              let key = "paco-attribution-" + Math.random ();
+              map.addSource (key, {
+                type: 'geojson',
+                data: {type: 'FeatureCollection', features: []},
+              });
+              map.addLayer ({
+                id: key,
+                type: 'symbol',
+                source: key,
+                layout: {'icon-image': 'marker-15'},
+              });
+            }
+          } else {
+            this.pc_AttributionHTMLs.forEach (html => {
+              let key = "paco-attribution-" + Math.random ();
+              map.addSource (key, {
+                type: 'geojson',
+                data: {type: 'FeatureCollection', features: []},
+                attribution: html,
+              });
+              map.addLayer ({
+                id: key,
+                type: 'symbol',
+                source: key,
+                layout: {'icon-image': 'marker-15'},
+              });
+            });
+          }
+        }
+      }, // pc_UpdateAttribution
       
       maGoogleMapTypeGSI: 'GSI',
       maEnableGoogleMapGSI: function  () {
@@ -3357,10 +3821,12 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
       pcChangeMapType: function () {
         let sType = this.pcMapType;
         let sTypeParam1 = this.pcMapTypeParam1;
-        let map = this.pcLMap;
+        let waits = [];
 
-        let layers = [];
-        let layers2 = [];
+        if (this.pcLMap) {
+          let map = this.pcLMap;
+          let layers = [];
+          let layers2 = [];
 
         var type = sType;
         if (sType === 'gsi-lang') {
@@ -3967,56 +4433,805 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             }
           }
         });
-        this.classList.toggle ('paco-maptype-none', type === 'none');
-        this.dispatchEvent (new Event ('pcMapTypeChange'));
+        } // this.pcLMap
+
+        if (this.pc_MLMap) {
+          let map = this.pc_MLMap;
+          let requested = [];
+          let newStyleURL = null;
+          let newStyleMode = null;
+
+          /* XXX
+        let x = import ('https://www.unpkg.com/maplibre-gl-gsi-terrain@2.1.0/dist/terrain.js');
+        x.then (m => {
+          map.addSource ('terrain', m.useGsiTerrainSource(maplibregl.addProtocol));
+          map.setTerrain ({
+            source: 'terrain',
+            exaggeration: 1.0,
+          });
+        });
+          */
+          
+          let type = sType;
+          /*
+        if (sType === 'gsi-lang') {
+          var s = getComputedStyle (this);
+          var lang = s.getPropertyValue ('--paco--gsi-lang') || '';
+          lang = lang.replace (/^\s+/, '').replace (/\s+$/, '');
+          if (lang === 'gsi-english-standard') {
+            type = 'gsi-english-standard';
+          } else {
+            type = 'gsi-standard';
+          }
+        }
+
+        var maxZoom = 21;
+        var errorTileUrl = this.getAttribute ('noimgsrc') || noImageURL;
+        */
+          if (type === 'gsi-standard') {
+            requested.push ('gsi-standard');
+            /*XXXX
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 2,
+                maxZoom,
+                */
+
+            /*XXX
+          let jpLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 18,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+              });
+          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer, {boundary: JPGSIMapBoundary});
+          layers.push ({layer: jpLayerClipped});
+        } else if (type === 'gsi-english') {
+          let wLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 5,
+                maxZoom,
+              });
+          layers.push ({layer: wLayer});
+          
+          let jpLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 11,
+                minNativeZoom: 5,
+                maxZoom,
+                minZoom: 9,
+              });
+          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer, {boundary: JPGSIMapBoundary});
+          layers.push ({layer: jpLayerClipped});
+        } else if (type === 'gsi-english-standard') {
+          let wLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 5,
+                maxZoom,
+              });
+          layers.push ({layer: wLayer});
+
+          let jpLayer1 = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 18,
+                minNativeZoom: 12,
+                maxZoom,
+                minZoom: 12,
+              });
+          let jpLayer2 = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 11,
+                minNativeZoom: 5,
+                maxZoom: Math.min (11, maxZoom) || 11,
+                minZoom: 9,
+              });
+          let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer1, {boundary: JPGSIMapBoundary});
+          layers.push ({layer: jpLayer1Clipped});
+          let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer2, {boundary: JPGSIMapBoundary});
+              layers.push ({layer: jpLayer2Clipped});
+              */
+          } else if (type === 'gsi-hillshade') {
+            requested.push ('gsi-hillshade');
+            /*XXX
+          let wLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 0,
+                maxZoom,
+              });
+          layers.push ({layer: wLayer});
+
+          let jpLayer1 = L.tileLayer
+          ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23ededed'/%3E%3C/svg%3E", {
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+              });
+          let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer1, {boundary: JPGSIMapBoundary});
+          layers.push ({layer: jpLayer1Clipped});
+          
+          let jpLayer2 = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+              });
+          let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer2, {boundary: JPGSIMapBoundary});
+          layers.push ({layer: jpLayer2Clipped});
+        } else if (type === 'gsi-standard-hillshade') {
+          let wLayerH = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 0,
+                maxZoom,
+              });
+          layers.push ({layer: wLayerH});
+
+          let wLayerS = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 2,
+                maxZoom,
+                opacity: 0.8,
+              });
+          layers.push ({layer: wLayerS});
+          
+          let jpLayer1 = L.tileLayer
+          ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23ededed'/%3E%3C/svg%3E", {
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+              });
+          let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer1, {boundary: JPGSIMapBoundary});
+          layers.push ({layer: jpLayer1Clipped});
+          
+          let jpLayer2 = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+              });
+          let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer2, {boundary: JPGSIMapBoundary});
+          layers.push ({layer: jpLayer2Clipped});
+          
+          let jpLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 18,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+                opacity: 0.8,
+              });
+          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer, {boundary: JPGSIMapBoundary});
+          layers.push ({layer: jpLayerClipped});
+        } else if (type === 'gsi-hillshade-standard') {
+          let wLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 0,
+                maxZoom,
+                opacity: 0.6,
+              });
+          layers.push ({layer: wLayer});
+
+          let jpLayer1 = L.tileLayer
+          ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23ededed'/%3E%3C/svg%3E", {
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+                opacity: 0.6,
+              });
+          let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer1, {boundary: JPGSIMapBoundary});
+          layers.push ({layer: jpLayer1Clipped});
+          
+          let jpLayer2 = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+                opacity: 0.6,
+              });
+          let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer2, {boundary: JPGSIMapBoundary});
+          layers.push ({layer: jpLayer2Clipped});
+          
+          let jpGSI = L.gridLayer.gsiOverlay ({
+            //attribution: gsiCreditHTML,
+            //errorTileUrl,
+            maxNativeZoom: 18,
+            minNativeZoom: 2,
+            maxZoom,
+            //minZoom: 9,
+          });
+          layers2.push ({layer: jpGSI});
+        } else if (type === 'gsi-hillshade-optimal_bvmap') {
+          let wLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 0,
+                maxZoom,
+                opacity: 0.6,
+              });
+          layers.push ({layer: wLayer});
+
+          let jpLayer1 = L.tileLayer
+          ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23ededed'/%3E%3C/svg%3E", {
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+                opacity: 0.6,
+              });
+          let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer1, {boundary: JPGSIMapBoundary});
+          layers.push ({layer: jpLayer1Clipped});
+          
+          let jpLayer2 = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+                opacity: 0.6,
+              });
+          let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer2, {boundary: JPGSIMapBoundary});
+          layers.push ({layer: jpLayer2Clipped});
+
+          let gl = L.GridLayer.gsiOptimalBvmap ({
+            maxZoom,
+          });
+          let jpGSI = L.gridLayer.gsiOverlay ({
+            //attribution: gsiCreditHTML,
+            //errorTileUrl,
+            maxNativeZoom: 18,
+            minNativeZoom: 2,
+            maxZoom,
+            //minZoom: 9,
+          });
+          layers2.push ({layer: gl, fallbackLayer: jpGSI});
+          */
+          } else if (type === 'gsi-photo') {
+            requested.push ('gsi-photo:background2');
+            requested.push ('gsi-photo:background');
+            //requested.push ('gsi-photo');
+            /*XXX
+          let wLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+                attribution: gsiPhotoCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 2,
+                maxZoom,
+              });
+          layers.push ({layer: wLayer});
+          
+          let jpLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+                attribution: gsiPhotoCreditHTML,
+                maxNativeZoom: 18,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+              });
+          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer, {boundary: JPGSIMapBoundary});
+          layers.push ({layer: jpLayerClipped});
+        } else if (type === 'gsi-photo-standard') {
+          let wLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+                attribution: gsiPhotoCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 8,
+                minNativeZoom: 2,
+                maxZoom,
+              });
+          layers.push ({layer: wLayer});
+          
+          let jpLayer = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+                attribution: gsiPhotoCreditHTML,
+                maxNativeZoom: 18,
+                minNativeZoom: 2,
+                maxZoom,
+                minZoom: 9,
+              });
+          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
+              (jpLayer, {boundary: JPGSIMapBoundary});
+          layers.push ({layer: jpLayerClipped});
+
+          let lGSI = L.gridLayer.gsiOverlay ({
+            //attribution: gsiCreditHTML,
+            errorTileUrl,
+            maxNativeZoom: 18,
+            minNativeZoom: 2,
+            maxZoom,
+          });
+          layers2.push ({layer: lGSI});
+          */
+          } else if (type === 'gsi-photo-optimal_bvmap') {
+            newStyleURL = "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json";
+            newStyleMode = 'overlay';
+            requested.push ('gsi-photo:background2');
+            requested.push ('gsi-photo:background');
+            /*XXX
+          } else if (type === 'himawari') {
+          let lHimawari = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'himawari',
+            param1: sTypeParam1,
+            noTimestamp,
+          });
+          layers.push ({layer: lHimawari});
+          noTimestamp = true;
+        } else if (type === 'himawari+gsi-standard') {
+          let lHimawari = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'himawari',
+            param1: sTypeParam1,
+            noTimestamp,
+          });
+          layers.push ({layer: lHimawari});
+          noTimestamp = true;
+          let lGSI = L.gridLayer.gsiOverlay ({
+            attribution: gsiCreditHTML,
+            errorTileUrl,
+            maxNativeZoom: 18,
+            minNativeZoom: 2,
+            maxZoom,
+          });
+          layers2.push ({layer: lGSI});
+        } else if (type === 'himawari+gsi-optimal_bvmap') {
+          let lHimawari = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'himawari',
+            param1: sTypeParam1,
+            noTimestamp,
+          });
+          layers.push ({layer: lHimawari});
+          noTimestamp = true;
+
+          let gl = L.GridLayer.gsiOptimalBvmap ({
+            maxZoom,
+          });
+          let lGSI = L.gridLayer.gsiOverlay ({
+            attribution: gsiCreditHTML,
+            errorTileUrl,
+            maxNativeZoom: 18,
+            minNativeZoom: 2,
+            maxZoom,
+          });
+          layers2.push ({layer: gl, fallbackLayer: lGSI});
+        } else if (type === 'jma-umimesh-wind') {
+          let layer = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'umimeshwind',
+            noTimestamp,
+          });
+          layers.push ({layer: layer});
+          noTimestamp = true;
+          let layerD = L.tileLayer.jma ({
+            maxZoom,
+            type: 'umimeshwinddir',
+            noTimestamp,
+            map,
+          });
+          layers.push ({layer: layerD});
+        } else if (type === 'jma-umimesh-wind+gsi-standard') {
+          let layer = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'umimeshwind',
+            noTimestamp,
+          });
+          layers.push ({layer: layer});
+          noTimestamp = true;
+          let layerD = L.tileLayer.jma ({
+            maxZoom,
+            type: 'umimeshwinddir',
+            noTimestamp,
+            map,
+          });
+          layers.push ({layer: layerD});
+          let lGSI = L.gridLayer.gsiOverlay ({
+            attribution: gsiCreditHTML,
+            errorTileUrl,
+            maxNativeZoom: 18,
+            minNativeZoom: 2,
+            maxZoom,
+          });
+          layers2.push ({layer: lGSI});
+          */
+          } else if (type === 'osm') {
+            // <https://operations.osmfoundation.org/policies/tiles/>
+            // <https://osmfoundation.org/wiki/Licence/Attribution_Guidelines>
+            requested.push ('osm');
+          /*} else if (type === 'osm-gsi-hillshade') {
+          let lShade = L.tileLayer
+              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
+                attribution: gsiCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 16,
+                minNativeZoom: 2,
+                maxZoom,
+                opacity: 0.8,
+              });
+          layers.push ({layer: lShade});
+          let wLayer = L.tileLayer
+              ('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: osmCreditHTML,
+                errorTileUrl,
+                maxNativeZoom: 19,
+                maxZoom,
+                opacity: 0.8,
+              });
+              layers.push ({layer: wLayer});
+              */
+          } else if (type === 'gsi-optimal_bvmap') {
+            newStyleURL = "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json";
+            requested.push ('gsi-standard:background');
+          } else if (type === 'none') {
+            //
+          }
+
+          /*XXX
+        var noTimestamp = false;
+        if (this.pcJMANowc_rain) {
+          var lNowc = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'rain',
+            noTimestamp,
+          });
+          layers.push ({layer: lNowc});
+          noTimestamp = true;
+        }
+        if (this.pcJMANowc_thns) {
+          var lNowc = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'thns',
+            noTimestamp,
+          });
+          layers.push ({layer: lNowc});
+          noTimestamp = true;
+        }
+        if (this.pcJMANowc_trns) {
+          var lNowc = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'trns',
+            noTimestamp,
+          });
+          layers.push ({layer: lNowc});
+          noTimestamp = true;
+        }
+        ['precipitation10m', 'precipitation1h', 'precipitation3h',
+         'precipitation24h', 'temp', 'sun1h', 'humidity',
+         'snow', 'snow6h', 'snow12h', 'snow24h'].forEach (k => {
+          if (this['pcJMANowc_' + k]) {
+            let l = L.tileLayer.jma ({
+              maxZoom,
+              errorTileUrl,
+              type: 'amedas',
+              param1: k,
+              noTimestamp,
+              map,
+            });
+            layers.push ({layer: l});
+            noTimestamp = true;
+          }
+        });
+        if (this.pcJMANowc_wind) {
+          let l = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'amedas',
+            param1: 'windDirection',
+            noTimestamp,
+            map,
+          });
+          layers.push ({layer: l});
+          noTimestamp = true;
+          let m = L.tileLayer.jma ({
+            maxZoom,
+            errorTileUrl,
+            type: 'amedas',
+            param1: 'wind',
+            noTimestamp,
+            map,
+          });
+          layers.push ({layer: m});
+        }
+
+
+    paint: {
+        'raster-opacity': 0.5
+    },
+
+          */
+
+          waits.push (Promise.resolve ().then (() => {
+            if (this.pc_MLCurrentStyleURL === newStyleURL &&
+                this.pc_MLCurrentStyleMode === newStyleMode) return;
+            if (newStyleURL === null) {
+              map.setStyle (null);
+              this.pc_MLCurrentStyleURL = null;
+              this.pc_MLCurrentStyleMode = null;
+              this.pc_CurrentMLLayerIds = [];
+              this.pc_CurrentMLSourceIds = [];
+              this.pc_UpdateAttribution ();
+              return;
+            }
+
+            let p = new Promise (ok => map.once ('styledata', ok));
+            this.pc_MLCurrentStyleURL = newStyleURL;
+            //style: 'https://demotiles.maplibre.org/style.json',
+            map.setStyle (newStyleURL, {});
+            this.pc_CurrentMLLayerIds = [];
+            this.pc_CurrentMLSourceIds = [];
+            this.pc_MLCurrentStyleMode = newStyleMode;
+            return p.then (() => {
+              map.setLayoutProperty ("background", "visibility", 'none');
+              if (newStyleMode === 'overlay') {
+                [
+          '\u884C\u653F\u533A\u753B', '\u6C34\u57DF', '\u5730\u5F62\u8868\u8A18\u9762',
+          '\u5EFA\u7BC9\u72690', '\u5EFA\u7BC9\u72691', '\u5EFA\u7BC9\u72692', '\u5EFA\u7BC9\u72693', '\u5EFA\u7BC9\u72694',
+        ].forEach (layerId => {
+          map.setLayoutProperty (layerId, "visibility", 'none');
+        });
+        [
+          '\u9053\u8DEF\u4E2D\u5FC3\u7DDA\u8272',
+          '\u9053\u8DEF\u4E2D\u5FC3\u7DDA\u30AF\u30AF\u30EA',
+          '\u9053\u8DEF\u4E2D\u5FC3\u7DDA\u8272\u6A4B',
+          '\u9053\u8DEF\u4E2D\u5FC3\u7DDA\u30AF\u30AF\u30EA\u6A4B',
+        ].forEach (layerId => {
+          map.setPaintProperty (layerId + 0, "line-opacity", 0.3);
+          map.setPaintProperty (layerId + 1, "line-opacity", 0.3);
+          map.setPaintProperty (layerId + 2, "line-opacity", 0.3);
+          map.setPaintProperty (layerId + 3, "line-opacity", 0.3);
+          map.setPaintProperty (layerId + 4, "line-opacity", 0.3);
+        });
+              } else {
+                map.setPaintProperty ('\u6C34\u57DF', "fill-color", "rgba(190,210,255,0.3)");
+              }
+            });
+            this.pc_UpdateAttribution ();
+          }).then (() => {
+            (this.pc_CurrentMLLayerIds || []).forEach (id => {
+              map.removeLayer (id);
+            });
+            (this.pc_CurrentMLSourceIds || []).forEach (id => {
+              map.removeSource (id);
+            });
+
+            let sources = [];
+            let layers = [];
+            requested.forEach (id => {
+              if (id === 'gsi-standard') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: gsiCreditHTML,
+                });
+                map.addLayer ({id: id, type: "raster", source: id, minzoom: 9});
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-standard:background') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: gsiCreditHTML,
+                  maxzoom: 8,
+                });
+                let ll = map.getStyle ().layers;
+                map.addLayer ({
+                  id: id,
+                  type: 'raster',
+                  source: id,
+                }, (ll[0] || []).id);
+                sources.push (id);
+                layers.push (id);
+                map.addSource ("jpmask", {
+                  type: "geojson",
+                  data: {
+                    type: "Polygon",
+                    coordinates: [JPGSIMapBoundary.map (_ => [_.lon, _.lat])],
+                  },
+                });
+                sources.push ("jpmask");
+                map.addLayer({
+                  id: "jpmask",
+                  type: "fill",
+                  source: "jpmask",
+                  minzoom: 4,
+                  paint: {
+                    "fill-color": "#ecf2f5",
+                    "fill-opacity": 1,
+                  },
+                }, ll[0].id);
+                layers.push ("jpmask");
+              } else if (id === 'gsi-photo') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg'],
+                  tileSize: 256,
+                  attribution: gsiPhotoCreditHTML,
+                });
+                map.addLayer ({id: id, type: "raster", source: id, minzoom: 9});
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-photo:background2') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg'],
+                  tileSize: 256,
+                  attribution: gsiPhotoCreditHTML,
+                });
+                let ll = map.getStyle ().layers;
+                map.addLayer ({id: id, type: "raster", source: id, minzoom: 9}, (ll[0] || {}).id);
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-photo:background') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg'],
+                  tileSize: 256,
+                  attribution: gsiPhotoCreditHTML,
+                  maxzoom: 8,
+                });
+                let ll = map.getStyle ().layers;
+                map.addLayer ({
+                  id: id,
+                  type: 'raster',
+                  source: id,
+                }, (ll[0] || {}).id);
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-hillshade') {
+              map.addSource (id, {
+                type: 'raster',
+                tiles: ['https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                attribution: gsiCreditHTML,
+              });
+              map.addLayer ({id: id, type: "raster", source: id});
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'osm') {
+              map.addSource (id, {
+                type: 'raster',
+                tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                attribution: osmCreditHTML,
+              });
+              map.addLayer ({id: id, type: "raster", source: id});
+                 sources.push (id);
+                layers.push (id);
+              } else {
+                throw new Error ("Bad layer ID |"+id+"|");
+              }
+            });
+            this.pc_CurrentMLLayerIds = layers;
+            this.pc_CurrentMLSourceIds = sources;
+          }));
+        } // this.pc_MLMap
+
+        Promise.all (waits).then (() => {
+          this.classList.toggle ('paco-maptype-none', type === 'none');
+          this.dispatchEvent (new Event ('pcMapTypeChange'));
+        });
       }, // pcChangeMapType
 
       pc_ToggleCoordinatesControl: function (state) {
         if (state === undefined) {
-          state = this.pc_CoordinatesControl ? false : true;
+          state = this.pc_CoordinatesControls ? false : true;
         }
         if (state) {
-          if (this.pc_CoordinatesControl) {
+          if (this.pc_CoordinatesControls) {
             //
           } else {
-            let map = this.pcLMap;
-            if (map) {
-              this.pc_CoordinatesControl = L.control.coordinatesControl ({
+            this.pc_CoordinatesControls = [];
+            if (this.pcLMap) {
+              let c = L.control.coordinatesControl ({
                 position: 'topleft',
-              }).addTo (map);
-              Promise.resolve ().then (() => this.pcCoordinatesSetters.forEach (_ => _ (this, {value: true, redraw: true})));
-              this.querySelectorAll ('.paco-map-state-control[value=coordinates]').forEach (c => c.checked = true);
+              });
+              this.pc_CoordinatesControls.push (_ => c.remove ());
+              c.addTo (this.pcLMap);
             }
+            if (this.pc_MLMap) {
+              let c = new MLCoordinatesControl ({});
+              this.pc_CoordinatesControls.push (_ => this.pc_MLMap.removeControl (c));
+              this.pc_MLMap.addControl (c, 'top-left');
+            }
+            Promise.resolve ().then (() => this.pcCoordinatesSetters.forEach (_ => _ (this, {value: true, redraw: true})));
+            this.querySelectorAll ('.paco-map-state-control[value=coordinates]').forEach (c => c.checked = true);
           }
         } else {
-          if (this.pc_CoordinatesControl) {
-            this.pc_CoordinatesControl.remove ();
-            delete this.pc_CoordinatesControl;
+          if (this.pc_CoordinatesControls) {
+            this.pc_CoordinatesControls.forEach (_ => _ ());
+            delete this.pc_CoordinatesControls;
             this.querySelectorAll ('.paco-map-state-control[value=coordinates]').forEach (c => c.checked = false);
           }
         }
       }, // pc_ToggleCoordinatesControl
       pc_ToggleDistanceMode: function (state) {
         if (state === undefined) {
-          state = this.pc_DistanceControl ? false : true;
+          state = this.pc_DistanceControls ? false : true;
         }
         if (state) {
-          if (this.pc_DistanceControl) {
+          if (this.pc_DistanceControls) {
             //
           } else {
-            let map = this.pcLMap;
-            if (map) {
-              this.pc_DistanceControl = L.control.distanceControl ({
+            this.pc_DistanceControls = [];
+            if (this.pcLMap) {
+              let c = L.control.distanceControl ({
                 position: 'topleft',
-              }).addTo (map);
-              this.querySelectorAll ('.paco-map-state-control[value=distance]').forEach (c => c.checked = true);
-              this.classList.toggle ('paco-map-distance-mode', true);
+              });
+              this.pc_DistanceControls.push (_ => c.remove ());
+              c.addTo (this.pcLMap);
             }
+            if (this.pc_MLMap) {
+              let c = new MLDistanceControl ({});
+              this.pc_MLMap.addControl (c, 'top-left');
+              this.pc_DistanceControls.push (_ => this.pc_MLMap.removeControl (c));
+            }
+            this.querySelectorAll ('.paco-map-state-control[value=distance]').forEach (c => c.checked = true);
+            this.classList.toggle ('paco-map-distance-mode', true);
           }
         } else {
-          if (this.pc_DistanceControl) {
-            this.pc_DistanceControl.remove ();
-            delete this.pc_DistanceControl;
+          if (this.pc_DistanceControls) {
+            this.pc_DistanceControls.forEach (_ => _ ());
+            delete this.pc_DistanceControls;
             delete this.pc_DistancePoints;
             this.querySelectorAll ('.paco-map-state-control[value=distance]').forEach (c => c.checked = false);
             this.classList.toggle ('paco-map-distance-mode', false);
@@ -4072,11 +5287,23 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         this.addEventListener ('dragover', handlers[0] = ev => {
           ev.preventDefault ();
         });
-        this.addEventListener ('drop', handlers[1] = ev => {
-          var ll = this.pcLMap.mouseEventToLatLng (ev);
-          var u = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + ll.lat + ',' + ll.lng;
-          window.open (u, '_blank', 'noreferrer');
-        });
+        if (this.pcLMap) {
+          this.addEventListener ('drop', handlers[1] = ev => {
+            let ll = this.pcLMap.mouseEventToLatLng (ev);
+            let u = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + ll.lat + ',' + ll.lng;
+            window.open (u, '_blank', 'noreferrer');
+          });
+        } else if (this.pc_MLMap) {
+          this.addEventListener ('drop', handlers[1] = ev => {
+            let rect = this.getBoundingClientRect();
+            let ll = this.pc_MLMap.unproject ([
+              ev.clientX - rect.left,
+              ev.clientY - rect.top,
+            ]);
+            let u = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + ll.lat + ',' + ll.lng;
+            window.open (u, '_blank', 'noreferrer');
+          });
+        }
 
         src.addEventListener ('dragend', handlers[2] = ev => {
           this.removeEventListener ('dragover', handlers[0]);
@@ -4240,7 +5467,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             handlers.mousemove (obj);
             handlers.mouseup (obj);
           }); // mouseup
-        } else if (this.maGoogleMap) {
+        }
+        // XXXthis.pc_MLMap
+        if (this.maGoogleMap) {
           var getPoint = function () {
             var p = this.event.latLng;
             return {lat: p.lat (), lon: p.lng ()};
