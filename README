@@ -1404,6 +1404,14 @@ addition to the main script:
 
 The following content attributes are available:
 
+  <map-area bearing=""> : float
+
+    The bearing of the map, in degree.  Default is 0 [degree],
+    i.e. the top of the screen is the north.  The value 90 [degree]
+    means that the top of the screen is the east.
+
+    This attribute is ignored unless the map's |engine| is |maplibre|.
+
   <map-engine controls="">
 
     How builtin map controls are shown.
@@ -1417,9 +1425,11 @@ The following content attributes are available:
     of keywords, the respective controls are shown, as follows:
 
       |coordinates|      Latitude, longitude, and elevation of the "value"
-                         point of the map
+                         point of the map (if map's engine is |leaflet| or
+                         |maplibre|)
       |currentposition|  "Pan to the current position" button
       |fullscreen|       "Fullscreen mode" button
+      |pitch|            Pitch control buttons (if map's engine is |maplibre|)
       |scale|            Scale
       |streetview|       "Open Street View" button
       |togglelegend|     A legend toggle-button control
@@ -1475,6 +1485,9 @@ The following content attributes are available:
       provided by 国土地理院 (Geospatial Information Authority of Japan)
       <https://www.gsi.go.jp/> of the Japanese Government.
 
+    This attribute is ignored when the map's |engine| is
+    |googlemapsembed|.
+
   <map-area engine="">
 
     The engine used to render the map.
@@ -1490,6 +1503,12 @@ The following content attributes are available:
         Leaflet <https://leafletjs.com/>.  Note that the script is
         automatically loaded such that the application does not have
         to load it by itself.
+
+      engine="maplibre"
+
+        MapLibre GL JS <https://maplibre.org/maplibre-gl-js/>.  Note
+        that the script is automatically loaded such that the
+        application does not have to load it by itself.
 
     For backward compatibility, the following values are also
     supported.  These values should not be used for new applications.
@@ -1583,8 +1602,8 @@ The following content attributes are available:
     This attribute is ignored when the map's |engine| is |googlemaps|
     or |googlemapsembed|.
 
-  lat="" : Float
-  lon="" : Float
+  lat="" : float
+  lon="" : float
 
     The initial latitude and longitude of the center point of the map.
     The default is zero.
@@ -1634,6 +1653,14 @@ The following content attributes are available:
 
     This attribute is ignored when the map's |engine| is |googlemaps|
     or |googlemapsembed|.
+
+  <map-area pitch=""> : float
+
+    The pitch of the map, in degree.  Default is 0 [degree],
+    i.e. projected to the screen.  The maximum is 85 [degree], that is
+    almost orthogonal to the screen.
+
+    This attribute is ignored unless the map's |engine| is |maplibre|.
 
   <map-area readonly=""> : boolean
 

@@ -1367,7 +1367,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     return [l, ml];
   } // ElementControl
   
-  L.control.fullscreenButton = function (opts) {
+  let MLFullscreenButtonControl;
+  [L.control.fullscreenButton, MLFullscreenButtonControl] = ElementControl ((opts) => {
     var c = document.createElement ('div');
     c.className = 'paco-button-container';
     opts.element = c;
@@ -1391,37 +1392,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
       }
     };
     c.appendChild (b);
-    
-    return new L.Control.ElementControl (opts);
-  }; // L.control.fullscreenButton
-  class MLFullscreenButtonControl extends MLElementControl {
-    constructor (opts) {
-      let c = document.createElement ('div');
-      c.className = 'paco-button-container';
-      opts.styling = c => {
-        var e = c.pcMap.getContainer ();
-        // recompute!
-        var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-fullscreen-title'), 'Fullscreen');
-        c.title = m;
-      };
-      
-      var b = document.createElement ('button');
-      b.className = 'paco-control-button paco-fullscreen-control-button';
-      b.type = 'button';
-      b.textContent = '\u26F6';
-      b.onclick = async () => {
-        var e = c.pcMap.getContainer ();
-        if (document.fullscreenElement) {
-          document.exitFullscreen ();
-        } else {
-          e.requestFullscreen ();
-        }
-      };
-      c.appendChild (b);
-
-      return super (c, opts);
-    };
-  }; // MLFullscreenButtonControl
+  }); // MLFullscreenButtonControl
   
   L.control.currentPositionButton = function (opts) {
     var c = document.createElement ('div');
@@ -1447,7 +1418,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     return new L.Control.ElementControl (opts);
   }; // L.control.currentPositionButton
   
-  L.control.streetViewButton = function (opts) {
+  let MLStreetViewButtonControl;
+  [L.control.streetViewButton, MLStreetViewButtonControl] = ElementControl ((opts) => {
     var c = document.createElement ('div');
     c.className = 'paco-button-container';
     opts.element = c;
@@ -1468,35 +1440,47 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
       e.pcStartStreetViewDragMode (b);
     };
     c.appendChild (b);
-    
-    return new L.Control.ElementControl (opts);
-  }; // L.control.streetViewButton
-  class MLStreetViewButtonControl extends MLElementControl {
-    constructor (opts) {
+  }); // MLStreetViewButtonControl
+
+  let x;
+  let MLPitchButtonControl;
+  [x, MLPitchButtonControl] = ElementControl ((opts) => {
     var c = document.createElement ('div');
-    c.className = 'paco-button-container';
+    c.className = 'paco-button-container paco-pitch-button-container';
     opts.element = c;
     opts.styling = c => {
       var e = c.pcMap.getContainer ();
       // recompute!
-      var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-streetview-title'), 'Street View');
+      var m = e.pcInternal.parseCSSString (getComputedStyle (e).getPropertyValue ('--paco-map-pitch'), 'Pitch');
       c.title = m;
     };
 
-    var b = document.createElement ('button');
-    b.className = 'paco-control-button paco-streetview-control-button';
-    b.type = 'button';
-    b.textContent = '\u{1F6B6}';
-    b.setAttribute ('draggable', 'true');
-    b.ondragstart = () => {
-      var e = c.pcMap.getContainer ();
-      e.pcStartStreetViewDragMode (b);
-    };
-    c.appendChild (b);
-      
-      return super (c, opts);
-    };
-  }; // MLStreetViewButtonControl
+    let step = 5;
+    {
+      let b = document.createElement ('button');
+      b.className = 'paco-control-button paco-pitch-control-button';
+      b.type = 'button';
+      b.textContent = '\u25B2';
+      b.onclick = () => {
+        let map = c.pcMap;
+        let currentPitch = map.getPitch ();
+        map.flyTo ({pitch: currentPitch - step});
+      };
+      c.appendChild (b);
+    }
+    {
+      let b = document.createElement ('button');
+      b.className = 'paco-control-button paco-pitch-control-button';
+      b.type = 'button';
+      b.textContent = '\u25BC';
+      b.onclick = () => {
+        let map = c.pcMap;
+        let currentPitch = map.getPitch ();
+        map.flyTo ({pitch: currentPitch + step});
+      };
+      c.appendChild (b);
+    }
+  }); // MLPitchButtonControl
 
 
   let MLMapTypeMenuControl;
@@ -2452,10 +2436,10 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     props: {
       pcInit: function () {
         this.maRedrawNeedUpdated = {};
-        this.ready = new Promise ((r) => this.maRedrawNeedUpdated.onready = r);
+        let onready;
+        this.ready = new Promise ((r) => onready = r);
 
-        this.pcValue = {lat: 0, lon: 0};
-        var initialValue = this.valueAsLatLon;
+        let initialValue = this.valueAsLatLon;
         this.pcCoordinatesSetters = [];
         this.pcDistanceSetters = [];
         if (initialValue) {
@@ -2479,7 +2463,46 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           },
         });
 
-        this.pcZoomLevel = this.maAttrFloat ('zoom', 8);
+        (new MutationObserver ((mutations) => {
+          if (!this.pc_NewView) this.pc_NewView = {};
+          var latlon = false;
+          mutations.forEach (mr => {
+            if (mr.attributeName === 'lat') {
+              this.pcValue.lat = 
+              this.pc_NewView.lat = this.maAttrFloat ('lat', 0);
+              this.maRedraw ({view: true, valueMarker: true});
+            } else if (mr.attributeName === 'lon') {
+              this.pcValue.lon = 
+              this.pc_NewView.lon = this.maAttrFloat ('lon', 0);
+              this.maRedraw ({view: true, valueMarker: true});
+            } else if (mr.attributeName === 'zoom') {
+              this.pc_NewView.zoom = this.maAttrFloat ('zoom', 8);
+              this.maRedraw ({view: true});
+            } else if (mr.attributeName === 'pitch') {
+              this.pc_NewView.pitch = this.maAttrFloat ('pitch', 0);
+              this.maRedraw ({view: true});
+            } else if (mr.attributeName === 'bearing') {
+              this.pc_NewView.bearing = this.maAttrFloat ('bearing', 0);
+              this.maRedraw ({view: true});
+            } else if (mr.attributeName === 'readonly') {
+              this.maRedraw ({readonly: true});
+            } else if (mr.attributeName === 'maptype') {
+              this.setMapType (this.getAttribute ('maptype'));
+            }
+          });
+        })).observe (this, {attributeFilter: ['lat', 'lon', 'readonly',
+                                              'zoom', 'maptype',
+                                              'pitch', 'bearing']});
+        this.pc_NewView = {
+          initial: true,
+          lat: this.maAttrFloat ('lat', 0),
+          lon: this.maAttrFloat ('lon', 0),
+          zoom: this.maAttrFloat ('zoom', 8),
+          pitch: this.maAttrFloat ('pitch', 0),
+          bearing: this.maAttrFloat ('bearing', 0),
+        };
+        this.maCenter = this.pcValue = this.pc_NewView;
+        this.pcZoomLevel = this.pc_NewView.zoom;
 
         this.pcExplicitTime = null;
         this.pcTimeSetters = [];
@@ -2508,17 +2531,17 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         
         this.maEngine = this.getAttribute ('engine');
         if (this.maEngine === 'googlemaps') {
-          return this.maInitGoogleMaps ();
+          return this.maInitGoogleMaps (onready);
         } else if (this.maEngine === 'googlemapsembed') {
-          return this.maInitGoogleMapsEmbed ();
+          return this.maInitGoogleMapsEmbed (onready);
         } else if (this.maEngine === 'maplibre') { // MapLibre GL JS
-          return this.pc_InitMapLibre ();
+          return this.pc_InitMapLibre (onready);
         } else {
           this.maEngine = 'leaflet';
-          return this.pcInitLeaflet ();
+          return this.pcInitLeaflet (onready);
         }
       }, // pcInit
-      maInitGoogleMaps: function () {
+      maInitGoogleMaps: function (onready) {
         Object.defineProperty (this, 'googleMap', {
           get: function () {
             return this.maGoogleMap || null;
@@ -2534,17 +2557,15 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           });
 
           var mapOpts = {
-            zoom: this.pcZoomLevel,
+            //zoom: this.pcZoomLevel,
             gestureHandling: "greedy",
             styles: [
               {featureType: "poi", elementType: "all", stylers: [{visibility: "off"}]},
               {featureType: "landscape", elementType: "all", stylers: [{visibility: "off"}]},
             ],
             draggable: !this.pcNoMapDraggable,
+            //center: {lat, lng},
           };
-          var center = {lat: this.maAttrFloat ('lat', 0),
-                        lng: this.maAttrFloat ('lon', 0)};
-          if (center.lat || center.lng) mapOpts.center = center;
           this.maGoogleMap = new google.maps.Map (this, mapOpts);
 
           if (this.hasAttribute ('gsi')) {
@@ -2631,34 +2652,6 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             this.pcZoomLevel = this.maGoogleMap.getZoom ();
             this.maRedrawEvent ();
           });
-          var mo = new MutationObserver ((mutations) => {
-            var latlon = false;
-            mutations.forEach (mr => {
-              if (mr.attributeName === 'lat' ||
-                  mr.attributeName === 'lon') {
-                latlon = true;
-              } else if (mr.attributeName === 'readonly') {
-                this.maRedraw ({readonly: true});
-              } else if (mr.attributeName === 'zoom') {
-                this.pcZoomLevel = this.maAttrFloat ('zoom', 8);
-                this.maRedraw ({zoom: true});
-              }
-            });
-
-            if (latlon) this.maRedraw ({
-              center: {
-                lat: this.maAttrFloat ('lat', 0),
-                lon: this.maAttrFloat ('lon', 0),
-              },
-              value: true,
-            });
-          });
-          mo.observe (this, {attributeFilter: ['lat', 'lon', 'readonly',
-                                               'zoom']});
-          this.maCenter = this.pcValue = {
-            lat: this.maAttrFloat ('lat', 0),
-            lon: this.maAttrFloat ('lon', 0),
-          };
           
           var moc = new MutationObserver ((mutations) => {
             this.maRedraw ({controls: true});
@@ -2701,6 +2694,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             }, {passive: false});
           }
           
+          this.maRedrawNeedUpdated.onready = onready;
           this.maRedraw ({all: true});
         }).then (() => {
           this.maISObserver = new IntersectionObserver (() => {
@@ -2711,66 +2705,12 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           this.maISObserver.observe (this);
         });
       }, // maInitGoogleMaps
-      maInitGoogleMapsEmbed: function () {
-        var mo = new MutationObserver ((mutations) => {
-          var latlon = false;
-          mutations.forEach (mr => {
-            if (mr.attributeName === 'lat' ||
-                mr.attributeName === 'lon') {
-              latlon = true;
-            } else if (mr.attributeName === 'zoom') {
-              this.pcZoomLevel = this.maAttrFloat ('zoom', 8);
-              this.maRedraw ({zoom: true});
-            }
-          });
-
-          if (latlon) this.maRedraw ({
-            center: {
-              lat: this.maAttrFloat ('lat', 0),
-              lon: this.maAttrFloat ('lon', 0),
-            },
-            value: true,
-          });
-        });
-        mo.observe (this, {attributeFilter: ['lat', 'lon', 'zoom']});
-        this.maCenter = this.pcValue = {
-          lat: this.maAttrFloat ('lat', 0),
-          lon: this.maAttrFloat ('lon', 0),
-        };
+      maInitGoogleMapsEmbed: function (onready) {
         this.pc_GMEmbed = true;
+        this.maRedrawNeedUpdated.onready = onready;
         return Promise.resolve ().then (() => this.maRedraw ({all: true}));
       }, // maInitGoogleMapsEmbed
-      pcInitLeaflet: function () {
-        (new MutationObserver ((mutations) => {
-          var latlon = false;
-          mutations.forEach (mr => {
-            if (mr.attributeName === 'lat' ||
-                mr.attributeName === 'lon') {
-              latlon = true;
-            } else if (mr.attributeName === 'readonly') {
-              this.maRedraw ({readonly: true});
-            } else if (mr.attributeName === 'zoom') {
-              this.pcZoomLevel = this.maAttrFloat ('zoom', 8);
-              this.maRedraw ({zoom: true});
-            } else if (mr.attributeName === 'maptype') {
-              this.setMapType (this.getAttribute ('maptype'));
-            }
-          });
-
-          if (latlon) this.maRedraw ({
-            center: {
-              lat: this.maAttrFloat ('lat', 0),
-              lon: this.maAttrFloat ('lon', 0),
-            },
-            value: true,
-          });
-        })).observe (this, {attributeFilter: ['lat', 'lon', 'readonly',
-                                              'zoom', 'maptype']});
-        this.maCenter = this.pcValue = {
-          lat: this.maAttrFloat ('lat', 0),
-          lon: this.maAttrFloat ('lon', 0),
-        };
-
+      pcInitLeaflet: function (onready) {
         var c = this.getAttribute ('controls');
         var controls = {};
         if (c !== null) {
@@ -2919,6 +2859,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           }
         });
         
+        this.maRedrawNeedUpdated.onready = onready;
         new MutationObserver ((mutations) => {
           this.maRedraw ({controls: true});
         }).observe (this, {childList: true});
@@ -2926,37 +2867,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                         valueMarker: true, valueMarkerHandlers: true,
                         relocate: true});
       }, // pcInitLeaflet
-      pc_InitMapLibre: function () {
-        (new MutationObserver ((mutations) => {
-          var latlon = false;
-          mutations.forEach (mr => {
-            if (mr.attributeName === 'lat' ||
-                mr.attributeName === 'lon') {
-              latlon = true;
-            } else if (mr.attributeName === 'readonly') {
-              this.maRedraw ({readonly: true});
-            } else if (mr.attributeName === 'zoom') {
-              this.pcZoomLevel = this.maAttrFloat ('zoom', 8);
-              this.maRedraw ({zoom: true});
-            } else if (mr.attributeName === 'maptype') {
-              this.setMapType (this.getAttribute ('maptype'));
-            }
-          });
-
-          if (latlon) this.maRedraw ({
-            center: {
-              lat: this.maAttrFloat ('lat', 0),
-              lon: this.maAttrFloat ('lon', 0),
-            },
-            value: true,
-          });
-        })).observe (this, {attributeFilter: ['lat', 'lon', 'readonly',
-                                              'zoom', 'maptype']});
-        this.maCenter = this.pcValue = {
-          lat: this.maAttrFloat ('lat', 0),
-          lon: this.maAttrFloat ('lon', 0),
-        };
-
+      pc_InitMapLibre: function (onready) {
         var c = this.getAttribute ('controls');
         var controls = {};
         if (c !== null) {
@@ -2966,7 +2877,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           } else {
             controls = {zoom: true, scale: true, fullscreen: true,
                         currentposition: true, type: true,
-                        streetview: true};
+                        streetview: true, pitch: true};
           }
         }
 
@@ -2978,13 +2889,14 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         if (za.match (/^\s*none\s*$/)) opts.zoomAnimation = false;
         let map = new maplibregl.Map ({
           container: this,
-          //center: [139.7671, 35.6812],
-          //zoom: 12,
+          //center: [1, 0],
+          //zoom: 8,
           style: {
             version: 8,
             sources: {},
             layers: [],
           },
+          maxPitch: 85,
         });
         
         map.scrollZoom.setWheelZoomRate (1 / (60 * 3));
@@ -3021,16 +2933,16 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         });
 
         if (controls.zoom) {
-          var zoomInTitle = this.pcInternal.parseCSSString (cs.getPropertyValue ('--paco-zoomin-title'), 'Zoom in');
-          var zoomOutTitle = this.pcInternal.parseCSSString (cs.getPropertyValue ('--paco-zoomout-title'), 'Zoom out');
           map.addControl (new maplibregl.NavigationControl ({}), 'bottom-right');
           this.querySelectorAll ('.maplibregl-ctrl-zoom-in').forEach (b => {
-            b.title = b.ariaLabel = zoomInTitle;
+            b.title = b.ariaLabel = this.pcInternal.parseCSSString (cs.getPropertyValue ('--paco-zoomin-title'), 'Zoom in');
           });
           this.querySelectorAll ('.maplibregl-ctrl-zoom-out').forEach (b => {
-            b.title = b.ariaLabel = zoomOutTitle;
+            b.title = b.ariaLabel = this.pcInternal.parseCSSString (cs.getPropertyValue ('--paco-zoomout-title'), 'Zoom out');
+          }); 
+          this.querySelectorAll ('.maplibregl-ctrl-compass').forEach (b => {
+            b.title = b.ariaLabel = this.pcInternal.parseCSSString (cs.getPropertyValue ('--paco-compass-north-title'), 'Reset bearing to north');
           });
-          // XXX .maplibregl-ctrl-compass "Reset bearing to north"
         }
 
         if (controls.togglelegend) {
@@ -3056,9 +2968,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           map.addControl (new MLFullscreenButtonControl ({}));
         }
 
-        //XXX
-        map.addControl (new maplibregl.GlobeControl ({}));
-        map.addControl (new maplibregl.TerrainControl ({}));
+        if (controls.pitch) {
+          map.addControl (new MLPitchButtonControl ({}));
+        }
 
         if (controls.streetview) {
           map.addControl (new MLStreetViewButtonControl ({}), 'bottom-right');
@@ -3080,13 +2992,15 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         });
         this.maRSObserver.observe (this);
 
-        map.setZoom (this.pcZoomLevel);
-        map.setCenter (this.maCenter);
+        //map.setZoom (this.pcZoomLevel);
+        //map.setCenter (this.maCenter);
         // Executed soon
         map.on ('moveend', () => {
           let c = map.getCenter ();
           this.maCenter = {lat: c.lat, lon: c.lng};
           this.pcZoomLevel = map.getZoom ();
+          this.pc_Pitch = map.getPitch ();
+          this.pc_Bearing = map.getBearing ();
           this.maRedrawEvent ();
         });
         //map.on('zoomend', () => { })
@@ -3134,6 +3048,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
 
         map.on ('load', () => {
           this.pc_MLMap = map;
+          this.maRedrawNeedUpdated.onready = onready;
 
           if (controls.coordinates) {
             this.pc_ToggleCoordinatesControl (true);
@@ -3157,6 +3072,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
       ma_RedrawEvent: function () {
         var isShown = this.offsetWidth > 0 && this.offsetHeight > 0;
         if (!isShown) return;
+        if (this.pc_NewView && this.pc_NewView.initial) return;
         
         this.pcCoordinatesSetters.forEach (_ => _ (this, {redraw: true}));
         this.dispatchEvent (new Event ('pcRedraw', {bubbles: true}));
@@ -3164,33 +3080,6 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
       maRedraw: function (opts) {
         for (var n in opts) {
           if (opts[n]) this.maRedrawNeedUpdated[n] = opts[n];
-        }
-
-        if (this.maRedrawNeedUpdated.center) {
-          var p = {
-            lat: this.maRedrawNeedUpdated.center.lat,
-            lng: this.maRedrawNeedUpdated.center.lon,
-          };
-          if (this.pcLMap) this.pcLMap.panTo (p);
-          if (this.pc_MLMap) this.pc_MLMap.panTo (p);
-          if (this.maGoogleMap) this.maGoogleMap.panTo (p);
-          if (this.pc_GMEmbed) {
-            this.maCenter = this.maRedrawNeedUpdated.center;
-            this.maRedrawNeedUpdated.all = true;
-          }
-          if (this.maRedrawNeedUpdated.value) {
-            this.pcValue = this.maRedrawNeedUpdated.center;
-            this.maRedrawNeedUpdated.valueMarker = true;
-          }
-          delete this.maRedrawNeedUpdated.center;
-          delete this.maRedrawNeedUpdated.value;
-          delete this.maRedrawNeedUpdated.pan;
-        } // center
-
-        if (this.maRedrawNeedUpdated.zoom || this.maRedrawNeedUpdated.all) {
-          if (this.pcLMap) this.pcLMap.setZoom (this.pcZoomLevel);
-          if (this.pc_MLMap) this.pc_MLMap.setZoom (this.pcZoomLevel);
-          if (this.maGoogleMap) this.maGoogleMap.setZoom (this.pcZoomLevel);
         }
 
         if (this.maRedrawNeedUpdated.mapDraggable) {
@@ -3246,6 +3135,42 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         if (isShown) {
           this.maShown = true;
           this.maRedrawNeedUpdated = {};
+
+          // updates.view
+          if (this.pc_NewView) {
+            if (this.pcLMap || this.pc_MLMap ||
+                this.maGoogleMap || this.pc_GMEmbed) {
+              if (this.pc_NewView.zoom != null) {
+                if (this.pcLMap) this.pcLMap.setZoom (this.pc_NewView.zoom);
+                if (this.maGoogleMap) this.maGoogleMap.setZoom (this.pc_NewView.zoom);
+              }
+              
+              let p = {lat: this.pc_NewView.lat, lon: this.pc_NewView.lon};
+              if (p.lat != null || p.lon != null) {
+                if (p.lat == null) p.lat = this.maCenter.lat;
+                if (p.lon == null) p.lon = this.maCenter.lon;
+                p.lng = p.lon;
+                if (this.pcLMap) this.pcLMap.panTo (p);
+                if (this.maGoogleMap) this.maGoogleMap.panTo (p);
+                if (this.pc_GMEmbed) {
+                  this.maCenter = p;
+                  updates.all = true;
+                }
+              } else {
+                p = undefined;
+              }
+              if (this.pc_MLMap) {
+                this.pc_NewView.center = p;
+                if (this.pc_NewView.initial || this.pc_NewView.noAnimation) {
+                  this.pc_MLMap.jumpTo (this.pc_NewView);
+                } else {
+                  this.pc_MLMap.easeTo (this.pc_NewView);
+                  //this.pc_MLMap.flyTo (this.pc_NewView);
+                }
+              }
+              delete this.pc_NewView;
+            }
+          } // updates.view
 
           if (updates.size || updates.all) {
             if (this.pcLMap) this.pcLMap.invalidateSize ();
@@ -3667,10 +3592,20 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                 bounds.east - w/4 > p.lon && p.lon > bounds.west + w/4) {
               //
             } else {
-              this.maRedraw ({center: p, value: opts.setValue});
+              if (!this.pc_NewView) this.pc_NewView = {};
+              this.pc_NewView.lat = p.lat;
+              this.pc_NewView.lon = p.lon;
+              if (opts.noAnimation) this.pc_NewView.noAnimation = true;
+              this.maRedraw ({view: true, valueMarker: opts.setValue});
+              if (opts.setValue) this.pcValue = p;
             }
           } else {
-            this.maRedraw ({center: p, value: opts.setValue});
+            if (!this.pc_NewView) this.pc_NewView = {};
+            this.pc_NewView.lat = p.lat;
+            this.pc_NewView.lon = p.lon;
+            if (opts.noAnimation) this.pc_NewView.noAnimation = true;
+            this.maRedraw ({view: true, valueMarker: opts.setValue});
+            if (opts.setValue) this.pcValue = p;
           }
         }
 
@@ -4441,17 +4376,6 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           let newStyleURL = null;
           let newStyleMode = null;
 
-          /* XXX
-        let x = import ('https://www.unpkg.com/maplibre-gl-gsi-terrain@2.1.0/dist/terrain.js');
-        x.then (m => {
-          map.addSource ('terrain', m.useGsiTerrainSource(maplibregl.addProtocol));
-          map.setTerrain ({
-            source: 'terrain',
-            exaggeration: 1.0,
-          });
-        });
-          */
-          
           let type = sType;
           /*
         if (sType === 'gsi-lang') {
@@ -5000,7 +4924,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
 
           waits.push (Promise.resolve ().then (() => {
             if (this.pc_MLCurrentStyleURL === newStyleURL &&
-                this.pc_MLCurrentStyleMode === newStyleMode) return;
+                this.pc_MLCurrentStyleMode === newStyleMode) return false;
             if (newStyleURL === null) {
               map.setStyle (null);
               this.pc_MLCurrentStyleURL = null;
@@ -5008,7 +4932,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
               this.pc_CurrentMLLayerIds = [];
               this.pc_CurrentMLSourceIds = [];
               this.pc_UpdateAttribution ();
-              return;
+              return true;
             }
 
             let p = new Promise (ok => map.once ('styledata', ok));
@@ -5042,8 +4966,13 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
               } else {
                 map.setPaintProperty ('\u6C34\u57DF', "fill-color", "rgba(190,210,255,0.3)");
               }
+              this.pc_UpdateAttribution ();
+              return true;
             });
-            this.pc_UpdateAttribution ();
+          }).then (reloaded => {
+            if (!reloaded) return;
+
+            // XXX  terrain
           }).then (() => {
             (this.pc_CurrentMLLayerIds || []).forEach (id => {
               map.removeLayer (id);
@@ -5249,9 +5178,10 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
       pcLocateCurrentPosition: function (opts) {
         if (opts.pan) {
           if (this.pcCurrentPosition) {
-            this.maRedraw ({
-              center: this.pcCurrentPosition,
-            });
+            if (!this.pc_NewView) this.pc_NewView = {};
+            this.pc_NewView.lat = this.pcCurrentPosition.lat;
+            this.pc_NewView.lon = this.pcCurrentPosition.lon;
+            this.maRedraw ({view: true});
           } else {
             this.pcLocateCurrentPositionPanRequested = true;
           }
@@ -5265,9 +5195,10 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           };
           this.maRedraw ({currentPositionMarker: true});
           if (this.pcLocateCurrentPositionPanRequested) {
-            this.maRedraw ({
-              center: this.pcCurrentPosition,
-            });
+            if (!this.pc_NewView) this.pc_NewView = {};
+            this.pc_NewView.lat = this.pcCurrentPosition.lat;
+            this.pc_NewView.lon = this.pcCurrentPosition.lon;
+            this.maRedraw ({view: true});
             delete this.pcLocateCurrentPositionPanRequested;
           }
         }, e => {

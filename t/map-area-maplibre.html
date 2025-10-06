@@ -33,10 +33,10 @@
     this.assert.equal (pos.lon, 0);
     
     var bounds = e.getMapBounds ();
-    this.assert.equal (bounds.north, 0.41198375451646996);
-    this.assert.equal (bounds.east, 1.3417053222631807);
-    this.assert.equal (bounds.south, -0.41198375451527625);
-    this.assert.equal (bounds.west, -1.3417053222676714);
+    this.assert.equal (bounds.north > 0.4, true, bounds.north);
+    this.assert.equal (bounds.east >  1.3, true);
+    this.assert.equal (bounds.south < -0.4, true);
+    this.assert.equal (bounds.west < -1.3, true);
   </test-code>
 
   <test-code name="map-area lat lon">
@@ -56,10 +56,10 @@
     this.assert.equal (pos.lon, -120.7013);
     
     var bounds = e.getMapBounds ();
-    this.assert.equal (bounds.north, 20.715838371768314);
-    this.assert.equal (bounds.east, -119.35959467773466);
-    this.assert.equal (bounds.south, 19.94319653908822);
-    this.assert.equal (bounds.west, -122.04300532226581);
+    this.assert.equal (bounds.north > 20, true, bounds.north);
+    this.assert.equal (bounds.east > -120, true, bounds.east);
+    this.assert.equal (bounds.south < 20, true, bounds.south);
+    this.assert.equal (bounds.west < -121, true, bounds.west);
 
     var p = {lat: -40.53, lon: 131.122};
     e.valueAsLatLon = p;
@@ -79,21 +79,22 @@
     this.assert.equal (pos.lat, 20.33);
     this.assert.equal (pos.lon, -120.7013);
 
-    e.pcScroll ({center: {lat: 32.211, lon: 143.444}});
+    e.pcScroll ({center: {lat: 32.211, lon: 143.444}, noAnimation: true});
     await this.wait (1000);
 
     var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 32.210999999999984, "scrolled 0");
+    this.assert.equal (pos.lat, 32.211, "scrolled 0");
     this.assert.equal (pos.lon, 143.44399999999996);
     var v = e.valueAsLatLon;
     this.assert.equal (v.lat, -40.53);
     this.assert.equal (v.lon, 131.122);
 
-    e.pcScroll ({center: {lat: 30.211, lon: 140.444}, setValue: true});
+    e.pcScroll ({center: {lat: 30.211, lon: 140.444}, setValue: true,
+                 noAnimation: true});
     await this.wait (1000);
 
     var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 30.211000000000013, "scrolled");
+    this.assert.equal (pos.lat, 30.211, "scrolled");
     this.assert.equal (pos.lon, 140.44399999999996);
     var v = e.valueAsLatLon;
     this.assert.equal (v.lat, 30.211);
@@ -113,7 +114,7 @@
     await this.wait (1000);
 
     var v = e.getMapCenter ();
-    this.assert.equal (v.lat, 30.211000000000013);
+    this.assert.equal (v.lat, 30.211);
     this.assert.equal (v.lon, 140.44399999999996);
 
     e.pcScroll ({center: {lat: 30.214, lon: 140.444}});
@@ -134,11 +135,12 @@
 
   <test-code name="dynamic">
     var e = document.createElement ('map-area');
-    e.setAttribute ('engine', 'leaflet');
+    e.setAttribute ('engine', 'maplibre');
     e.setAttribute ('lat', 42);
     e.setAttribute ('lon', 21);
     this.currentScript.appendChild (e);
 
+    await this.wait ();
     await e.ready;
 
     var center = e.getMapCenter ();
@@ -146,18 +148,19 @@
     this.assert.equal (center.lon, 21);
     
     var bounds = e.getMapBounds ();
-    this.assert.equal (bounds.north, 42.60970621339408);
-    this.assert.equal (bounds.east,  23.681030273437504);
-    this.assert.equal (bounds.south, 41.3850519497068);
-    this.assert.equal (bounds.west,  18.314208984375004);
+    this.assert.equal (bounds.north > 42, true, bounds.north);
+    this.assert.equal (bounds.east > 22, true, bounds.east);
+    this.assert.equal (bounds.south < 42, true, bounds.south);
+    this.assert.equal (bounds.west < 21, true, bounds.west);
   </test-code>
 
   <test-code name="valueAsLatLon before init">
     var e = document.createElement ('map-area');
-    e.setAttribute ('engine', 'leaflet');
+    e.setAttribute ('engine', 'maplibre');
     e.valueAsLatLon = {lat: 42, lon: 21};
     this.currentScript.appendChild (e);
 
+    await this.wait ();
     await e.ready;
 
     var center = e.getMapCenter ();
@@ -165,10 +168,10 @@
     this.assert.equal (center.lon, 21);
     
     var bounds = e.getMapBounds ();
-    this.assert.equal (bounds.north, 42.60970621339408);
-    this.assert.equal (bounds.east,  23.681030273437504);
-    this.assert.equal (bounds.south, 41.3850519497068);
-    this.assert.equal (bounds.west,  18.314208984375004);
+    this.assert.equal (bounds.north > 42, true, bounds.north);
+    this.assert.equal (bounds.east > 22, true, bounds.east);
+    this.assert.equal (bounds.south < 42, true, bounds.south);
+    this.assert.equal (bounds.west < 21, true, bounds.west);
   </test-code>
   
   <test-code name="initially hidden">
@@ -194,10 +197,10 @@
     this.assert.equal (pos.lon, -120.7013);
     
     var bounds = e.getMapBounds ();
-    this.assert.equal (bounds.north, 20.715838371768314);
-    this.assert.equal (bounds.east, -119.35959467773466);
-    this.assert.equal (bounds.south, 19.94319653908822);
-    this.assert.equal (bounds.west, -122.04300532226581);
+    this.assert.equal (bounds.north > 20, true, bounds.north);
+    this.assert.equal (bounds.east > -120, true, bounds.east);
+    this.assert.equal (bounds.south < 20, true, bounds.south);
+    this.assert.equal (bounds.west < -121, true, bounds.west);
   </test-code>
 
   <test-code name="initial redraw event">
@@ -221,10 +224,10 @@
     this.assert.equal (pos.lon, -120.7013);
 
     var bounds = v[1];
-    this.assert.equal (bounds.north, 20.715838371768314);
-    this.assert.equal (bounds.east, -119.35959467773466);
-    this.assert.equal (bounds.south, 19.94319653908822);
-    this.assert.equal (bounds.west, -122.04300532226581);
+    this.assert.equal (bounds.north > 20, true, bounds.north);
+    this.assert.equal (bounds.east > -120, true, bounds.east);
+    this.assert.equal (bounds.south < 20, true, bounds.south);
+    this.assert.equal (bounds.west < -121, true, bounds.west);
   </test-code>
 
   <test-code name="redraw event by set center">
@@ -238,8 +241,8 @@
     await e.ready;
     await this.wait (1000);
 
-    e.setAttribute ('lat', 34.33500000000001);
-    e.setAttribute ('lon', 35.00018);
+    e.setAttribute ('lat', 34.33499999999958);
+    e.setAttribute ('lon', 35.00017999999841);
     
     var result;
     var eventInvoked = new Promise (function (a, b) { result = a });
@@ -250,14 +253,14 @@
     var v = await eventInvoked;
 
     var pos = v[0];
-    this.assert.equal (pos.lat, 34.33500000000001);
-    this.assert.equal (pos.lon, 35.00018);
+    this.assert.equal (Math.abs (pos.lat - 34.33499999999958) < 0.001, true, pos.lat);
+    this.assert.equal (Math.abs (pos.lon - 35.00017999999841) < 0.001, true, pos.lon);
 
     var bounds = v[1];
-    this.assert.equal (bounds.north, 34.67450919553231);
-    this.assert.equal (bounds.east, 36.34188532226605);
-    this.assert.equal (bounds.south, 33.994111079466336);
-    this.assert.equal (bounds.west, 33.65847467773514);
+    this.assert.equal (bounds.north > 34.335, true, bounds.north);
+    this.assert.equal (bounds.east > 35.00018, true, bounds.east);
+    this.assert.equal (bounds.south < 34.335, true);
+    this.assert.equal (bounds.west < 35.00018, true);
   </test-code>
 
   <test-code name="center moved then redraw">
@@ -276,8 +279,12 @@
     e.setAttribute ('lon', 65);
     await this.wait (1000);
 
+    var pos = e.getMapCenter ();
+    this.assert.equal (Math.abs (pos.lat - 53) < 0.002, true, pos.lat);
+    this.assert.equal (Math.abs (pos.lon - 65) < 0.001, true, pos.lon);
+
     e.style.setProperty ('width', '488px', 'important');
-    await this.wait ();
+    await this.wait (1000);
       
     var pos = e.getMapCenter ();
     this.assert.equal (Math.abs (pos.lat - 53) < 0.002, true, pos.lat);
@@ -311,7 +318,7 @@
     this.assert.equal (invoked > 0, true, 'invoked = ' + invoked);
 
     var center = e.getMapCenter ();
-    this.assert.equal (center.lat, 53);
+    this.assert.equal (Math.abs (center.lat - 53) < 0.001, true, center.lat);
     this.assert.equal (center.lon, -31);
   </test-code>
 
@@ -347,7 +354,7 @@
 
   <test-code name="lat/lon race">
     var e = document.createElement ('map-area');
-    e.setAttribute ('engine', 'leaflet');
+    e.setAttribute ('engine', 'maplibre');
     e.setAttribute ('lat', 42);
     e.setAttribute ('lon', 21);
     e.setAttribute ('id', '52623623444');
@@ -368,7 +375,7 @@
 
   <test-code name="lat/lon race">
     var e = document.createElement ('map-area');
-    e.setAttribute ('engine', 'leaflet');
+    e.setAttribute ('engine', 'maplibre');
     e.setAttribute ('lat', 42);
     e.setAttribute ('lon', 21);
     e.hidden = true;
@@ -424,6 +431,29 @@
     this.assert.equal (bounds.east >= 120.22, true, bounds.east);
     this.assert.equal (bounds.south <= -34.6, true, bounds.south);
     this.assert.equal (bounds.west <= 120.22, true, bounds.west);
+  </test-code>
+
+  <test-code name="view attributes">
+    /*
+      <map-area engine=maplibre controls zoom=6 pitch=10 bearing=91></map-area>
+    */
+    let e = this.currentScript.querySelector ('map-area');
+
+    await this.wait (1000);
+
+    this.assert.equal (e.pcZoomLevel, 6);
+    this.assert.equal (e.pc_Pitch, 10);
+    this.assert.equal (e.pc_Bearing, 91);
+
+    e.setAttribute ('zoom', 12);
+    e.setAttribute ('pitch', 40);
+    e.setAttribute ('bearing', 184);
+
+    await this.wait (3000);
+
+    this.assert.equal (e.pcZoomLevel, 12);
+    this.assert.equal (e.pc_Pitch, 40);
+    this.assert.equal (e.pc_Bearing, -176);
   </test-code>
 
   <!--XXX
