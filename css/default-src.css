@@ -264,7 +264,8 @@ map-area {
   --paco-maptype-osm-text: 'OpenStreetMap';
   --paco-maptype-gsi-text: 'GSI Tile';
   --paco-maptype-menu-meteorological: 'Meteorological';
-  --paco-marker-currentposition: "\25CF" purple 24px;
+  --paco-geolocation-latlonaccuracy: 0m;
+  --paco-marker-currentposition: circle rgb(29,161,242,0.7) var(--paco-geolocation-latlonaccuracy) transparent 0px / "\25CF" #ffffff 24px / "\25CF" #1da1f2 20px;
   --paco-marker-distance-point: circle gray 3px white 9px;
   --paco-line-distance: rgba(255,255,255,0.7) 9px / gray 3px;
   --paco-marker-value: none;

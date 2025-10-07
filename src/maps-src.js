@@ -1846,6 +1846,7 @@ SOFTWARE.
 
         (new MutationObserver ((mutations) => {
           if (!this.pc_NewView) this.pc_NewView = {};
+          this.pc_NewView._source = 'mutation';
           var latlon = false;
           mutations.forEach (mr => {
             if (mr.attributeName === 'lat') {
@@ -1885,6 +1886,7 @@ SOFTWARE.
           pitch: this.maAttrFloat ('pitch', 0),
           bearing: this.maAttrFloat ('bearing', 0),
           terrain: this.hasAttribute ('terrain'),
+          _source: 'initial',
         };
         this.maCenter = this.pcValue = this.pc_NewView;
         this.pcZoomLevel = this.pc_NewView.zoom;
@@ -2538,26 +2540,27 @@ SOFTWARE.
 
           // updates.view
           if (this.pc_NewView) {
+            //console.log ("View update: ", this.pc_NewView._source);
             if (this.pcLMap || this.pc_MLMap ||
                 this.maGoogleMap || this.pc_GMEmbed) {
-              if (this.pc_NewView.zoom != null) {
-                if (this.pcLMap) this.pcLMap.setZoom (this.pc_NewView.zoom);
-                if (this.maGoogleMap) this.maGoogleMap.setZoom (this.pc_NewView.zoom);
-              }
-              
               let p = {lat: this.pc_NewView.lat, lon: this.pc_NewView.lon};
               if (p.lat != null || p.lon != null) {
                 if (p.lat == null) p.lat = this.maCenter.lat;
                 if (p.lon == null) p.lon = this.maCenter.lon;
                 p.lng = p.lon;
-                if (this.pcLMap) this.pcLMap.panTo (p);
-                if (this.maGoogleMap) this.maGoogleMap.panTo (p);
                 if (this.pc_GMEmbed) {
                   this.maCenter = p;
                   updates.all = true;
                 }
               } else {
                 p = undefined;
+              }
+              if (this.pcLMap) {
+                if (p) {
+                  this.pcLMap.setView (p, this.pc_NewView.zoom || this.pcZoomLevel);
+                } else {
+                  this.pcLMap.setZoom (this.pc_NewView.zoom);
+                }
               }
               if (this.pc_MLMap) {
                 this.pc_NewView.center = p;
@@ -2566,6 +2569,18 @@ SOFTWARE.
                 } else {
                   this.pc_MLMap.easeTo (this.pc_NewView);
                   //this.pc_MLMap.flyTo (this.pc_NewView);
+                }
+              }
+              if (this.maGoogleMap) {
+                if (p) {
+                  if (this.pc_NewView.initial || this.pc_NewView.noAnimation) {
+                    this.maGoogleMap.setCenter (p);
+                  } else {
+                    this.maGoogleMap.panTo (p);
+                  }
+                }
+                if (this.pc_NewView.zoom != null) {
+                  this.maGoogleMap.setZoom (this.pc_NewView.zoom);
                 }
               }
               delete this.pc_NewView;
@@ -2669,60 +2684,59 @@ SOFTWARE.
             if (this.pc_MLMap) return; // XXX
             
             if (opts.redraw || opts.remove) {
-              if (!this[markerName]) {
-                //
-              } else if (this.maGoogleMap) {
-                if (this[markerName].setMap) this[markerName].setMap (null);
-              } else if (this.pcLMap) {
-                if (this[markerName].remove) this[markerName].remove ();
-              } // XXX this.pc_MLMap
+              if (this[markerName]) {
+                this[markerName].lItems.forEach (_ => _.remove ());
+                this[markerName].gmItems.forEach (_ => _.setMap (null));
+                // XXX this.pc_MLMap
+              }
               delete this[markerName];
               if (opts.remove) return;
             }
+
+            // Style changes are not supported (at least for now).
             if (this[markerName]) {
-              if (this[markerName].setLatLng) {
-                this[markerName].setLatLng (pos);
-              } else {
-                this[markerName].setPosition ({
-                  lat: pos.lat,
-                  lng: pos.lon,
-                });
-              }
-              if (this[markerName].dragging) {
-                if (opts.draggable) {
-                  this[markerName].dragging.enable ();
-                } else {
-                  this[markerName].dragging.disable ();
+              this[markerName].lItems.forEach (_ => {
+                _.setLatLng (pos);
+                if (_.dragging) {
+                  if (opts.draggable) {
+                    _.dragging.enable ();
+                  } else {
+                    _.dragging.disable ();
+                  }
                 }
-              }
-              if (this[markerName].setOptions) {
-                this[markerName].setOptions ({draggable: opts.draggable});
-              }
+              });
+              this[markerName].gmItems.forEach (_ => {
+                _.setPosition ({lat: pos.lat, lng: pos.lon});
+                this[markerName].setOptions ({draggable: !!opts.draggable});
+              });
               return;
             }
               
             // recompute!
             computedStyle = computedStyle || getComputedStyle (this);
-            var v = computedStyle.getPropertyValue (propName) || 'none';
+            let w = computedStyle.getPropertyValue (propName) || 'none';
 
-            if (v.match (/^\s*none\s*$/)) {
-              this[markerName] = {setLatLng: () => {}, none: true};
+            if (w.match (/^\s*none\s*$/)) {
+              this[markerName] = {none: true, lItems: [], gmItems: []};
               return;
             }
 
-            var icon = null;
-            var m = v.match (/^\s*("[^"]*"|'[^']*')\s+(\S+)\s+(\S+)\s*$/);
-            if (m) {
-              var mt = document.createElement ('span');
-              var s = this.pcInternal.parseCSSString (m[1], null);
-              if (s) {
-                mt.textContent = s;
-                var mc = document.createElement ('span');
+            let mk = this[markerName] = {lItems: [], gmItems: []};
+            for (let v of w.split (/\s\/\s/)) {
+              let icon = null;
+              let m = v.match (/^\s*("[^"]*"|'[^']*')\s+(\S+)\s+(\S+)\s*$/);
+              if (m) {
+                var mt = document.createElement ('span');
+                var s = this.pcInternal.parseCSSString (m[1], null);
+                if (s) {
+                  mt.textContent = s;
+                  var mc = document.createElement ('span');
                 mc.textContent = m[2];
                 var ms = document.createElement ('span');
                 ms.textContent = m[3];
-                icon = {iconSize: [m[3], m[3]],
-                        iconAnchor: [m[3]/2, m[3]/2]};
+                let m3 = parseFloat (m[3]);
+                icon = {iconSize: [m3, m3],
+                        iconAnchor: [m3/2, m3/2]};
                 var mss = ms.innerHTML;
                 icon.iconUrl = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" width="'+parseFloat(mss)+'" height="'+parseFloat(mss)+'"><text x="calc('+mss+'/2)" y="calc('+mss+'/2)" width="'+mss+'" height="'+mss+'" font-size="'+mss+'" text-anchor="middle" alignment-baseline="central" fill="'+mc.innerHTML+'">'+mt.innerHTML+'</text></svg>');
               }
@@ -2747,45 +2761,52 @@ SOFTWARE.
                   icon.iconUrl = m[1].replace (/\\(.)/g, (_, v) => v);
                 } else {
                   m = v.match (/^\s*circle\s+(\S+)\s+(?:([0-9.]+)px\s+(\S+)\s+|)([0-9.]+)px\s*$/);
+                  //               w           r
+                  // circle COLOR 123px COLOR 123px
+                  // circle COLOR             123px
                   if (m) {
                     var s = document.createElement ('span');
                     s.textContent = m[1];
                     let c1 = s.innerHTML;
                     s.textContent = m[3] || m[1];
                     let c2 = s.innerHTML;
-                    let w = parseFloat (m[2]);
+                    let w = parseFloat (m[2] || 0);
                     var r = parseFloat (m[4]);
                     let d = (w + r) * 2;
-                    icon = {iconSize: [r*2, r*2]};
-                    icon.iconUrl = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" width="'+d+'" height="'+d+'"><circle cx="'+(w+r)+'" cy="'+(w+r)+'" r="'+r+'" stroke="'+c1+'" stroke-width="'+w+'" fill="'+c2+'"/></svg>');
+                    icon = {iconSize: [d, d],
+                            iconAnchor: [d/2, d/2]};
+                    icon.iconUrl = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent ('<svg xmlns="http://www.w3.org/2000/svg" width="'+d+'" height="'+d+'"><circle cx="'+(d/2)+'" cy="'+(d/2)+'" r="'+r+'" stroke="'+c1+'" stroke-width="'+w+'" fill="'+c2+'"/></svg>');
                   }
                 }
               }
             }
 
-            if (icon) {
-              if (this.pcLMap) {
-                this[markerName] = L.marker (pos, {
-                  draggable: !!opts.draggable,
-                  //title: "",
-                  icon: L.icon (icon),
-                }).addTo (this.pcLMap);
-                this[markerName].on ('moveend', ev => {
-                  var p = this[markerName].getLatLng ();
-                  this.pc_MarkerMoveEnd (markerName, {
-                    lat: p.lat,
-                    lon: p.lng,
+              if (icon) {
+                if (this.pcLMap) {
+                  let mm = L.marker (pos, {
+                    draggable: !!opts.draggable,
+                    //title: "",
+                    icon: L.icon (icon),
                   });
-                });
-                return;
+                  mm.addTo (this.pcLMap);
+                  mk.lItems.push (mm);
+                  mm.on ('moveend', ev => {
+                    let p = mm.getLatLng ();
+                    mk.lItems.filter (_=>_!==mm).forEach(_ => _.setLatLng (p));
+                    this.pc_MarkerMoveEnd (markerName, {
+                      lat: p.lat,
+                      lon: p.lng,
+                    });
+                  });
                 // XXXX this.pc_MLMap
-              } else if (this.maGoogleMap) {
-                var size = null;
-                if (icon.iconSize) size = { // must be in px
-                  width: parseFloat (icon.iconSize[0]),
-                  height: parseFloat (icon.iconSize[1]),
-                };
-                this[markerName] = new google.maps.Marker ({
+                }
+                if (this.maGoogleMap) {
+                  var size = null;
+                  if (icon.iconSize) size = { // must be in px
+                    width: parseFloat (icon.iconSize[0]),
+                    height: parseFloat (icon.iconSize[1]),
+                  };
+                let mm = new google.maps.Marker ({
                   position: {
                     lat: pos.lat,
                     lng: pos.lon,
@@ -2799,50 +2820,58 @@ SOFTWARE.
                     anchor: (icon.iconAnchor ? {x: icon.iconAnchor[0], y: icon.iconAnchor[1]} : undefined),
                   },
                 });
-                this[markerName].addListener ('dragend', ev => {
-                  var p = ev.latLng;
+                mk.gmItems.push (mm);
+                mm.addListener ('dragend', ev => {
+                  let p = ev.latLng;
+                  mk.gmItems.filter(_=>_!==mm).forEach(_ => _.setPosition (p));
                   this.pc_MarkerMoveEnd (markerName, {
                     lat: p.lat (),
                     lon: p.lng (),
                   });
                 });
-                return;
-              }
-            } // markerURL
+                }
+                continue;
+              } // icon
 
-            m = v.match (/^\s*circle\s+(\S+)\s+([0-9.]+)m\s+(\S+)\s+([0-9.]+)px\s*$/);
-            if (m) {
-              var fill = m[1];
-              var radius = parseFloat (m[2]);
-              var stroke = m[3];
-              var strokeSize = parseFloat (m[4]);
-              if (this.pcLMap) {
-                this[markerName] = L.circle (pos, {
-                  fill: true,
-                  fillColor: fill,
-                  radius: radius,
-                  color: stroke,
-                  weight: strokeSize,
-                }).addTo (this.pcLMap);
-                return;
-                // XXX this.pc_MLMap
-              } else if (this.maGoogleMap) {
-                this[markerName] = new google.maps.Circle ({
-                  center: {
-                    lat: pos.lat,
-                    lng: pos.lon,
-                  },
-                  radius,
-                  fillColor: fill,
-                  strokeColor: stroke,
-                  strokeWeight: strokeSize,
-                  map: this.googleMap,
-                });
-                return;
-              }
-            } else { // circle
-              if (!icon) console.log ("Bad |"+propName+"| value: |"+v+"|");
-            }
+              m = v.match (/^\s*circle\s+(\S+)\s+([0-9.]+)m\s+(\S+)\s+([0-9.]+)px\s*$/);
+              // circle COLOR 123m COLOR 123px
+              if (m) {
+                var fill = m[1];
+                var radius = parseFloat (m[2]);
+                var stroke = m[3];
+                var strokeSize = parseFloat (m[4]);
+                if (this.pcLMap) {
+                  let mm = L.circle (pos, {
+                    fill: true,
+                    fillColor: fill,
+                    radius: radius,
+                    color: stroke,
+                    weight: strokeSize,
+                  });
+                  mk.lItems.push (mm);
+                  mm.addTo (this.pcLMap);
+                  // XXX this.pc_MLMap
+                }
+                if (this.maGoogleMap) {
+                  let mm = new google.maps.Circle ({
+                    center: {lat: pos.lat, lng: pos.lon},
+                    radius,
+                    fillColor: fill,
+                    strokeColor: stroke,
+                    strokeWeight: strokeSize,
+                    map: this.googleMap,
+                  });
+                  mk.gmItems.push (mm);
+                }
+                continue;
+              } // circle
+
+              // Bad value
+              console.log ("Bad |"+propName+"| value: |"+v+"|");
+              mk.lItems.forEach (_ => _.remove ());
+              mk.gmItems.forEach (_ => _.setMap (null));
+              return;
+            } // v
           }; // updateMarker
 
           if (updates.currentPositionMarker || updates.all) {
@@ -2993,6 +3022,7 @@ SOFTWARE.
               //
             } else {
               if (!this.pc_NewView) this.pc_NewView = {};
+              this.pc_NewView._source = 'scroll1';
               this.pc_NewView.lat = p.lat;
               this.pc_NewView.lon = p.lon;
               if (opts.noAnimation) this.pc_NewView.noAnimation = true;
@@ -3001,6 +3031,7 @@ SOFTWARE.
             }
           } else {
             if (!this.pc_NewView) this.pc_NewView = {};
+            this.pc_NewView._source = 'scroll2';
             this.pc_NewView.lat = p.lat;
             this.pc_NewView.lon = p.lon;
             if (opts.noAnimation) this.pc_NewView.noAnimation = true;
@@ -4624,8 +4655,10 @@ SOFTWARE.
         if (opts.pan) {
           if (this.pcCurrentPosition) {
             if (!this.pc_NewView) this.pc_NewView = {};
+            this.pc_NewView._source = 'watch1';
             this.pc_NewView.lat = this.pcCurrentPosition.lat;
             this.pc_NewView.lon = this.pcCurrentPosition.lon;
+            this.pc_NewView.zoom = 12;
             this.maRedraw ({view: true});
           } else {
             this.pcLocateCurrentPositionPanRequested = true;
@@ -4636,13 +4669,18 @@ SOFTWARE.
           this.pcCurrentPosition = {
             lat: p.coords.latitude,
             lon: p.coords.longitude,
-            //latLonAccuracy: p.coords.accuracy,
+            latLonAccuracy: p.coords.accuracy,
           };
+          this.style.setProperty
+              ('--paco-geolocation-latlonaccuracy',
+               (this.pcCurrentPosition.latLonAccuracy || 0) + 'm');
           this.maRedraw ({currentPositionMarker: true});
           if (this.pcLocateCurrentPositionPanRequested) {
             if (!this.pc_NewView) this.pc_NewView = {};
+            this.pc_NewView._source = 'watch2';
             this.pc_NewView.lat = this.pcCurrentPosition.lat;
             this.pc_NewView.lon = this.pcCurrentPosition.lon;
+            this.pc_NewView.zoom = 12;
             this.maRedraw ({view: true});
             delete this.pcLocateCurrentPositionPanRequested;
           }
