@@ -138,6 +138,20 @@
     this.assert.equal (!!link.offsetWidth, true);
     this.assert.equal (link.textContent, 'OpenStreetMap');
   </test-code>
+
+  <test-code name="terrain">
+    /*
+      <map-area engine=maplibre maptype=gsi-photo-optimal_bvmap pitch=35 terrain gsi jma osm lat=35.2 lon=135.4 zoom=12></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+    await e.ready;
+    await this.wait ();
+
+    {
+      let m = e.getMapCenter ();
+      this.assert.equal (Math.abs (m.lat - 35.2) < 0.01, true, m.lat);
+    }
+  </test-code>
   
   <script src=runtests.js data-maps></script>
 </body>

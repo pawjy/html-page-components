@@ -1667,6 +1667,17 @@ The following content attributes are available:
     If specified, the marker for the "value" point coordinates of the
     map is not draggable.
 
+  <map-area terrain=""> : boolean
+
+    Whether the map should be rendered in the 3D mode using the
+    elevation data as terrain sources.
+
+    The 産業技術総合研究所's シームレス標高タイル
+    <https://tiles.gsj.jp/tiles/elev/tiles.html> is used as the
+    elevation data.
+
+    This attribute is ignored unless the map's |engine| is |maplibre|.
+
   <map-area tzoffset=""> : number
 
     The time-zone offset from UTC, represented as a floating-point

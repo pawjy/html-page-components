@@ -554,7 +554,140 @@
       loader.load ({ lat, lng: lon , zoom: 17 })
     });
   }; // getElevation
-  
+
+
+  /*
+
+    Original: <https://github.com/shiwaku/gsi-terrain-dem-on-maplibre-gl-js-demo>
+    License of the original <https://github.com/shiwaku/gsi-terrain-dem-on-maplibre-gl-js-demo/blob/main/LICENSE>:
+
+MIT License
+
+Copyright (c) 2023 Youhei Shiwaku
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+  */
+  let gsidem2terrainrgb = (r, g, b) => {
+    let height = r * 655.36 + g * 2.56 + b * 0.01;
+
+    if (r === 128 && g === 0 && b === 0) {
+      height = 0;
+    } else if (r >= 128) {
+      height -= 167772.16;
+    }
+
+    height += 10000;
+    height *= 10;
+
+    const tB = (height / 256 - Math.floor(height / 256)) * 256;
+    const tG =
+        (Math.floor(height / 256) / 256 -
+            Math.floor(Math.floor(height / 256) / 256)) *
+        256;
+    const tR =
+        (Math.floor(Math.floor(height / 256) / 256) / 256 -
+            Math.floor(Math.floor(Math.floor(height / 256) / 256) / 256)) *
+        256;
+
+    return [tR, tG, tB];
+  };
+  maplibregl.addProtocol ('gsidem', (params, signal) => {
+    return new Promise ((ok, ng) => {
+      let img = document.createElement ('img');
+      img.crossOrigin = '';
+      img.onload = () => ok (img);
+      img.onerror = ng;
+      img.src = params.url.replace ('gsidem://', '');
+    }).then (img => {
+      let canvas = document.createElement ('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+
+      let ctx = canvas.getContext ('2d');
+      ctx.drawImage (img, 0, 0);
+
+      let imageData = ctx.getImageData (0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < imageData.data.length / 4; i++) {
+        const tRGB = gsidem2terrainrgb (
+          imageData.data[i * 4],
+          imageData.data[i * 4 + 1],
+          imageData.data[i * 4 + 2],
+        );
+        imageData.data[i * 4] = tRGB[0];
+        imageData.data[i * 4 + 1] = tRGB[1];
+        imageData.data[i * 4 + 2] = tRGB[2];
+      }
+      ctx.putImageData (imageData, 0, 0);
+
+      return new Promise (ok => canvas.toBlob (ok));
+    }).then (blob => {
+      return blob.arrayBuffer ();
+    }).then (ab => +{data: ab});
+  });
+
+  {
+    /*
+      シームレス標高タイル, 産業技術総合研究所
+      <https://gbank.gsj.jp/seamless/elev/>
+
+      Original: <https://qiita.com/shi-works/items/2d712456ccc91320cd1d#maplibre-gl-js%E3%81%A8%E7%94%A3%E7%B7%8F%E7%A0%94-%E3%82%B7%E3%83%BC%E3%83%A0%E3%83%AC%E3%82%B9%E6%A8%99%E9%AB%98%E3%82%BF%E3%82%A4%E3%83%AB%E3%81%A73d%E5%9C%B0%E5%BD%A2%E3%82%92%E8%A1%A8%E7%A4%BA%E3%81%99%E3%82%8B>
+      > 変換モジュールは、現在はライセンスが設定されていませんが、オープンソース（Apache License 2.0）として公開していただけるとのことでしたので、それに準じていただければと思います。
+      
+    */
+    
+    // numPngProtocol.js, 2023-11-27　西岡 芳晴 ( NISHIOKA Yoshiharu )
+    let protocol = 'numpng';
+    let factor = 0.01;
+    let invalidValue = -( 2 ** 23 );
+    maplibregl.addProtocol (protocol, (params, signal) => {
+      return new Promise ((ok, ng) => {
+	let img = document.createElement ('img');
+	img.crossOrigin = 'anonymous';
+        img.onload = () => ok (img);
+        img.onerror = ng;
+        img.src = params.url.replace (protocol + '://', 'https://');
+      }).then (img => {
+	const canvas = document.createElement ('canvas');
+	const ctx = canvas.getContext ('2d');
+	canvas.width = img.naturalWidth;
+	canvas.height = img.naturalHeight;
+	ctx.drawImage (img, 0, 0);
+        
+	const imageData = ctx.getImageData (0, 0, canvas.width, canvas.height);
+	for ( let i = 0; i < imageData.data.length; i += 4 ) {
+	  const [ r, g, b, a ] = imageData.data.slice( i, i + 4 );
+	  const r2 = ( r < 128 ) ? r : r - 256;
+	  const n = r2 * 65536 + g * 256 + b;
+	  const height = ( n == invalidValue || a !== 255 ) ? 0 : factor * n;
+	  const n2 = Math.max( ( height + 10000 ) * 10, 0 );
+	  imageData.data.set( [ 0xff & n2 >> 16, 0xff & n2 >> 8, 0xff & n2, 255 ], i );
+	}
+	ctx.putImageData( imageData, 0, 0 );
+	return new Promise (ok => canvas.toBlob (ok));
+      }).then (async blob => {
+        return {data: await blob.arrayBuffer ()};
+      });
+    });
+  }
+
+  /* ------ HTML element-based controls ------ */
   
   L.Control.ElementControl = L.Control.extend ({
     onAdd: function (map) {
@@ -1732,6 +1865,9 @@
             } else if (mr.attributeName === 'bearing') {
               this.pc_NewView.bearing = this.maAttrFloat ('bearing', 0);
               this.maRedraw ({view: true});
+            } else if (mr.attributeName === 'terrain') {
+              this.pc_NewView.terrain = this.hasAttribute ('terrain');
+              this.maRedraw ({view: true});
             } else if (mr.attributeName === 'readonly') {
               this.maRedraw ({readonly: true});
             } else if (mr.attributeName === 'maptype') {
@@ -1739,7 +1875,7 @@
             }
           });
         })).observe (this, {attributeFilter: ['lat', 'lon', 'readonly',
-                                              'zoom', 'maptype',
+                                              'zoom', 'maptype', 'terrain',
                                               'pitch', 'bearing']});
         this.pc_NewView = {
           initial: true,
@@ -1748,6 +1884,7 @@
           zoom: this.maAttrFloat ('zoom', 8),
           pitch: this.maAttrFloat ('pitch', 0),
           bearing: this.maAttrFloat ('bearing', 0),
+          terrain: this.hasAttribute ('terrain'),
         };
         this.maCenter = this.pcValue = this.pc_NewView;
         this.pcZoomLevel = this.pc_NewView.zoom;
@@ -2353,6 +2490,7 @@
         
         if (this.maRedrawNeedUpdated.relocate) {
           if (this.pcLMap) this.pcLMap.invalidateSize ();
+          if (this.pc_MLMap) this.pc_MLMap.resize ();
           if (this.maGoogleMap) {
             if (this.maCenter) this.maGoogleMap.setCenter ({
               lat: this.maCenter.lat,
@@ -2362,6 +2500,20 @@
           delete this.maRedrawNeedUpdated.relocate;
         }
 
+        if (this.pc_NewView && this.pc_NewView.terrain != null) {
+          if (this.pc_Terrain && this.pc_NewView.terrain) {
+            //
+          } else if (!this.pc_Terrain && !this.pc_NewView.terrain) {
+            //
+          } else {
+            this.pc_Terrain = this.pc_NewView.terrain;
+            this.maRedrawNeedUpdated.mapType = true;
+
+            // force maptype reset
+            this.pc_MLCurrentStyleURL = undefined;
+            this.pc_MLCurrentStyleMode = undefined;
+          }
+        }
         if (this.maRedrawNeedUpdated.mapType) {
           if (this.pcLMap || this.pc_MLMap) {
             this.pcChangeMapType ();
@@ -4183,14 +4335,19 @@
               return true;
             }
 
-            let p = new Promise (ok => map.once ('styledata', ok));
             this.pc_MLCurrentStyleURL = newStyleURL;
-            //style: 'https://demotiles.maplibre.org/style.json',
-            map.setStyle (newStyleURL, {});
             this.pc_CurrentMLLayerIds = [];
             this.pc_CurrentMLSourceIds = [];
             this.pc_MLCurrentStyleMode = newStyleMode;
-            return p.then (() => {
+            return new Promise ((ok, ng) => {
+              //style: 'https://demotiles.maplibre.org/style.json',
+              map.setStyle (newStyleURL, {
+                transformStyle: (a, b) => {
+                  ok (new Promise (ok => map.once ('styledata', ok)));
+                  return b;
+                },
+              });
+            }).then (() => {
               map.setLayoutProperty ("background", "visibility", 'none');
               if (newStyleMode === 'overlay') {
                 [
@@ -4219,14 +4376,54 @@
             });
           }).then (reloaded => {
             if (!reloaded) return;
+            if (!this.pc_Terrain) {
+              map.setTerrain (null);
+              return;
+            }
+            
+            /*
+            map.addSource ("joerd", {
+              type: 'raster-dem',
+              tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+              attribution: '<a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md">Tilezen Joerd: Attribution</a>',
+              encoding: "terrarium",
+            });
+            map.setTerrain({source:"joerd", 'exaggeration': 1});
+            */
 
-            // XXX  terrain
+            /*
+            map.addSource ("gsidem", {
+              type: 'raster-dem',
+              tiles: ['numpng://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png'],
+              "minzoom": 1,
+              "maxzoom": 14,
+              attribution: gsiCreditHTML,
+              tileSize: 256,
+            });
+            map.setTerrain ({'source': 'gsidem', 'exaggeration': 1});
+            */
+
+            map.addSource ("aist-dem", {
+              type: 'raster-dem',
+              tiles: ['numpng://tiles.gsj.jp/tiles/elev/mixed/{z}/{y}/{x}.png'],
+              attribution: '<a href="https://tiles.gsj.jp/tiles/elev/tiles.html">\u7523\u696D\u6280\u8853\u7DCF\u5408\u7814\u7A76\u6240%20\u30B7\u30FC\u30E0\u30EC\u30B9\u6A19\u9AD8\u30BF\u30A4\u30EB(\u7D71\u5408DEM)</a>',
+              tileSize: 256,
+            });
+            map.setTerrain ({source: 'aist-dem', 'exaggeration': 1});
           }).then (() => {
             (this.pc_CurrentMLLayerIds || []).forEach (id => {
-              map.removeLayer (id);
+              try {
+                map.removeLayer (id);
+              } catch (e) {
+                console.log (e);
+              }
             });
             (this.pc_CurrentMLSourceIds || []).forEach (id => {
-              map.removeSource (id);
+              try {
+                map.removeSource (id);
+              } catch (e) {
+                console.log (e);
+              }
             });
 
             let sources = [];
