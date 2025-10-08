@@ -38,14 +38,19 @@
   <test-code name="formdata 1">
     /*
       <form is=save-data data-saver=formDataTest1 action method=post>
-        <map-area formcontrol latname=foo lonname=bar></map-area>
+        <map-area engine=maplibre formcontrol latname=foo lonname=bar></map-area>
         <button type=submit>Submit</button>
       </form>
     */
     var f = this.currentScript.querySelector ('form');
     var e = f.querySelector ('map-area');
-    await this.wait ();
+    await this.wait (1000);
 
+    let img = e.querySelector ('.maplibregl-marker img');
+    this.assert.equal (img.naturalWidth > 0, true, img.naturalWidth);
+    this.assert.equal (img.parentNode.offsetHeight > 0, true, img.parentNode.offsetHeight);
+    this.assert.equal (getComputedStyle (img.parentNode).opacity, "1");
+    
     f.querySelector ('button').click ();
 
     var promise = new Promise ((ok, ng) => {
@@ -66,7 +71,7 @@
   <test-code name="formdata 2">
     /*
       <form is=save-data data-saver=formDataTest2 action method=post>
-        <map-area formcontrol latname=foo lonname=bar></map-area>
+        <map-area engine=maplibre formcontrol latname=foo lonname=bar></map-area>
         <button type=submit>Submit</button>
       </form>
     */
@@ -96,7 +101,7 @@
   <test-code name="formdata 3">
     /*
       <form is=save-data data-saver=formDataTest3 action method=post>
-        <map-area formcontrol latname=foo lonname=bar></map-area>
+        <map-area engine=maplibre formcontrol latname=foo lonname=bar></map-area>
         <button type=submit>Submit</button>
       </form>
     */

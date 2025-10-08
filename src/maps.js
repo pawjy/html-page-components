@@ -1527,7 +1527,8 @@ SOFTWARE.
     c.appendChild (b);
   }); // MLFullscreenButtonControl
   
-  L.control.currentPositionButton = function (opts) {
+  let MLCurrentPositionButtonControl;
+  [L.control.currentPositionButton, MLCurrentPositionButtonControl] = ElementControl ((opts) => {
     var c = document.createElement ('div');
     c.className = 'paco-button-container';
     opts.element = c;
@@ -1549,7 +1550,7 @@ SOFTWARE.
     c.appendChild (b);
     
     return new L.Control.ElementControl (opts);
-  }; // L.control.currentPositionButton
+  }); // L.control.currentPositionButton
   
   let MLStreetViewButtonControl;
   [L.control.streetViewButton, MLStreetViewButtonControl] = ElementControl ((opts) => {
@@ -3116,8 +3117,9 @@ SOFTWARE.
         }
 
         if (controls.currentposition) {
-          map.addControl (new maplibregl.GeolocateControl ({}), 'bottom-right');
-          //this.pcInitCurrentPosition ();
+          map.addControl (new MLCurrentPositionButtonControl ({}), 'bottom-right');
+          //map.addControl (new maplibregl.GeolocateControl ({}), 'bottom-right');
+          this.pcInitCurrentPosition ();
         }
 
         // Map need to be recomputed if it is initialized when not
@@ -3433,13 +3435,12 @@ SOFTWARE.
 
           let computedStyle;
           var updateMarker = (markerName, propName, pos, opts) => {
-            if (this.pc_MLMap) return; // XXX
-            
             if (opts.redraw || opts.remove) {
               if (this[markerName]) {
                 this[markerName].lItems.forEach (_ => _.remove ());
+                this[markerName].mlItems.forEach (_ => _.remove ());
+                this[markerName].mlMoveHandlers.forEach (_ => this.pc_MLMap.off ('move', _));
                 this[markerName].gmItems.forEach (_ => _.setMap (null));
-                // XXX this.pc_MLMap
               }
               delete this[markerName];
               if (opts.remove) return;
@@ -3457,6 +3458,10 @@ SOFTWARE.
                   }
                 }
               });
+              this[markerName].mlItems.forEach (_ => {
+                _.setLngLat (pos);
+                _.setDraggable (!!opts.draggable);
+              });
               this[markerName].gmItems.forEach (_ => {
                 _.setPosition ({lat: pos.lat, lng: pos.lon});
                 this[markerName].setOptions ({draggable: !!opts.draggable});
@@ -3469,11 +3474,13 @@ SOFTWARE.
             let w = computedStyle.getPropertyValue (propName) || 'none';
 
             if (w.match (/^\s*none\s*$/)) {
-              this[markerName] = {none: true, lItems: [], gmItems: []};
+              this[markerName] = {none: true, lItems: [], mlItems: [],
+                                  mlMoveHandlers: [], gmItems: []};
               return;
             }
 
-            let mk = this[markerName] = {lItems: [], gmItems: []};
+            let mk = this[markerName] = {lItems: [], mlItems: [],
+                                         mlMoveHandlers: [], gmItems: []};
             for (let v of w.split (/\s\/\s/)) {
               let icon = null;
               let m = v.match (/^\s*("[^"]*"|'[^']*')\s+(\S+)\s+(\S+)\s*$/);
@@ -3550,8 +3557,39 @@ SOFTWARE.
                       lon: p.lng,
                     });
                   });
-                // XXXX this.pc_MLMap
                 }
+                if (this.pc_MLMap) {
+                  let el = document.createElement('div');
+                  let img = document.createElement ('img');
+                  img.src = icon.iconUrl;
+                  img.width = icon.iconSize?.[0];
+                  img.height = icon.iconSize?.[1];
+                  el.appendChild (img);
+                  el.className = 'paco-maplibre-interactive';
+                  el.style.transform = `translate(${-icon.iconAnchor?.[0]}px, ${-icon.iconAnchor?.[1]}px)`;
+                  
+                  let mm = new maplibregl.Marker({
+                    element: el,
+                    draggable: !!opts.draggable,
+                  });
+                  mm.setLngLat (pos);
+                  
+                  // For some unknown reasons (maybe related to
+                  // animation), sometimes markers are left
+                  // opacity:0.2
+                  setTimeout (() => mm.setOpacity (), 2000);
+
+                  mm.addTo(this.pc_MLMap);
+                  mk.mlItems.push(mm);
+
+                  mm.on ('dragend', () => {
+                    let p = mm.getLngLat ();
+                    mk.mlItems.filter(_=>_!==mm).forEach(_ => _.setLngLat(p));
+                    this.pc_MarkerMoveEnd (markerName, {
+                      lat: p.lat, lon: p.lng,
+                    });
+                  });
+                }                
                 if (this.maGoogleMap) {
                   var size = null;
                   if (icon.iconSize) size = { // must be in px
@@ -3602,7 +3640,37 @@ SOFTWARE.
                   });
                   mk.lItems.push (mm);
                   mm.addTo (this.pcLMap);
-                  // XXX this.pc_MLMap
+                }
+                if (this.pc_MLMap) {
+                  let div = document.createElement ('div');
+                  div.style.background = fill;
+                  div.style.borderRadius = "100%";
+                  div.style.boxSizing = "border-box";
+                  div.style.borderWidth = strokeSize + "px";
+                  div.style.borderStyle = "solid";
+                  div.style.borderColor = stroke;
+                  div.style.transform = "translate(-50%, -50%)";
+
+                  let handler = () => {
+                    let p1 = this.pc_MLMap.project (pos);
+                    let pos2 = this.pc_MLMap.unproject ([p1.x + 100, p1.y]);
+                    let pixelsToMeters = distanceH84 (pos, {
+                      lat: pos2.lat,
+                      lon: pos2.lng,
+                    }) / 100;
+                    let radiusPx = radius / pixelsToMeters;
+                    div.style.width = div.style.height = (radiusPx + strokeSize)*2 + "px";
+                  };
+                  this.pc_MLMap.on ('move', handler);
+                  mk.mlMoveHandlers.push (handler);
+                
+                  let mm = new maplibregl.Marker ({
+                    element: div,
+                    pitchAlignment: "map",
+                  });
+                  mm.setLngLat (pos);
+                  mk.mlItems.push (mm);
+                  mm.addTo (this.pc_MLMap);
                 }
                 if (this.maGoogleMap) {
                   let mm = new google.maps.Circle ({
@@ -3621,6 +3689,8 @@ SOFTWARE.
               // Bad value
               console.log ("Bad |"+propName+"| value: |"+v+"|");
               mk.lItems.forEach (_ => _.remove ());
+              mk.mlItems.forEach (_ => _.remove ());
+              mk.mlMoveHandlers.forEach (_ => this.pc_MLMap.off ('move', _));
               mk.gmItems.forEach (_ => _.setMap (null));
               return;
             } // v
