@@ -979,6 +979,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     return new L.GridLayer.TileImages (opts);
   };
 
+  /* ------ GSI tiles and vector maps ------ */
+
   L.GridLayer.GSIOverlay = L.GridLayer.extend ({
     createTile: function (coords, done) {
       var canvas = document.createElement ('canvas');
@@ -1034,6 +1036,85 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     return new L.GridLayer.GSIOverlay (opts);
   };
 
+
+  {
+    function lonLatToTilePixel(lon, lat, z) {
+      const tileSize = 256;
+      const scale = (1 << z) * tileSize;
+      const x = (lon + 180) / 360;
+      const sinLat = Math.sin(lat * Math.PI / 180);
+      const y = 0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI);
+      return { x: x * scale, y: y * scale };
+    }
+    let tileSize = 256;
+    maplibregl.addProtocol ('paco-clipped', (params, signal) => {
+      let [x, y, z, mode, url1] = params.url.replace (/^[^:]+:\/\/\//, '').split (/;/, 5);
+      let color = "";
+      mode = mode.replace (/,(\w+)$/, (_, c) => {
+        color = '#' + c;
+        return '';
+      });
+      return new Promise ((ok, ng) => {
+        let img = document.createElement ('img');
+        img.crossOrigin = '';
+        img.onload = () => ok (img);
+        img.onerror = ng;
+        img.src = url1;
+      }).then (img => {
+        let canvas = document.createElement ('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+
+        let ctx = canvas.getContext ('2d');
+        
+        const origin = { x: x * tileSize, y: y * tileSize };
+        const polyPx = JPGSIMapBoundary.map(({ lat, lon }) => {
+          const { x: px, y: py } = lonLatToTilePixel(lon, lat, z);
+          return { x: px - origin.x, y: py - origin.y };
+        });
+        
+        if (mode === 'all') {
+          ctx.save();
+          if (color) {
+            ctx.fillStyle = color;
+            ctx.fillRect (0, 0, tileSize, tileSize);
+          }
+          ctx.drawImage(img, 0, 0, tileSize, tileSize);
+          ctx.restore();
+        } else if (mode === 'jp') {
+          ctx.save();
+          ctx.beginPath();
+          polyPx.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+          ctx.closePath();
+          ctx.clip ();
+          if (color) {
+            ctx.fillStyle = color;
+            ctx.fillRect (0, 0, tileSize, tileSize);
+          }
+          ctx.drawImage(img, 0, 0, tileSize, tileSize);
+          ctx.restore();
+        } else if (mode === 'nonjp') {
+          ctx.save();
+          ctx.beginPath();
+          polyPx.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+          ctx.closePath();
+          ctx.rect(0, 0, tileSize, tileSize);
+          ctx.clip('evenodd');
+          if (color) {
+            ctx.fillStyle = color;
+            ctx.fillRect (0, 0, tileSize, tileSize);
+          }
+          ctx.drawImage (img, 0, 0, tileSize, tileSize);
+          ctx.restore();
+        }
+
+        return new Promise (ok => canvas.toBlob (ok));
+      }).then (async blob => {
+        return {data: await blob.arrayBuffer ()};
+      });
+    });
+  }
+
   L.GridLayer.gsiOptimalBvmap = opts => {
     let gl = L.maplibreGL ({
       ...opts,
@@ -1068,6 +1149,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     return gl;
   }; // L.GridLayer.gsiOptimalBvmap
 
+  /* ------ Elevation data ------ */
 
   /*
 
@@ -1308,92 +1390,6 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
   }; // getElevation
 
 
-  /*
-
-    Original: <https://github.com/shiwaku/gsi-terrain-dem-on-maplibre-gl-js-demo>
-    License of the original <https://github.com/shiwaku/gsi-terrain-dem-on-maplibre-gl-js-demo/blob/main/LICENSE>:
-
-MIT License
-
-Copyright (c) 2023 Youhei Shiwaku
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-  */
-  let gsidem2terrainrgb = (r, g, b) => {
-    let height = r * 655.36 + g * 2.56 + b * 0.01;
-
-    if (r === 128 && g === 0 && b === 0) {
-      height = 0;
-    } else if (r >= 128) {
-      height -= 167772.16;
-    }
-
-    height += 10000;
-    height *= 10;
-
-    const tB = (height / 256 - Math.floor(height / 256)) * 256;
-    const tG =
-        (Math.floor(height / 256) / 256 -
-            Math.floor(Math.floor(height / 256) / 256)) *
-        256;
-    const tR =
-        (Math.floor(Math.floor(height / 256) / 256) / 256 -
-            Math.floor(Math.floor(Math.floor(height / 256) / 256) / 256)) *
-        256;
-
-    return [tR, tG, tB];
-  };
-  maplibregl.addProtocol ('gsidem', (params, signal) => {
-    return new Promise ((ok, ng) => {
-      let img = document.createElement ('img');
-      img.crossOrigin = '';
-      img.onload = () => ok (img);
-      img.onerror = ng;
-      img.src = params.url.replace ('gsidem://', '');
-    }).then (img => {
-      let canvas = document.createElement ('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-
-      let ctx = canvas.getContext ('2d');
-      ctx.drawImage (img, 0, 0);
-
-      let imageData = ctx.getImageData (0, 0, canvas.width, canvas.height);
-      for (let i = 0; i < imageData.data.length / 4; i++) {
-        const tRGB = gsidem2terrainrgb (
-          imageData.data[i * 4],
-          imageData.data[i * 4 + 1],
-          imageData.data[i * 4 + 2],
-        );
-        imageData.data[i * 4] = tRGB[0];
-        imageData.data[i * 4 + 1] = tRGB[1];
-        imageData.data[i * 4 + 2] = tRGB[2];
-      }
-      ctx.putImageData (imageData, 0, 0);
-
-      return new Promise (ok => canvas.toBlob (ok));
-    }).then (blob => {
-      return blob.arrayBuffer ();
-    }).then (ab => +{data: ab});
-  });
-
   {
     /*
       シームレス標高タイル, 産業技術総合研究所
@@ -1438,7 +1434,7 @@ SOFTWARE.
       });
     });
   }
-
+  
   /* ------ HTML element-based controls ------ */
   
   L.Control.ElementControl = L.Control.extend ({
@@ -4630,350 +4626,54 @@ SOFTWARE.
           let newStyleMode = null;
 
           let type = sType;
-          /*
-        if (sType === 'gsi-lang') {
-          var s = getComputedStyle (this);
-          var lang = s.getPropertyValue ('--paco--gsi-lang') || '';
-          lang = lang.replace (/^\s+/, '').replace (/\s+$/, '');
-          if (lang === 'gsi-english-standard') {
-            type = 'gsi-english-standard';
-          } else {
-            type = 'gsi-standard';
+          if (sType === 'gsi-lang') {
+            let s = getComputedStyle (this);
+            let lang = s.getPropertyValue ('--paco--gsi-lang') || '';
+            lang = lang.replace (/^\s+/, '').replace (/\s+$/, '');
+            if (lang === 'gsi-english-standard') {
+              type = 'gsi-english-standard';
+            } else {
+              type = 'gsi-standard';
+            }
           }
-        }
-
-        var maxZoom = 21;
-        var errorTileUrl = this.getAttribute ('noimgsrc') || noImageURL;
-        */
+          
+          //var maxZoom = 21;
+          //var errorTileUrl = this.getAttribute ('noimgsrc') || noImageURL;
           if (type === 'gsi-standard') {
-            requested.push ('gsi-standard');
-            /*XXXX
-                attribution: gsiCreditHTML,
-                errorTileUrl,
-                maxNativeZoom: 8,
-                minNativeZoom: 2,
-                maxZoom,
-                */
-
-            /*XXX
-          let jpLayer = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                maxNativeZoom: 18,
-                minNativeZoom: 2,
-                maxZoom,
-                minZoom: 9,
-              });
-          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer, {boundary: JPGSIMapBoundary});
-          layers.push ({layer: jpLayerClipped});
-        } else if (type === 'gsi-english') {
-          let wLayer = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                errorTileUrl,
-                maxNativeZoom: 8,
-                minNativeZoom: 5,
-                maxZoom,
-              });
-          layers.push ({layer: wLayer});
-          
-          let jpLayer = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                maxNativeZoom: 11,
-                minNativeZoom: 5,
-                maxZoom,
-                minZoom: 9,
-              });
-          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer, {boundary: JPGSIMapBoundary});
-          layers.push ({layer: jpLayerClipped});
-        } else if (type === 'gsi-english-standard') {
-          let wLayer = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                errorTileUrl,
-                maxNativeZoom: 8,
-                minNativeZoom: 5,
-                maxZoom,
-              });
-          layers.push ({layer: wLayer});
-
-          let jpLayer1 = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                maxNativeZoom: 18,
-                minNativeZoom: 12,
-                maxZoom,
-                minZoom: 12,
-              });
-          let jpLayer2 = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                maxNativeZoom: 11,
-                minNativeZoom: 5,
-                maxZoom: Math.min (11, maxZoom) || 11,
-                minZoom: 9,
-              });
-          let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer1, {boundary: JPGSIMapBoundary});
-          layers.push ({layer: jpLayer1Clipped});
-          let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer2, {boundary: JPGSIMapBoundary});
-              layers.push ({layer: jpLayer2Clipped});
-              */
+            requested.push ('gsi-standard:8-');
+            requested.push ('gsi-standard:9+');
+          } else if (type === 'gsi-english') {
+            requested.push ('gsi-english:8-');
+            requested.push ('gsi-english:9+');
+          } else if (type === 'gsi-english-standard') {
+            requested.push ('gsi-english:8-');
+            requested.push ('gsi-english:9-11');
+            requested.push ('gsi-standard:12+');
           } else if (type === 'gsi-hillshade') {
-            requested.push ('gsi-hillshade');
-            /*XXX
-          let wLayer = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                errorTileUrl,
-                maxNativeZoom: 8,
-                minNativeZoom: 0,
-                maxZoom,
-              });
-          layers.push ({layer: wLayer});
-
-          let jpLayer1 = L.tileLayer
-          ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23ededed'/%3E%3C/svg%3E", {
-                maxNativeZoom: 16,
-                minNativeZoom: 2,
-                maxZoom,
-                minZoom: 9,
-              });
-          let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer1, {boundary: JPGSIMapBoundary});
-          layers.push ({layer: jpLayer1Clipped});
-          
-          let jpLayer2 = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                maxNativeZoom: 16,
-                minNativeZoom: 2,
-                maxZoom,
-                minZoom: 9,
-              });
-          let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer2, {boundary: JPGSIMapBoundary});
-          layers.push ({layer: jpLayer2Clipped});
-        } else if (type === 'gsi-standard-hillshade') {
-          let wLayerH = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                errorTileUrl,
-                maxNativeZoom: 8,
-                minNativeZoom: 0,
-                maxZoom,
-              });
-          layers.push ({layer: wLayerH});
-
-          let wLayerS = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                errorTileUrl,
-                maxNativeZoom: 8,
-                minNativeZoom: 2,
-                maxZoom,
-                opacity: 0.8,
-              });
-          layers.push ({layer: wLayerS});
-          
-          let jpLayer1 = L.tileLayer
-          ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23ededed'/%3E%3C/svg%3E", {
-                maxNativeZoom: 16,
-                minNativeZoom: 2,
-                maxZoom,
-                minZoom: 9,
-              });
-          let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer1, {boundary: JPGSIMapBoundary});
-          layers.push ({layer: jpLayer1Clipped});
-          
-          let jpLayer2 = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                maxNativeZoom: 16,
-                minNativeZoom: 2,
-                maxZoom,
-                minZoom: 9,
-              });
-          let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer2, {boundary: JPGSIMapBoundary});
-          layers.push ({layer: jpLayer2Clipped});
-          
-          let jpLayer = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                maxNativeZoom: 18,
-                minNativeZoom: 2,
-                maxZoom,
-                minZoom: 9,
-                opacity: 0.8,
-              });
-          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer, {boundary: JPGSIMapBoundary});
-          layers.push ({layer: jpLayerClipped});
-        } else if (type === 'gsi-hillshade-standard') {
-          let wLayer = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                errorTileUrl,
-                maxNativeZoom: 8,
-                minNativeZoom: 0,
-                maxZoom,
-                opacity: 0.6,
-              });
-          layers.push ({layer: wLayer});
-
-          let jpLayer1 = L.tileLayer
-          ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23ededed'/%3E%3C/svg%3E", {
-                maxNativeZoom: 16,
-                minNativeZoom: 2,
-                maxZoom,
-                minZoom: 9,
-                opacity: 0.6,
-              });
-          let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer1, {boundary: JPGSIMapBoundary});
-          layers.push ({layer: jpLayer1Clipped});
-          
-          let jpLayer2 = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                maxNativeZoom: 16,
-                minNativeZoom: 2,
-                maxZoom,
-                minZoom: 9,
-                opacity: 0.6,
-              });
-          let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer2, {boundary: JPGSIMapBoundary});
-          layers.push ({layer: jpLayer2Clipped});
-          
-          let jpGSI = L.gridLayer.gsiOverlay ({
-            //attribution: gsiCreditHTML,
-            //errorTileUrl,
-            maxNativeZoom: 18,
-            minNativeZoom: 2,
-            maxZoom,
-            //minZoom: 9,
-          });
-          layers2.push ({layer: jpGSI});
-        } else if (type === 'gsi-hillshade-optimal_bvmap') {
-          let wLayer = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                errorTileUrl,
-                maxNativeZoom: 8,
-                minNativeZoom: 0,
-                maxZoom,
-                opacity: 0.6,
-              });
-          layers.push ({layer: wLayer});
-
-          let jpLayer1 = L.tileLayer
-          ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='%23ededed'/%3E%3C/svg%3E", {
-                maxNativeZoom: 16,
-                minNativeZoom: 2,
-                maxZoom,
-                minZoom: 9,
-                opacity: 0.6,
-              });
-          let jpLayer1Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer1, {boundary: JPGSIMapBoundary});
-          layers.push ({layer: jpLayer1Clipped});
-          
-          let jpLayer2 = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                maxNativeZoom: 16,
-                minNativeZoom: 2,
-                maxZoom,
-                minZoom: 9,
-                opacity: 0.6,
-              });
-          let jpLayer2Clipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer2, {boundary: JPGSIMapBoundary});
-          layers.push ({layer: jpLayer2Clipped});
-
-          let gl = L.GridLayer.gsiOptimalBvmap ({
-            maxZoom,
-          });
-          let jpGSI = L.gridLayer.gsiOverlay ({
-            //attribution: gsiCreditHTML,
-            //errorTileUrl,
-            maxNativeZoom: 18,
-            minNativeZoom: 2,
-            maxZoom,
-            //minZoom: 9,
-          });
-          layers2.push ({layer: gl, fallbackLayer: jpGSI});
-          */
+            requested.push ('gsi-hillshade:8-');
+            requested.push ('gsi-hillshade:9+');
+          } else if (type === 'gsi-standard-hillshade') {
+            requested.push ('gsi-hillshade:8-');
+            requested.push ('gsi-standard:8-:overlay');
+            requested.push ('gsi-hillshade:9+');
+            requested.push ('gsi-standard:9+:overlay');
+          } else if (type === 'gsi-hillshade-standard') {
+            // not implemented
+          } else if (type === 'gsi-hillshade-optimal_bvmap') {
+            newStyleURL = "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json";
+            newStyleMode = 'overlay';
+            requested.push ('gsi-hillshade:8-');
+            requested.push ('gsi-hillshade:9+');
           } else if (type === 'gsi-photo') {
-            requested.push ('gsi-photo:background2');
-            requested.push ('gsi-photo:background');
-            //requested.push ('gsi-photo');
-            /*XXX
-          let wLayer = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
-                attribution: gsiPhotoCreditHTML,
-                errorTileUrl,
-                maxNativeZoom: 8,
-                minNativeZoom: 2,
-                maxZoom,
-              });
-          layers.push ({layer: wLayer});
-          
-          let jpLayer = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
-                attribution: gsiPhotoCreditHTML,
-                maxNativeZoom: 18,
-                minNativeZoom: 2,
-                maxZoom,
-                minZoom: 9,
-              });
-          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer, {boundary: JPGSIMapBoundary});
-          layers.push ({layer: jpLayerClipped});
-        } else if (type === 'gsi-photo-standard') {
-          let wLayer = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
-                attribution: gsiPhotoCreditHTML,
-                errorTileUrl,
-                maxNativeZoom: 8,
-                minNativeZoom: 2,
-                maxZoom,
-              });
-          layers.push ({layer: wLayer});
-          
-          let jpLayer = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
-                attribution: gsiPhotoCreditHTML,
-                maxNativeZoom: 18,
-                minNativeZoom: 2,
-                maxZoom,
-                minZoom: 9,
-              });
-          let jpLayerClipped = L.TileLayer.BoundaryCanvas.createFromLayer
-              (jpLayer, {boundary: JPGSIMapBoundary});
-          layers.push ({layer: jpLayerClipped});
-
-          let lGSI = L.gridLayer.gsiOverlay ({
-            //attribution: gsiCreditHTML,
-            errorTileUrl,
-            maxNativeZoom: 18,
-            minNativeZoom: 2,
-            maxZoom,
-          });
-          layers2.push ({layer: lGSI});
-          */
+            requested.push ('gsi-photo:8-');
+            requested.push ('gsi-photo:9+');
+          } else if (type === 'gsi-photo-standard') {
+            // not impplemented
           } else if (type === 'gsi-photo-optimal_bvmap') {
             newStyleURL = "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json";
             newStyleMode = 'overlay';
-            requested.push ('gsi-photo:background2');
-            requested.push ('gsi-photo:background');
+            requested.push ('gsi-photo:8-');
+            requested.push ('gsi-photo:9+');
             /*XXX
           } else if (type === 'himawari') {
           let lHimawari = L.tileLayer.jma ({
@@ -5070,27 +4770,10 @@ SOFTWARE.
             // <https://operations.osmfoundation.org/policies/tiles/>
             // <https://osmfoundation.org/wiki/Licence/Attribution_Guidelines>
             requested.push ('osm');
-          /*} else if (type === 'osm-gsi-hillshade') {
-          let lShade = L.tileLayer
-              ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
-                attribution: gsiCreditHTML,
-                errorTileUrl,
-                maxNativeZoom: 16,
-                minNativeZoom: 2,
-                maxZoom,
-                opacity: 0.8,
-              });
-          layers.push ({layer: lShade});
-          let wLayer = L.tileLayer
-              ('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: osmCreditHTML,
-                errorTileUrl,
-                maxNativeZoom: 19,
-                maxZoom,
-                opacity: 0.8,
-              });
-              layers.push ({layer: wLayer});
-              */
+          } else if (type === 'osm-gsi-hillshade') {
+            requested.push ('gsi-hillshade:8-:overlay');
+            requested.push ('gsi-hillshade:9+:overlay');
+            requested.push ('osm:overlay');
           } else if (type === 'gsi-optimal_bvmap') {
             newStyleURL = "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json";
             requested.push ('gsi-standard:background');
@@ -5167,12 +4850,6 @@ SOFTWARE.
           });
           layers.push ({layer: m});
         }
-
-
-    paint: {
-        'raster-opacity': 0.5
-    },
-
           */
 
           waits.push (Promise.resolve ().then (() => {
@@ -5282,14 +4959,60 @@ SOFTWARE.
             let sources = [];
             let layers = [];
             requested.forEach (id => {
-              if (id === 'gsi-standard') {
+              if (id === 'gsi-standard:8-') {
                 map.addSource (id, {
                   type: 'raster',
                   tiles: ['https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png'],
                   tileSize: 256,
                   attribution: gsiCreditHTML,
+                  maxzoom: 8,
                 });
-                map.addLayer ({id: id, type: "raster", source: id, minzoom: 9});
+                map.addLayer ({id, type: "raster", source: id});
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-standard:8-:overlay') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: gsiCreditHTML,
+                  maxzoom: 8,
+                });
+                map.addLayer ({id, type: "raster", source: id, paint: {
+                  'raster-opacity': 0.8,
+                }});
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-standard:9+') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['paco-clipped:///{x};{y};{z};jp;https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: gsiCreditHTML,
+                });
+                map.addLayer({id: id, type: "raster", source: id, minzoom: 9});
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-standard:9+:overlay') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['paco-clipped:///{x};{y};{z};jp;https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: gsiCreditHTML,
+                });
+                map.addLayer({id: id, type: "raster", source: id, paint: {
+                  'raster-opacity': 0.8,
+                }, minzoom: 9});
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-standard:12+') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['paco-clipped:///{x};{y};{z};jp;https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: gsiCreditHTML,
+                });
+                map.addLayer({id: id, type: "raster", source: id, minzoom:12});
                 sources.push (id);
                 layers.push (id);
               } else if (id === 'gsi-standard:background') {
@@ -5327,62 +5050,130 @@ SOFTWARE.
                   },
                 }, ll[0].id);
                 layers.push ("jpmask");
-              } else if (id === 'gsi-photo') {
+              } else if (id === 'gsi-english:8-') {
                 map.addSource (id, {
                   type: 'raster',
-                  tiles: ['https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg'],
+                  tiles: ['https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png'],
                   tileSize: 256,
-                  attribution: gsiPhotoCreditHTML,
-                });
-                map.addLayer ({id: id, type: "raster", source: id, minzoom: 9});
-                sources.push (id);
-                layers.push (id);
-              } else if (id === 'gsi-photo:background2') {
-                map.addSource (id, {
-                  type: 'raster',
-                  tiles: ['https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg'],
-                  tileSize: 256,
-                  attribution: gsiPhotoCreditHTML,
-                });
-                let ll = map.getStyle ().layers;
-                map.addLayer ({id: id, type: "raster", source: id, minzoom: 9}, (ll[0] || {}).id);
-                sources.push (id);
-                layers.push (id);
-              } else if (id === 'gsi-photo:background') {
-                map.addSource (id, {
-                  type: 'raster',
-                  tiles: ['https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg'],
-                  tileSize: 256,
-                  attribution: gsiPhotoCreditHTML,
+                  attribution: gsiCreditHTML,
                   maxzoom: 8,
                 });
-                let ll = map.getStyle ().layers;
-                map.addLayer ({
-                  id: id,
-                  type: 'raster',
-                  source: id,
-                }, (ll[0] || {}).id);
+                map.addLayer ({id, type: "raster", source: id});
                 sources.push (id);
                 layers.push (id);
-              } else if (id === 'gsi-hillshade') {
-              map.addSource (id, {
-                type: 'raster',
-                tiles: ['https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png'],
-                tileSize: 256,
-                attribution: gsiCreditHTML,
-              });
-              map.addLayer ({id: id, type: "raster", source: id});
+              } else if (id === 'gsi-english:9+') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['paco-clipped:///{x};{y};{z};jp;https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: gsiCreditHTML,
+                });
+                map.addLayer({id: id, type: "raster", source: id, minzoom: 9});
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-english:9-11') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['paco-clipped:///{x};{y};{z};jp;https://cyberjapandata.gsi.go.jp/xyz/english/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: gsiCreditHTML,
+                  maxzoom: 11,
+                });
+                map.addLayer({id: id, type: "raster", source: id, minzoom: 9});
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-photo:9+') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['paco-clipped:///{x};{y};{z};jp;https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg'],
+                  tileSize: 256,
+                  attribution: gsiPhotoCreditHTML,
+                });
+                let before = newStyleURL ? 'background' : undefined;
+                map.addLayer ({id: id, type: "raster", source: id, minzoom: 9}, before);
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-photo:8-') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg'],
+                  tileSize: 256,
+                  attribution: gsiCreditHTML,
+                  maxzoom: 8,
+                });
+                let before = newStyleURL ? 'background' : undefined;
+                map.addLayer ({id, type: "raster", source: id}, before);
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-hillshade:8-') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['paco-clipped:///{x};{y};{z};all,ededed;https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: gsiCreditHTML,
+                  maxzoom: 8,
+                });
+                let before = newStyleURL ? 'background' : undefined;
+                map.addLayer ({id: id, type: "raster", source: id}, before);
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-hillshade:8-:overlay') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['paco-clipped:///{x};{y};{z};all,ededed;https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: gsiCreditHTML,
+                  maxzoom: 8,
+                });
+                map.addLayer ({id: id, type: "raster", source: id, paint: {
+                  'raster-opacity': 0.8,
+                }});
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-hillshade:9+') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['paco-clipped:///{x};{y};{z};jp,ededed;https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: gsiCreditHTML,
+                });
+                let before = newStyleURL ? 'background' : undefined;
+                map.addLayer({id: id, type: "raster", source: id, minzoom: 9}, before);
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-hillshade:9+:overlay') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['paco-clipped:///{x};{y};{z};jp,ededed;https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: gsiCreditHTML,
+                });
+                map.addLayer({id: id, type: "raster", source: id, paint: {
+                  'raster-opacity': 0.8,
+                }, minzoom: 9});
                 sources.push (id);
                 layers.push (id);
               } else if (id === 'osm') {
-              map.addSource (id, {
-                type: 'raster',
-                tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                tileSize: 256,
-                attribution: osmCreditHTML,
-              });
-              map.addLayer ({id: id, type: "raster", source: id});
-                 sources.push (id);
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: osmCreditHTML,
+                });
+                map.addLayer ({id: id, type: "raster", source: id});
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'osm:overlay') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: osmCreditHTML,
+                });
+                map.addLayer ({id: id, type: "raster", source: id, paint: {
+                  'raster-opacity': 0.8,
+                }});
+                sources.push (id);
                 layers.push (id);
               } else {
                 throw new Error ("Bad layer ID |"+id+"|");
