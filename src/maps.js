@@ -5098,7 +5098,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                   type: 'raster',
                   tiles: ['https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg'],
                   tileSize: 256,
-                  attribution: gsiCreditHTML,
+                  attribution: gsiPhotoCreditHTML,
                   maxzoom: 8,
                 });
                 let before = newStyleURL ? 'background' : undefined;

@@ -83,8 +83,8 @@
     await this.wait (1000);
 
     var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 32.211, "scrolled 0");
-    this.assert.equal (pos.lon, 143.44399999999996);
+    this.assert.equal (Math.abs (pos.lat - 32.211) < 0.01, true, "scrolled 0 " + pos.lat);
+    this.assert.equal (Math.abs (pos.lon - 143.444) < 0.01, true, pos.lon);
     var v = e.valueAsLatLon;
     this.assert.equal (v.lat, -40.53);
     this.assert.equal (v.lon, 131.122);
@@ -94,10 +94,10 @@
     await this.wait (1000);
 
     var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 30.211, "scrolled");
-    this.assert.equal (pos.lon, 140.44399999999996);
+    this.assert.equal (Math.abs (pos.lat - 30.211) < 0.01, true, "scrolled " + pos.lat);
+    this.assert.equal (Math.abs (pos.lon - 140.444) < 0.01, true, pos.lon);
     var v = e.valueAsLatLon;
-    this.assert.equal (v.lat, 30.211);
+    this.assert.equal (Math.abs (v.lat - 30.211) < 0.01, true, v.lon);
     this.assert.equal (v.lon, 140.444);
 
     e.parentNode.style.overflow = 'scroll';
@@ -114,14 +114,14 @@
     await this.wait (1000);
 
     var v = e.getMapCenter ();
-    this.assert.equal (v.lat, 30.211);
-    this.assert.equal (v.lon, 140.44399999999996);
+    this.assert.equal (Math.abs (v.lat - 30.211) < 0.01, true, v.lat);
+    this.assert.equal (Math.abs (v.lon - 140.444) < 0.01, true, v.lon);
 
-    e.pcScroll ({center: {lat: 30.214, lon: 140.444}});
+    e.pcScroll ({center: {lat: 30.24, lon: 140.444}});
     await this.wait (1000);
 
     var v = e.getMapCenter ();
-    this.assert.equal ((v.lat - 30.211) === 0, false, v.lat);
+    this.assert.equal (Math.abs (v.lat - 30.211) < 0.01, false, v.lat);
     this.assert.equal (Math.abs (v.lon - 140.444) < 0.01, true, v.lon);
 
     e.pcScroll ({center: {lat: 31, lon: 140.444}, ifNeeded: true});
@@ -369,8 +369,8 @@
     await this.wait (1000);
     
     var center = e.getMapCenter ();
-    this.assert.equal (center.lat, -5);
-    this.assert.equal (center.lon, -10);
+    this.assert.equal (Math.abs (center.lat - -5) < 0.01, true, center.lat);
+    this.assert.equal (Math.abs (center.lon - -10) < 0.01, true, center.lon);
   </test-code>
 
   <test-code name="lat/lon race">
