@@ -101,18 +101,6 @@
                "run" : "make test-deps"
             },
             {
-               "run" : "docker run --name firefoxdriver -d --net=host -t quay.io/wakaba/firefoxdriver:stable /fx"
-            },
-            {
-               "run" : "TEST_WD_URL=http://localhost:9516 TEST_RESULTS_DIR=$CIRCLE_ARTIFACTS/test_results/firefox make test"
-            },
-            {
-               "run" : "docker logs firefoxdriver"
-            },
-            {
-               "run" : "docker kill firefoxdriver"
-            },
-            {
                "run" : "docker run --name chromedriver -d --net=host -t quay.io/wakaba/chromedriver:chromium /cd"
             },
             {
