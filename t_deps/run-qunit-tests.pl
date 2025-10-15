@@ -54,7 +54,7 @@ sub run_tests {
 
   push @{$wd_desired_capabilities->{chromeOptions}->{args} ||= []},
 
-  '--headless=new',
+  '--headless=old',
   '--no-sandbox',
   '--use-gl=swiftshader',
   '--enable-webgl',
