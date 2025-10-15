@@ -795,13 +795,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* page-components.js default styles */
 
 :root {
+  --paco-maplibre-control-z-index: 800; /* = .leaflet-control z-index */
   --paco-has-menu-z-index: 2000;
   --paco-menu-z-index: 99999999;
   --paco-leaflet-control-default-background-color: white;
   --paco-leaflet-control-default-color: black;
-  --paco-leaflet-control-hover-background-color: #f4f4f4;
+  --paco-leaflet-control-hover-background-color: #eee;
   --paco-leaflet-control-hover-color: black;
-  --paco-leaflet-control-selected-background-color: #ccc;
+  --paco-leaflet-control-selected-background-color: #aaa;
   --paco-leaflet-control-selected-color: black;
   --paco-leaflet-menu-background-color: white;
   --paco-leaflet-menu-color: #333;
@@ -1009,11 +1010,14 @@ map-area:not([hidden]) {
 map-area {
   width: 100%;
   height: 300px;
+  --paco-toggle-attribution: "Attribution";
   --paco-fullscreen-title: "Fullscreen";
   --paco-currentposition-title: "Current position";
   --paco-streetview-title: "Street View";
   --paco-zoomin-title: "Zoom in";
   --paco-zoomout-title: "Zoom out";
+  --paco-compass-north-title: "Reset bearing to north";
+  --paco-map-pitch: "Pitch";
   --paco-geolocation-failed-message: "Failed to get the current position.";
   --paco-maptype-title: "Map type";
   --paco-open-googlemaps-text: "Open in Google Maps";
@@ -1054,7 +1058,8 @@ map-area {
   --paco-maptype-osm-text: 'OpenStreetMap';
   --paco-maptype-gsi-text: 'GSI Tile';
   --paco-maptype-menu-meteorological: 'Meteorological';
-  --paco-marker-currentposition: "\25CF" purple 24px;
+  --paco-geolocation-latlonaccuracy: 0m;
+  --paco-marker-currentposition: circle rgb(29,161,242,0.2) var(--paco-geolocation-latlonaccuracy) transparent 0px / "\25CF" #ffffff 24px / "\25CF" #1da1f2 20px;
   --paco-marker-distance-point: circle gray 3px white 9px;
   --paco-line-distance: rgba(255,255,255,0.7) 9px / gray 3px;
   --paco-marker-value: none;
@@ -1067,11 +1072,14 @@ map-area:lang(en) {
   --paco--gsi-lang: gsi-english-standard;
 }
 map-area:lang(ja) {
+  --paco-toggle-attribution: "\51FA\5178\30FB\6A29\5229\8868\8A18";
   --paco-fullscreen-title: "\5168\753B\9762";
   --paco-currentposition-title: "\73FE\5728\5730";
   --paco-streetview-title: "\30B9\30C8\30EA\30FC\30C8\30D3\30E5\30FC";
   --paco-zoomin-title: "\62E1\5927";
   --paco-zoomout-title: "\7E2E\5C0F";
+  --paco-compass-north-title: "\5317\5411\304D\306B\623B\3059";
+  --paco-map-pitch: "\50BE\659C";
   --paco-geolocation-failed-message: "\73FE\5728\5730\306E\53D6\5F97\306B\5931\6557\3057\307E\3057\305F\3002";
   --paco-maptype-title: "\5730\56F3\306E\7A2E\985E";
   --paco-open-googlemaps-text: "Google Maps \3067\958B\304F";
@@ -1138,6 +1146,15 @@ map-area > iframe.googlemapsembed:not([hidden]) {
   border: none;
 }
 
+map-area .maplibregl-ctrl {
+  position: relative;
+  z-index: var(--paco-maplibre-control-z-index);
+}
+
+map-area .paco-maplibre-interactive {
+  cursor: pointer;
+}
+
 map-area map-credit {
   padding: 0 6px;
   background: rgba(245, 245, 245, 0.7);
@@ -1165,6 +1182,10 @@ map-area .paco-button-container {
   overflow: auto;
 }
 
+map-area .paco-pitch-button-container {
+  writing-mode: vertical-rl;
+}
+
 map-area button.paco-control-button,
 map-area button.paco-control-toggle-button {
   -webkit-appearance: none;
@@ -1184,8 +1205,14 @@ map-area button.paco-control-toggle-button {
   overflow: hidden;
   user-select: none;
 }
-map-area button.paco-control-button:hover,
-map-area button.paco-control-toggle-button:hover {
+map-area:fullscreen button.paco-fullscreen-control-button:not(:disabled) {
+  background-color: var(--paco-leaflet-control-selected-background-color);
+  color: var(--paco-leaflet-control-selected-color);
+}
+map-area button.paco-control-button:hover:not(:disabled),
+map-area button.paco-control-toggle-button:hover:not(:disabled),
+map-area button.paco-control-button:hover:not(:disabled),
+map-area button.paco-control-toggle-button:hover:not(:disabled) {
   background-color: var(--paco-leaflet-control-hover-background-color);
   color: var(--paco-leaflet-control-hover-color);
 }
@@ -1200,15 +1227,12 @@ map-area button.paco-control-toggle-button {
   font-size: 12px;
 }
 
-map-area:fullscreen button.paco-fullscreen-control-button {
-  background-color: var(--paco-leaflet-control-selected-background-color);
-  color: var(--paco-leaflet-control-selected-color);
-}
-
-map-area .leaflet-top.leaflet-left {
+map-area .leaflet-top.leaflet-left,
+map-area .maplibregl-ctrl-top-left {
   z-index: var(--paco-has-menu-z-index);
 }
-map-area .leaflet-control.paco-menu-container {
+map-area .leaflet-control.paco-menu-container,
+map-area .maplibregl-ctrl.paco-menu-container {
   z-index: var(--paco-menu-z-index);
 }
 
@@ -1229,17 +1253,23 @@ map-area popup-menu[open] > button.paco-control-button {
   color: var(--paco-leaflet-control-hover-color);
 }
 
+map-area .paco-maptype-control-button,
 map-area .paco-fullscreen-control-button,
 map-area .paco-currentposition-control-button,
-map-area .paco-maptype-control-button,
+map-area .paco-pitch-control-button,
 map-area .paco-streetview-control-button {
   font-family: var(--paco-symbol-font);
 }
 
 map-area .paco-fullscreen-control-button,
 map-area .paco-currentposition-control-button,
+map-area .paco-pitch-control-button,
 map-area .paco-streetview-control-button {
   max-width: 33px;
+}
+
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl-scale:has(+ .maplibregl-ctrl-scale) {
+  margin-bottom: 3px;
 }
 
 map-area popup-menu > button {
@@ -1311,10 +1341,12 @@ map-area popup-menu > menu-main > menu-item:not([hidden]) {
 }
 
 map-area popup-menu > menu-main > menu-item a:not([hidden]),
+map-area popup-menu > menu-main > menu-item > label:only-child:not([hidden]),
 map-area.leaflet-container popup-menu > menu-main > menu-item > label:only-child:not([hidden]) {
   display: block;
 }
 map-area popup-menu > menu-main > menu-item a,
+map-area popup-menu > menu-main > menu-item > label:only-child,
 map-area.leaflet-container popup-menu > menu-main > menu-item a,
 map-area.leaflet-container popup-menu > menu-main > menu-item > label:only-child {
   text-decoration: none;
@@ -1340,6 +1372,9 @@ map-area popup-menu > menu-main > menu-item > button {
 map-area popup-menu > menu-main > menu-item a:hover,
 map-area popup-menu > menu-main > menu-item a:focus,
 map-area popup-menu > menu-main > menu-item a:active,
+map-area popup-menu > menu-main > menu-item label:hover,
+map-area popup-menu > menu-main > menu-item label:focus,
+map-area popup-menu > menu-main > menu-item label:active,
 map-area.leaflet-container popup-menu > menu-main > menu-item label:hover,
 map-area.leaflet-container popup-menu > menu-main > menu-item label:focus,
 map-area.leaflet-container popup-menu > menu-main > menu-item label:active,
@@ -1663,7 +1698,8 @@ map-area .leaflet-bottom .paco-legend-toggle-button-container {
 }
 
 map-area.paco-legend-hidden .leaflet-control-scale,
-map-area.paco-legend-hidden .paco-legend-control {
+map-area.paco-legend-hidden .paco-legend-control,
+map-area.paco-legend-hidden .maplibregl-ctrl-scale {
   display: none;
 }
 

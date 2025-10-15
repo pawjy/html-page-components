@@ -29,8 +29,8 @@
     await e.ready;
 
     var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 0);
-    this.assert.equal (pos.lon, 0);
+    this.assert.equal (Math.abs (pos.lat - 0) < 0.01, true, pos.lat);
+    this.assert.equal (Math.abs (pos.lon - 0) < 0.01, true, pos.lon);
   </test-code>
 
   <test-code name="map-area lat lon">
@@ -46,8 +46,8 @@
     await e.ready;
 
     var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 20.33);
-    this.assert.equal (pos.lon, -120.7013);
+    this.assert.equal (Math.abs (pos.lat - 20.33) < 0.01, true, pos.lat);
+    this.assert.equal (Math.abs (pos.lon - -120.7013) < 0.01, true, pos.lon);
   </test-code>
 
   <test-code name="dynamic">

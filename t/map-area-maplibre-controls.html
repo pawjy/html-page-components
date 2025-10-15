@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test</title>
+  <style>
+    map-area {
+      width: 977px !important;
+    }
+  </style>
+</head>
+<body id=for-screenshot>
+
+  <test-code name="map-controls">
+    /*
+      <map-area engine=maplibre controls>
+        <map-controls>0</map-controls>
+        <map-controls position=top-left>1</map-controls>
+        <map-controls position=top-center>2</map-controls>
+        <map-controls position=top-right>3</map-controls>
+        <map-controls position=bottom-left>4</map-controls>
+        <map-controls position=bottom-center>5</map-controls>
+        <map-controls position=bottom-right>6</map-controls>
+        <map-controls position=left-top>7</map-controls>
+        <map-controls position=left-center>8</map-controls>
+        <map-controls position=left-bottom>9</map-controls>
+        <map-controls position=right-top>10</map-controls>
+        <map-controls position=right-center>11</map-controls>
+        <map-controls position=right-bottom>12</map-controls>
+      </map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+    await this.wait ();
+    await e.ready;
+
+    await this.wait (500);
+    
+    var controls = Array.prototype.slice.call (e.querySelectorAll ('map-controls')).sort ((a, b) => parseInt (a.textContent) - parseInt (b.textContent));
+    this.assert.equal (controls.length, 13);
+    this.assert.equal (Array.prototype.slice (e.children).filter (_ => _.localName === 'map-controls').length, 0);
+  </test-code>
+
+  <test-code name="map-controls dynamic">
+    /*
+      <map-area engine=maplibre controls>
+      </map-area>
+      <template>
+        <map-controls>0</map-controls>
+        <map-controls position=top-left>1</map-controls>
+        <map-controls position=top-center>2</map-controls>
+        <map-controls position=top-right>3</map-controls>
+        <map-controls position=bottom-left>4</map-controls>
+        <map-controls position=bottom-center>5</map-controls>
+        <map-controls position=bottom-right>6</map-controls>
+        <map-controls position=left-top>7</map-controls>
+        <map-controls position=left-center>8</map-controls>
+        <map-controls position=left-bottom>9</map-controls>
+        <map-controls position=right-top>10</map-controls>
+        <map-controls position=right-center>11</map-controls>
+        <map-controls position=right-bottom>12</map-controls>
+      </template>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+    await this.wait ();
+    await e.ready;
+
+    e.appendChild (this.currentScript.querySelector ('template').content);
+    
+    await this.wait (500);
+    
+    var controls = Array.prototype.slice.call (e.querySelectorAll ('map-controls')).sort ((a, b) => parseInt (a.textContent) - parseInt (b.textContent));
+    this.assert.equal (controls.length, 13);
+    this.assert.equal (Array.prototype.slice (e.children).filter (_ => _.localName === 'map-controls').length, 0);
+  </test-code>
+
+  <test-code name="controls=coordinates">
+    /*
+      <map-area controls=coordinates lang=en></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+    await e.ready;
+
+    var m = e.querySelector ('popup-menu');
+    let c = m.querySelector ('button[is=copy-button]');
+    this.assert.equal (c.textContent, 'Copy');
+
+    var ts = e.querySelector ('.paco-coordinates-control');
+    this.assert.equal (!!ts.offsetWidth, true);
+  </test-code>
+
+  <test-code name="distance">
+    /*
+      <map-area controls lang=en></map-area>
+    */
+    var e = this.currentScript.querySelector ('map-area');
+    await e.ready;
+
+    let m = e.querySelector ('popup-menu');
+    m.click ();
+    await this.wait ();
+    
+    let c = m.querySelector ('[value=distance]');
+    c.click ();
+    await this.wait ();
+
+    var ts = e.querySelector ('.paco-distance-control');
+    this.assert.equal (!!ts.offsetWidth, true);
+
+    let cb = ts.querySelector ('[is=paco-map-close-button]');
+    cb.click ();
+    await this.wait ();
+
+    this.assert.equal (!!ts.offsetWidth, false);
+  </test-code>
+  
+  <script src=runtests.js data-maps></script>
+</body>
+</html>
+<!--
+
+Per CC0 <https://creativecommons.org/publicdomain/zero/1.0/>, to the
+extent possible under law, the author has waived all copyright and
+related or neighboring rights to this work.
+
+-->

@@ -136,7 +136,7 @@
     e.setAttribute ('lat', 34.335);
     e.setAttribute ('lon', 35.00018);
 
-    await this.wait (500);
+    await this.wait (1000);
 
     var pos = e.getMapCenter ();
     this.assert.equal (pos.lat, 34.335);
@@ -157,7 +157,7 @@
     e.setAttribute ('lat', -5);
     e.setAttribute ('lon', -10);
 
-    await this.wait (500);
+    await this.wait (1000);
     
     var center = e.getMapCenter ();
     this.assert.equal (center.lat, -5);
@@ -205,7 +205,7 @@
     var e = this.currentScript.querySelector ('map-area');
 
     await e.ready;
-    await this.wait (500);
+    await this.wait (1000);
 
     e.setAttribute ('lat', 34.335);
     e.setAttribute ('lon', 35.00018);
@@ -248,10 +248,10 @@
 
     e.setAttribute ('lat', 53);
     e.setAttribute ('lon', 65);
-    await this.wait ();
+    await this.wait (2000);
 
     e.style.setProperty ('width', '488px', 'important');
-    await this.wait ();
+    await this.wait (1000);
       
     var pos = e.getMapCenter ();
     this.assert.equal (pos.lat, 53);

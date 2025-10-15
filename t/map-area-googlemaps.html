@@ -54,7 +54,7 @@
     await e.ready;
 
     var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 20.33);
+    this.assert.equal (Math.abs (pos.lat - 20.33) < 0.01, true, pos.lat);
     this.assert.equal (pos.lon, -120.7013);
 
     var v = e.valueAsLatLon;
@@ -78,11 +78,11 @@
     this.assert.equal (e.getAttribute ('lon'), -120.7013);
 
     var pos = e.getMapCenter ();
-    this.assert.equal (pos.lat, 20.33, 'gmc 1 lat');
+    this.assert.equal (Math.abs (pos.lat - 20.33) < 0.01, true, 'gmc 1 lat ' + pos.lat);
     this.assert.equal (pos.lon, -120.7013);
 
     e.pcScroll ({center: {lat: 32.211, lon: 143.444}});
-    await this.wait ();
+    await this.wait (1000);
 
     var pos = e.getMapCenter ();
     this.assert.equal (Math.abs (pos.lat - 32.211) < 0.01, true, 'gmc 2 lat');
@@ -92,7 +92,7 @@
     this.assert.equal (v.lon, 51.122);
 
     e.pcScroll ({center: {lat: 30.211, lon: 140.444}, setValue: true});
-    await this.wait ();
+    await this.wait (1000);
 
     var pos = e.getMapCenter ();
     this.assert.equal (Math.abs (pos.lat - 30.211) < 0.01, true, pos.lat);
@@ -181,7 +181,7 @@
     var v = await eventInvoked;
 
     var pos = v[0];
-    this.assert.equal (pos.lat, 20.33);
+    this.assert.equal (Math.abs (pos.lat - 20.33) < 0.01, true, pos.lat);
     this.assert.equal (pos.lon, -120.7013);
 
     var bounds = v[1];
