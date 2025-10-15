@@ -44,7 +44,10 @@
     */
     var f = this.currentScript.querySelector ('form');
     var e = f.querySelector ('map-area');
-    await this.wait (1000);
+    await new Promise (ok => setInterval (() => {
+      let img = e.querySelector ('.maplibregl-marker img');
+      if (img) ok ();
+    }, 1000));
 
     let img = e.querySelector ('.maplibregl-marker img');
     this.assert.equal (img.naturalWidth > 0, true, img.naturalWidth);
