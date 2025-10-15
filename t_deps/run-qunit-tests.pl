@@ -120,7 +120,7 @@ sub execute_test_html_file {
           }).catch (e => {
             throw '' + e;
           });
-        }, [], timeout => 600)->then (sub {
+        }, [], timeout => 30)->then (sub {
           my $result = $_[0];
           $all_tests_passed = $result->json->{value}->{allTestsPassed};
 
