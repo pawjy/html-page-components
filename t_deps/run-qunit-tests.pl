@@ -53,7 +53,7 @@ sub run_tests {
       json_bytes2perl $ENV{TEST_WD_DESIRED_CAPABILITIES} : {};
 
   push @{$wd_desired_capabilities->{chromeOptions}->{args} ||= []},
-      '--disable-webgl', '--disable-gpu', '--disable-software-rasterizer';
+      '--disable-gpu', '--use-gl=swiftshader';
   
   my $pattern = qr/@{[$ENV{TEST_METHOD} || ".*"]}/;
 
