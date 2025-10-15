@@ -60,7 +60,7 @@
 
     // For debugs
     let hArgs = [];                                                    
-    m.pcAddCoordinatesSetter (_ => hArgs.push (_));
+    e.pcAddCoordinatesSetter (_ => hArgs.push (_));
 
     e.pcScroll ({center: {lat: 31, lon: 140.444}});
     await this.wait (1000);
