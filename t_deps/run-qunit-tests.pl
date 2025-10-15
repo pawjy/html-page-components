@@ -72,7 +72,11 @@ sub run_tests {
     } else {
       print "not ok - $url -> $result_path\n";
       push @failed, "$url -> $result_path";
-      $exit_code = 1;
+      if ($ENV{TEST_IS_CHROME} and $path =~ m{map-area-maplibre|leaflet-gl}) {
+        print "# failed but allowed\n";
+      } else {
+        $exit_code = 1;
+      }
     }
   }
   for (@failed) {

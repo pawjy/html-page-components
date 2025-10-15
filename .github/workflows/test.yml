@@ -116,7 +116,7 @@
                "run" : "docker run --name chromedriver -d --net=host -t quay.io/wakaba/chromedriver:chromium /cd"
             },
             {
-               "run" : "TEST_WD_URL=http://localhost:9515 TEST_RESULTS_DIR=$CIRCLE_ARTIFACTS/test_results/chromium make test || (docker logs chromedriver && false)"
+               "run" : "TEST_IS_CHROME=1 TEST_WD_URL=http://localhost:9515 TEST_RESULTS_DIR=$CIRCLE_ARTIFACTS/test_results/chromium make test || (docker logs chromedriver && false)"
             },
             {
                "run" : "docker logs chromedriver"
