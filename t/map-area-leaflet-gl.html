@@ -60,10 +60,15 @@
 
     // For debugs
     let hArgs = [];                                                    
-    e.pcLMap.pcAddCoordinatesSetter ((_, changes) => hArgs.push (changes));
-
+    let p = new Promise ((ok, ng) => {
+      e.pcLMap.pcAddCoordinatesSetter ((_, changes) => {
+        hArgs.push (changes);
+        ok ();
+      });
+    });
+    
     e.pcScroll ({center: {lat: 31, lon: 140.444}});
-    await this.wait (1000);
+    await p;
 
     var pos = e.getMapCenter ();
     this.assert.equal (pos.lat, 31);
