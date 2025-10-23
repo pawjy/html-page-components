@@ -3429,35 +3429,66 @@
                   });
                 }
               }
-              if (pp.length) {
-                if (!this.pc_DistanceLines) {
+              if (this.pcLMap) {
+                if (pp.length) {
+                  if (!this.pc_DistanceLines) {
+                    // recompute!
+                    computedStyle = computedStyle || getComputedStyle (this);
+                    let v = computedStyle.getPropertyValue
+                        ('--paco-line-distance') || 'none';
+                    this.pc_DistanceLines = [];
+                    for (let w of v.split (/\s+\/\s+/)) {
+                      let m = w.match (/^\s*(\S+)\s+([0-9.]+)px\s*$/);
+                      if (m) {
+                        this.pc_DistanceLines.push (L.polyline ([], {
+                          color: m[1],
+                          weight: parseFloat (m[2]),
+                        }).addTo (this.pcLMap));
+                      } else {
+                        console.log ("Bad |--paco-line-distance| property value: |"+v+"|");
+                        delete this.pc_DistanceLines;
+                        break;
+                      }
+                    } // w
+                  }
+                  (this.pc_DistanceLines || []).forEach
+                      (_ => _.setLatLngs (pp.map (_ => ({lat: _.lat, lng: _.lon}))));
+                } else {
+                  if (this.pc_DistanceLines) {
+                    this.pc_DistanceLines.forEach (_ => _.remove ());
+                    delete this.pc_DistanceLines;
+                  }
+                }
+              } // pcLMap
+              if (this.pc_MLMap) {
+                let lines = [];
+                if (pp.length) {
                   // recompute!
                   computedStyle = computedStyle || getComputedStyle (this);
                   let v = computedStyle.getPropertyValue
                       ('--paco-line-distance') || 'none';
-                  this.pc_DistanceLines = [];
                   for (let w of v.split (/\s+\/\s+/)) {
                     let m = w.match (/^\s*(\S+)\s+([0-9.]+)px\s*$/);
                     if (m) {
-                      this.pc_DistanceLines.push (L.polyline ([], {
-                        color: m[1],
-                        weight: parseFloat (m[2]),
-                      }).addTo (this.pcLMap));
+                      lines.push ({
+                        type: 'Feature',
+                        geometry: {
+                          type: 'LineString',
+                          coordinates: pp.map (c => [c.lon, c.lat]),
+                        },
+                        properties: {
+                          color: m[1],
+                          width: parseFloat (m[2]),
+                        },
+                      });
                     } else {
                       console.log ("Bad |--paco-line-distance| property value: |"+v+"|");
-                      delete this.pc_DistanceLines;
                       break;
                     }
                   } // w
                 }
-                (this.pc_DistanceLines || []).forEach
-                    (_ => _.setLatLngs (pp.map (_ => ({lat: _.lat, lng: _.lon}))));
-              } else {
-                if (this.pc_DistanceLines) {
-                  this.pc_DistanceLines.forEach (_ => _.remove ());
-                  delete this.pc_DistanceLines;
-                }
-              }
+                this.pc_MLMap.getSource ('pc_DistanceLines').setData ({type: "FeatureCollection", features: lines});
+              } // pc_MLMap
               if (updates.distanceMarkers) {
                 let i = 0;
                 (this.pc_DistancePoints || []).forEach ((p) => {
@@ -4842,6 +4873,23 @@
               if (lx.onAdd) lx.onAdd (this, map);
               if (lx.onRemove) this.pc_CurrentMLLayerRemoves.push (lx.onRemove);
             });
+
+            map.addSource ('pc_DistanceLines', {
+              type: 'geojson',
+              data: {type: "FeatureCollection", features: []},
+              //attribution:
+            });
+            sources.push ('pc_DistanceLines');
+            map.addLayer ({
+              id: 'pc_DistanceLines',
+              type: 'line',
+              source: 'pc_DistanceLines',
+              paint: {
+                'line-color': ['get', 'color'],
+                'line-width': ['get', 'width'],
+              },
+            });
+            layers.push ('pc_DistanceLines');
             
             this.pc_CurrentMLLayerIds = layers;
             this.pc_CurrentMLSourceIds = sources;
