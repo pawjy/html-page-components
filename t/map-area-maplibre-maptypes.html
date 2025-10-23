@@ -67,7 +67,6 @@
     this.assert.equal (e.pcMapType, 'gsi-english');
   </test-code>
 
-  <!-- XXX
   <test-code name="map-area jma">
     /*
       <map-area engine=maplibre lat=20.33 lon=-120.7013 controls jma lang=ja></map-area>
@@ -84,6 +83,8 @@
     this.assert.equal (input.parentNode.querySelector ('span').textContent, '雨雲の動き');
 
     input.click ();
+    await this.wait (100);
+    
     var ts = e.querySelector ('.paco-jma-timestamp-control');
     this.assert.equal (!!ts.offsetWidth, true);
     this.assert.equal (!!ts.querySelector ('time').textContent, true);
@@ -106,12 +107,13 @@
     this.assert.equal (input.parentNode.querySelector ('span').textContent, '雨雲の動き');
 
     input.click ();
+    await this.wait (100);
+
     var ts = e.querySelector ('.paco-jma-timestamp-control');
     this.assert.equal (!!ts.offsetWidth, true);
     this.assert.equal (!!ts.querySelector ('time').textContent, true);
     this.assert.equal (ts.querySelector ('time').getAttribute ('tzoffset'), null);
   </test-code>
-  -->
 
   <test-code name="map-area gsi osm">
     /*

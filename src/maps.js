@@ -941,8 +941,6 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     )) * 6378137;
   }; // sphereDistance
 
-  
-  
   L.GridLayer.TileImages = L.GridLayer.extend ({
     createTile: function (coords, done) {
       var img = document.createElement ('img');
@@ -979,6 +977,134 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     return new L.GridLayer.TileImages (opts);
   };
 
+  L.tileLayer.evenZoomOnly = function (url, opts) {
+    return new L.TileLayer.EvenZoomOnly (url, opts);
+  };
+  L.TileLayer.EvenZoomOnly = L.TileLayer.extend ({
+    initialize: function (url, options) {
+      L.TileLayer.prototype.initialize.call (this, url, options);
+    },
+    
+    createTile: function (coords, done) {
+      let zoom = coords.z;
+      if (zoom % 2 === 0 ||
+          zoom < this.options.minNativeZoom ||
+          zoom > this.options.maxNativeZoom) {
+        return L.TileLayer.prototype.createTile.call (this, coords, done);
+      }
+
+      let tile = document.createElement ('canvas');
+      tile.width = tile.height = 256;
+      let ctx = tile.getContext ('2d');
+
+      let nativeZ = zoom - 1;
+      let scale = Math.pow (2, zoom - nativeZ);
+      let nativeX = Math.floor (coords.x / scale);
+      let nativeY = Math.floor (coords.y / scale);
+      let offsetX = -(coords.x - nativeX * scale) * 256;
+      let offsetY = -(coords.y - nativeY * scale) * 256;
+
+      let urlOpts = {
+        ...this.options,
+        x: nativeX,
+        y: nativeY,
+        z: nativeZ,
+      };
+      let url = this._url.replace (/\{([^{}]+)\}/g, (_, x) => urlOpts[x]);
+
+      let img = document.createElement ('img');
+      new Promise ((ok, ng) => {
+        img.crossOrigin = '';
+        img.onload = ok;
+        img.onerror = ng;
+        img.src = url;
+      }).then (() => {
+        ctx.setTransform (scale, 0, 0, scale, offsetX, offsetY);
+        ctx.drawImage (img, 0, 0);
+        done (null, tile);
+      }, ev => {
+        done (ev, tile);
+      });
+      
+      return tile;
+    },
+  });
+
+  maplibregl.addProtocol ('paco-even', (params, signal) => {
+    let z;
+    let url1 = params.url.replace (/^[^:]+:\/\/([0-9]+)\//, (_, a) => {
+      z = parseInt (a);
+      return '';
+    });
+    if (z % 2 !== 0) {
+      return Promise.reject (new Error ('No image'));
+    }
+    return new Promise ((ok, ng) => {
+      let img = document.createElement ('img');
+      img.crossOrigin = '';
+      img.onload = () => ok (img);
+      img.onerror = ng;
+      img.src = url1;
+    }).then (img => {
+      let canvas = document.createElement ('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+
+      let ctx = canvas.getContext ('2d');
+      ctx.drawImage (img, 0, 0);
+
+      let {data} = ctx.getImageData (0, 0, canvas.width, canvas.height);
+
+      let isTransparent = true;
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] !== 0) {
+          isTransparent = false;
+          break;
+        }
+      }
+
+      return new Promise (ok => canvas.toBlob (ok));
+    }).then (async blob => {
+      return {data: await blob.arrayBuffer ()};
+    });
+  });
+
+  maplibregl.addProtocol ('paco-nontransparent', (params, signal) => {
+    let url1 = params.url.replace (/^[^:]+:\/\/\//, '');
+    return new Promise ((ok, ng) => {
+      let img = document.createElement ('img');
+      img.crossOrigin = '';
+      img.onload = () => ok (img);
+      img.onerror = ng;
+      img.src = url1;
+    }).then (img => {
+      let canvas = document.createElement ('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+
+      let ctx = canvas.getContext ('2d');
+      ctx.drawImage (img, 0, 0);
+
+      let {data} = ctx.getImageData (0, 0, canvas.width, canvas.height);
+
+      let isTransparent = true;
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] !== 0) {
+          isTransparent = false;
+          break;
+        }
+      }
+
+      if (isTransparent) {
+        throw new Error ('No data');
+      } else {
+        return new Promise (ok => canvas.toBlob (ok));
+      }
+    }).then (async blob => {
+      return {data: await blob.arrayBuffer ()};
+    });
+  });
+  
   /* ------ GSI tiles and vector maps ------ */
 
   L.GridLayer.GSIOverlay = L.GridLayer.extend ({
@@ -1888,7 +2014,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     };
   }; // MLLegendToggleButtonControl
   
-  L.control.timestampControl = function (opts) {
+  let MLTimestampControl;
+  [L.control.timestampControl, MLTimestampControl] = ElementControl ((opts) => {
     var t = document.createElement ('map-controls');
     t.className = 'paco-timestamp-control paco-jma-timestamp-control';
     let type = {
@@ -1922,8 +2049,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         }
       });
     }
-    return new L.Control.ElementControl (opts);
-  }; // L.control.timestampControl
+  }); // L.control.timestampControl
   
   let MLCoordinatesControl;
   [L.control.coordinatesControl, MLCoordinatesControl] = ElementControl ((opts) => {
@@ -1963,7 +2089,6 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     opts.remove = (b, map) => {
       map.pcRemoveCoordinatesSetter (handler);
     };
-    return new L.Control.ElementControl (opts);
   }); // L.control.coordinatesControl
   
   let MLDistanceControl;
@@ -2020,9 +2145,11 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     };
   }); // distance
 
-  var JMAMaps = {
+  let JMAMaps = {
     hrpns: {
       pattern: 'https://www.jma.go.jp/bosai/jmatile/data/nowc/{urlTimestamp0}/none/{urlTimestamp}/surf/hrpns/{z}/{x}/{y}.png',
+      mapLibrePattern: 'paco-even://{z}/https://www.jma.go.jp/bosai/jmatile/data/nowc/{urlTimestamp0}/none/{urlTimestamp}/surf/hrpns/{z}/{x}/{y}.png',
+      evenZoomOnly: true,
       nextDelta: 5,
       currentDelta: 5,
       nowDelta: 2,
@@ -2032,19 +2159,23 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     },
     thns: {
       pattern: 'https://www.jma.go.jp/bosai/jmatile/data/nowc/{urlTimestamp0}/none/{urlTimestamp}/surf/thns/{z}/{x}/{y}.png',
+      mapLibrePattern: 'paco-even://{z}/https://www.jma.go.jp/bosai/jmatile/data/nowc/{urlTimestamp0}/none/{urlTimestamp}/surf/thns/{z}/{x}/{y}.png',
+      evenZoomOnly: true,
       nextDelta: 10,
       currentDelta: 10,
       nowDelta: 5,
-      maxNativeZoom: 9,
+      maxNativeZoom: 8, // was 9
       opacity: 0.5,
       zooms: [],
     },
     trns: {
       pattern: 'https://www.jma.go.jp/bosai/jmatile/data/nowc/{urlTimestamp0}/none/{urlTimestamp}/surf/trns/{z}/{x}/{y}.png',
+      mapLibrePattern: 'paco-even://{z}/https://www.jma.go.jp/bosai/jmatile/data/nowc/{urlTimestamp0}/none/{urlTimestamp}/surf/trns/{z}/{x}/{y}.png',
+      evenZoomOnly: true,
       nextDelta: 10,
       currentDelta: 10,
       nowDelta: 5,
-      maxNativeZoom: 9,
+      maxNativeZoom: 8, // was 9
       opacity: 0.5,
       zooms: [],
     },
@@ -2081,6 +2212,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
       opacity: 1,
       zooms: [],
       jmaLinkType: 'himawari',
+      mapLibreBackground: true,
     },
     umimeshwind: {
       // https://www.jma.go.jp/bosai/umimesh/#lat:36.341678/lon:136.842957/zoom:8/colordepth:deep/elements:wind
@@ -2243,7 +2375,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     var time = getTime ();
     let layer;
     let refetch = () => {};
+    let needUpdate = false;
     if (mapDef.isGeoJSON) {
+      needUpdate = true;
       let mapper = (_, __) => _;
       let dataType = 'direction';
       let propKey = 'value';
@@ -2261,7 +2395,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                 type: 'Feature',
                 properties: {
                   value: v[0],
-                  wind: (w.wind || [])[0],
+                  wind: (w.wind || [])[0], // Leaflet, MapLibre
+                  windDirection: (w.windDirection || [])[0], // MapLibre
                 },
                 geometry: {
                   type: 'Point',
@@ -2280,6 +2415,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         propKey = 'windDir';
       }
       let pointToLayer;
+      let toTextColor;
       if (dataType === 'direction' || dataType === 'windDirection') {
         pointToLayer = function (feature, latlng) {
           let wd = feature.properties[propKey];
@@ -2394,12 +2530,251 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           });
           return L.marker (latlng, {icon});
         };
+        toTextColor = {
+          temp: [
+            "case",
+            [">=", ["get", propKey], 35], 'rgb(180, 0, 104)',
+            [">=", ["get", propKey], 30], 'rgb(255, 40, 0)',
+            [">=", ["get", propKey], 25], 'rgb(255, 153, 0)',
+            [">=", ["get", propKey], 20], 'rgb(250, 245, 0)',
+            [">=", ["get", propKey], 15], 'rgb(255, 255, 150)',
+            [">=", ["get", propKey], 10], 'rgb(255, 255, 240)',
+            [">=", ["get", propKey],  5], 'rgb(185, 235, 255)',
+            [">=", ["get", propKey],  0], 'rgb(0, 150, 255)',
+            [">=", ["get", propKey], -5], 'rgb(0, 65, 255)',
+            [">=", ["get", propKey],-10], 'rgb(0, 32, 128)',
+            'black',
+          ],
+          humidity: [
+            "case",
+            [">=", ["get", propKey], 100], 'rgb(1, 31, 125)',
+            [">=", ["get", propKey],  90], 'rgb(0, 75, 150)',
+            [">=", ["get", propKey],  80], 'rgb(0, 114, 154)',
+            [">=", ["get", propKey],  70], 'rgb(31, 194, 211)',
+            [">=", ["get", propKey],  60], 'rgb(128, 248, 231)',
+            [">=", ["get", propKey],  50], 'rgb(255, 255, 240)',
+            [">=", ["get", propKey],  40], 'rgb(255, 200, 70)',
+            [">=", ["get", propKey],  30], 'rgb(231, 135, 7)',
+            [">=", ["get", propKey],  20], 'rgb(171, 74, 1)',
+            [">=", ["get", propKey],  10], 'rgb(118, 17, 0)',
+            [">=", ["get", propKey],   0], 'rgb(84, 6, 0)',
+            'black',
+          ],
+          sun1h: [
+            "case",
+            [">=", ["get", propKey], 1  ], 'rgb(180, 0, 104)',
+            [">=", ["get", propKey], 0.8], 'rgb(255, 40, 0)',
+            [">=", ["get", propKey], 0.6], 'rgb(255, 153, 0)',
+            [">=", ["get", propKey], 0.4], 'rgb(250, 245, 0)',
+            [">=", ["get", propKey], 0.2], 'rgb(185, 235, 255)',
+            [">=", ["get", propKey],   0], 'rgb(0, 65, 255)',
+            'black',
+          ],
+          precipitation10m: [
+            "case",
+            [">=", ["get", propKey],  30], 'rgb(180, 0, 104)',
+            [">=", ["get", propKey],  20], 'rgb(255, 40, 0)',
+            [">=", ["get", propKey],  15], 'rgb(255, 153, 0)',
+            [">=", ["get", propKey],  10], 'rgb(250, 245, 0)',
+            [">=", ["get", propKey],   5], 'rgb(0, 65, 255)',
+            [">=", ["get", propKey],   3], 'rgb(33, 140, 255)',
+            [">=", ["get", propKey],   1], 'rgb(160, 210, 255)',
+            [">=", ["get", propKey],   0], 'rgb(242, 242, 255)',
+            'black',
+          ],
+          precipitation1h: [
+            "case",
+            [">=", ["get", propKey],  80], 'rgb(180, 0, 104)',
+            [">=", ["get", propKey],  50], 'rgb(255, 40, 0)',
+            [">=", ["get", propKey],  30], 'rgb(255, 153, 0)',
+            [">=", ["get", propKey],  20], 'rgb(250, 245, 0)',
+            [">=", ["get", propKey],  10], 'rgb(0, 65, 255)',
+            [">=", ["get", propKey],   5], 'rgb(33, 140, 255)',
+            [">=", ["get", propKey],   1], 'rgb(160, 210, 255)',
+            [">=", ["get", propKey],   0], 'rgb(242, 242, 255)',
+            'black',
+          ],
+          precipitation3h: [
+            "case",
+            [">=", ["get", propKey], 150], 'rgb(180, 0, 104)',
+            [">=", ["get", propKey], 120], 'rgb(255, 40, 0)',
+            [">=", ["get", propKey], 100], 'rgb(255, 153, 0)',
+            [">=", ["get", propKey],  80], 'rgb(250, 245, 0)',
+            [">=", ["get", propKey],  60], 'rgb(0, 65, 255)',
+            [">=", ["get", propKey],  40], 'rgb(33, 140, 255)',
+            [">=", ["get", propKey],  20], 'rgb(160, 210, 255)',
+            [">=", ["get", propKey],   0], 'rgb(242, 242, 255)',
+            'black',
+          ],
+          precipitation24h: [
+            "case",
+            [">=", ["get", propKey], 300], 'rgb(180, 0, 104)',
+            [">=", ["get", propKey], 250], 'rgb(255, 40, 0)',
+            [">=", ["get", propKey], 200], 'rgb(255, 153, 0)',
+            [">=", ["get", propKey], 150], 'rgb(250, 245, 0)',
+            [">=", ["get", propKey], 100], 'rgb(0, 65, 255)',
+            [">=", ["get", propKey],  80], 'rgb(33, 140, 255)',
+            [">=", ["get", propKey],  50], 'rgb(160, 210, 255)',
+            [">=", ["get", propKey],   0], 'rgb(242, 242, 255)',
+            'black',
+          ],
+          snow: [
+            "case",
+            [">=", ["get", propKey], 200], 'rgb(180, 0, 104)',
+            [">=", ["get", propKey], 150], 'rgb(255, 40, 0)',
+            [">=", ["get", propKey], 100], 'rgb(255, 153, 0)',
+            [">=", ["get", propKey],  50], 'rgb(250, 245, 0)',
+            [">=", ["get", propKey],  20], 'rgb(0, 65, 255)',
+            [">=", ["get", propKey],   5], 'rgb(33, 140, 255)',
+            [">=", ["get", propKey],   1], 'rgb(160, 210, 255)',
+            [">=", ["get", propKey],   0], 'rgb(242, 242, 255)',
+            'black',
+          ],
+          snow6h: [
+            "case",
+            [">=", ["get", propKey], 50], 'rgb(180, 0, 104)',
+            [">=", ["get", propKey], 30], 'rgb(255, 40, 0)',
+            [">=", ["get", propKey], 20], 'rgb(255, 153, 0)',
+            [">=", ["get", propKey], 15], 'rgb(250, 245, 0)',
+            [">=", ["get", propKey], 10], 'rgb(0, 65, 255)',
+            [">=", ["get", propKey],  5], 'rgb(33, 140, 255)',
+            [">=", ["get", propKey],  1], 'rgb(160, 210, 255)',
+            [">=", ["get", propKey],  0], 'rgb(242, 242, 255)',
+            'black',
+          ],
+          snow12h: [
+            "case",
+            [">=", ["get", propKey], 70], 'rgb(180, 0, 104)',
+            [">=", ["get", propKey], 50], 'rgb(255, 40, 0)',
+            [">=", ["get", propKey], 30], 'rgb(255, 153, 0)',
+            [">=", ["get", propKey], 20], 'rgb(250, 245, 0)',
+            [">=", ["get", propKey], 10], 'rgb(0, 65, 255)',
+            [">=", ["get", propKey],  5], 'rgb(33, 140, 255)',
+            [">=", ["get", propKey],  1], 'rgb(160, 210, 255)',
+            [">=", ["get", propKey],  0], 'rgb(242, 242, 255)',
+            'black',
+          ],
+          snow24h: [
+            "case",
+            [">=", ["get", propKey],100], 'rgb(180, 0, 104)',
+            [">=", ["get", propKey], 70], 'rgb(255, 40, 0)',
+            [">=", ["get", propKey], 50], 'rgb(255, 153, 0)',
+            [">=", ["get", propKey], 30], 'rgb(250, 245, 0)',
+            [">=", ["get", propKey], 20], 'rgb(0, 65, 255)',
+            [">=", ["get", propKey], 10], 'rgb(33, 140, 255)',
+            [">=", ["get", propKey],  1], 'rgb(160, 210, 255)',
+            [">=", ["get", propKey],  0], 'rgb(242, 242, 255)',
+            'black',
+          ],
+          wind: [
+            "case",
+            [">=", ["get", "wind"], 25], 'rgb(180, 0, 104)',
+            [">=", ["get", "wind"], 20], 'rgb(255, 40, 0)',
+            [">=", ["get", "wind"], 15], 'rgb(255, 153, 0)',
+            [">=", ["get", "wind"], 10], 'rgb(250, 245, 0)',
+            [">=", ["get", "wind"],  5], 'rgb(0, 65, 255)',
+            [">=", ["get", "wind"],  0], 'rgb(242, 242, 255)',
+            'black',
+          ],
+        }[dataType];
       }
-      layer = L.geoJSON ({type: "FeatureCollection", features: []}, {
-        pointToLayer,
-      });
+      if (opts.mapLibre) {
+        layer = {
+          sourceId: opts.type + '-' + opts.param1,
+          source: {
+            type: 'geojson',
+            data: {type: "FeatureCollection", features: []},
+            attribution: '<a href=https://www.jma.go.jp/jma/kishou/info/coment.html target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a>',
+          },
+          layers: [{
+            layerId: opts.type + '-' + opts.param1,
+            layer: {
+              id: opts.type + '-' + opts.param1,
+              source: opts.type + '-' + opts.param1,
+              type: "circle",
+              layout: {
+              },
+              paint: {
+                "circle-radius": ((dataType === 'wind' || dataType === 'direction') ? 16 : 20),
+                "circle-color": "gray",
+                //"circle-stroke-color": "black",
+                //"circle-stroke-width": 1,
+                "circle-opacity": 0.4,
+              },
+              //filter: ['==', ['geometry-type'], 'Point'],
+            },
+          }, {
+            layerId: opts.type + '-' + opts.param1 + '-text',
+            layer: {
+              id: opts.type + '-' + opts.param1 + '-text',
+              source: opts.type + '-' + opts.param1,
+              type: "symbol",
+              layout: {
+                'text-font': ['NotoSansJP-Regular'],
+                'text-field': ["get", propKey],
+                'text-size': 16,
+                'text-offset': [0, 0],
+                'text-anchor': 'center',
+                'text-allow-overlap': true,
+                'text-rotation-alignment': 'viewport',
+                //'text-rotation-alignment': 'map',
+              },
+              paint: {
+                'text-color': ((dataType === 'wind' || dataType === 'direction') ? 'white' : toTextColor),
+                'text-halo-color': 'white',
+                'text-halo-width': 2,
+              },
+            },
+          }],
+        };
+        if (dataType === 'direction' || dataType === 'wind') {
+          layer.layers.splice (0, (dataType === 'direction' ? 2 : 0), {
+            layerId: opts.type + '-' + opts.param1 + '-dir',
+            layer: {
+              id: opts.type + '-' + opts.param1 + '-dir',
+              source: opts.type + '-' + opts.param1,
+              type: "symbol",
+              layout: {
+                'text-font': ['NotoSansJP-Regular'],
+                'text-field': "\u2B06",
+                'text-size': 64,
+                'text-offset': [0, -0.1],
+                'text-anchor': 'center',
+                'text-allow-overlap': true,
+                'text-rotation-alignment': 'map',
+                'text-rotate': (dataType === 'wind' ? [
+                  'match',
+                  ['get', 'windDirection'],
+                  0, 0, 1, 22.5, 2, 45, 3, 67.5,
+                  4, 90, 5, 112.5, 6, 135, 7, 157.5,
+                  8, 180, 9, 202.5, 10, 225, 11, 247.5,
+                  12, 270, 13, 292.5, 14, 315, 15, 337.5,
+                  16, 0,
+                  0,
+                ] : [
+                  'match',
+                  ['get', 'windDir'],
+                  'N', 0, 'NE', 45, 'E', 90, 'SE', 135,
+                  'S', 180, 'SW', 225, 'W', 270, 'NW', 315,
+                  0,
+                ]),
+              },
+              paint: {
+                'text-color': (dataType === 'direction' ? 'black' : toTextColor),
+                'text-halo-color': 'white',
+                'text-halo-color': 'rgba(0,0,0,0.5)',
+                'text-halo-width': 1,
+              },
+            },
+          });
+        }
+      } else {
+        layer = L.geoJSON ({type: "FeatureCollection", features: []}, {
+          pointToLayer,
+        });
+      }
       let prevU = null;
-      refetch = (time, layer) => {
+      refetch = (map, time, mapLayer) => {
         let u = L.Util.template (mapDef.pattern, {
           urlTimestamp0: time.urlTimestamp0,
           urlTimestamp: time.prevFormatted,
@@ -2415,40 +2790,82 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           }),
           (mapDef.jmaLinkType === 'amedas' ? getAmedasTable () : null),
         ]).then (([json, amedas]) => {
-          layer.clearLayers ();
-          layer.addData (mapper (json, amedas));
+          if (opts.mapLibre) {
+            map.getSource (layer.sourceId).setData (mapper (json, amedas));
+          } else {
+            mapLayer.clearLayers ();
+            mapLayer.addData (mapper (json, amedas));
+          }
         }).catch (e => {
           prevU = null;
           throw e;
         });
       };
-      refetch (time, layer);
     } else {
-      layer = L.tileLayer (mapDef.pattern, {
-        attribution: '<a href=https://www.jma.go.jp/jma/kishou/info/coment.html target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a>',
-        errorTileUrl: opts.errorTileUrl,
-        maxNativeZoom: mapDef.maxNativeZoom,
-        minNativeZoom: mapDef.minNativeZoom || 4,
-        maxZoom: opts.maxZoom,
-        opacity: mapDef.opacity,
-        urlTimestamp0: time.urlTimestamp0,
-        urlTimestamp: time.prevFormatted,
-        param1: opts.param1 || mapDef.param1,
-      });
-      refetch = (time, layer) => {
-        layer.options.urlTimestamp = time.prevFormatted;
-        layer.options.urlTimestamp0 = time.urlTimestamp0;
-        layer.options.param1 = opts.param1 || time.mapDef.param1;
-        layer.setUrl (time.mapDef.pattern, false);
-      };
+      if (opts.mapLibre) {
+        layer = {
+          sourceId: opts.type,
+          source: {
+            type: 'raster',
+            tiles: [(mapDef.mapLibrePattern || mapDef.pattern)
+                    .replace (/\{urlTimestamp0\}/g, time.urlTimestamp0)
+                    .replace (/\{urlTimestamp\}/g, time.prevFormatted)
+                    .replace (/\{param1\}/g, opts.param1 || mapDef.param1)],
+            tileSize: 256,
+            attribution: '<a href=https://www.jma.go.jp/jma/kishou/info/coment.html target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a>',
+          },
+          layers: [{
+            layerId: opts.type,
+            layer: {
+              id: opts.type, type: "raster", source: opts.type,
+              paint: {
+                'raster-opacity': mapDef.opacity,
+              },
+            },
+            background: mapDef.mapLibreBackground,
+          }],
+        };
+        if (mapDef.minNativeZoom) layer.source.minzoom = mapDef.minNativeZoom;
+        if (mapDef.maxNativeZoom) layer.source.maxzoom = mapDef.maxNativeZoom;
+        refetch = (map, time, layer) => {
+          map.getSource (opts.type).setTiles
+              ([(mapDef.mapLibrePattern || mapDef.pattern)
+                    .replace (/\{urlTimestamp0\}/g, time.urlTimestamp0)
+                    .replace (/\{urlTimestamp\}/g, time.prevFormatted)
+                    .replace (/\{param1\}/g, opts.param1 || mapDef.param1)]);
+          //map.triggerRepaint ();
+        };
+      } else {
+        let tileOpts = {
+          attribution: '<a href=https://www.jma.go.jp/jma/kishou/info/coment.html target=_blank rel=noreferrer>\u6C17\u8C61\u5E81</a>',
+          errorTileUrl: opts.errorTileUrl,
+          maxNativeZoom: mapDef.maxNativeZoom,
+          minNativeZoom: mapDef.minNativeZoom || 4,
+          maxZoom: opts.maxZoom,
+          opacity: mapDef.opacity,
+          urlTimestamp0: time.urlTimestamp0,
+          urlTimestamp: time.prevFormatted,
+          param1: opts.param1 || mapDef.param1,
+        };
+        if (mapDef.evenZoomOnly) {
+          layer = L.tileLayer.evenZoomOnly (mapDef.pattern, tileOpts);
+        } else {
+          layer = L.tileLayer (mapDef.pattern, tileOpts);
+        }
+        refetch = (map, time, layer) => {
+          layer.options.urlTimestamp = time.prevFormatted;
+          layer.options.urlTimestamp0 = time.urlTimestamp0;
+          layer.options.param1 = opts.param1 || time.mapDef.param1;
+          layer.setUrl (time.mapDef.pattern, false);
+        };
+      }
     }
     
-    var needReload = false;
-    var needUpdate = false;
-    var timeout;
+    let needReload = false;
+    let timeout;
     let updateTimeElements = () => {};
-    var prevTimePrev = null;
-    var requestReload = (layer, time) => {
+    let prevTimePrev = null;
+    let requestReload = (layer, map, time) => {
       if (!needReload) return;
       time = time || getTime ();
       if (prevTimePrev === time.prev) return;
@@ -2456,56 +2873,77 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
       if (needUpdate) clearTimeout (timeout);
       timeout = setTimeout (() => {
         if (!needReload) return;
-        var time = getTime ();
-        refetch (time, layer);
+        let time = getTime ();
+        refetch (map, time, layer);
         updateTimeElements (time);
         if (explicitTime) needReload = false;
-        requestReload (layer, time);
+        requestReload (layer, map, time);
       }, needUpdate ? 0 : time.delta);
       needUpdate = false;
     }; // requestReload
 
     let legends = [];
     if (!opts.noTimestamp) {
-      let ts = L.control.timestampControl ({
-        position: 'bottomleft',
-        setTimeElementUpdater: _ => {
-          updateTimeElements = _;
-          _ (time);
-        },
-        type: mapDef.jmaLinkType || 'nowc',
-        isLegend: true,
-      });
-      legends.push (ts);
+      if (opts.mapLibre) {
+        let ts = new MLTimestampControl ({
+          setTimeElementUpdater: _ => {
+            updateTimeElements = _;
+            _ (time);
+          },
+          type: mapDef.jmaLinkType || 'nowc',
+          isLegend: true,
+        });
+        legends.push ({element: ts, position: 'bottom-left'});
+      } else {
+        let ts = L.control.timestampControl ({
+          position: 'bottomleft',
+          setTimeElementUpdater: _ => {
+            updateTimeElements = _;
+            _ (time);
+          },
+          type: mapDef.jmaLinkType || 'nowc',
+          isLegend: true,
+        });
+        legends.push (ts);
+      }
     }
 
     if (mapDef.isUmiWind) {
       let t = document.createElement ('map-controls');
       t.className = 'paco-jma-legend-control';
       t.innerHTML = '<img src=https://www.jma.go.jp/bosai/umimesh/images/legend_deep_ws.svg referrerpolicy=no-referrer>';
-      let ec = new L.Control.ElementControl ({
-        element: t,
-        position: 'bottomleft',
-        isLegend: true,
-      });
-      legends.push (ec);
+      if (opts.mapLibre) {
+        let ec = new MLElementControl (t, {
+          isLegend: true,
+        });
+        legends.push ({element: ec, position: 'bottom-left'});
+      } else {
+        let ec = new L.Control.ElementControl ({
+          element: t,
+          position: 'bottomleft',
+          isLegend: true,
+        });
+        legends.push (ec);
+      }
     }
 
     let map;
-    let ba = layer.beforeAdd;
-    if (ba) {
-      layer.beforeAdd = function (_) {
-        map = _;
-        return ba.apply (this, arguments);
-      };
-    } else {
-      map = opts.map;
+    if (!opts.mapLibre) { // leaflet
+      let ba = layer.beforeAdd;
+      if (ba) {
+        layer.beforeAdd = function (_) {
+          map = _;
+          return ba.apply (this, arguments);
+        };
+      } else {
+        map = opts.map;
+      }
     }
 
     var timeSetter = (newTime) => {
       explicitTime = newTime * 1000; // or NaN
       needReload = needUpdate = true;
-      requestReload (layer, null);
+      requestReload (layer, map, null);
     }; // timeSetter
 
     let zoomChanged = null;
@@ -2516,24 +2954,42 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           needReload = needUpdate = true;
         }
         currentZ = newZ;
-        requestReload (layer, null);
+        requestReload (layer, map, null);
       }; // zoomChanged
     }
-    
-    layer.on ('add', ev => {
-      needReload = true;
-      requestReload (ev.target, null);
-      legends.forEach (_ => _.addTo (map));
-      map.pcAddTimeSetter (timeSetter);
-      if (zoomChanged) map.on ('zoomend', zoomChanged);
-    });
-    layer.on ('remove', ev => {
-      needReload = false;
-      clearTimeout (timeout);
-      legends.forEach (_ => _.remove ());
-      map.pcRemoveTimeSetter (timeSetter);
-      if (zoomChanged) map.off ('zoomend', zoomChanged);
-    });
+
+    if (opts.mapLibre) {
+      layer.onAdd = (e, m) => {
+        map = m;
+        needReload = true;
+        requestReload (null, map, null);
+        legends.forEach (_ => map.addControl (_.element, _.position));
+        map.pcAddTimeSetter (timeSetter);
+        if (zoomChanged) map.on ('zoomend', zoomChanged);
+      };
+      layer.onRemove = (e, m) => {
+        needReload = false;
+        clearTimeout (timeout);
+        legends.forEach (_ => map.removeControl (_.element));
+        map.pcRemoveTimeSetter (timeSetter);
+        if (zoomChanged) map.off ('zoomend', zoomChanged);
+      };
+    } else { // Leaflet
+      layer.on ('add', ev => {
+        needReload = true;
+        requestReload (ev.target, map, null);
+        legends.forEach (_ => _.addTo (map));
+        map.pcAddTimeSetter (timeSetter);
+        if (zoomChanged) map.on ('zoomend', zoomChanged);
+      });
+      layer.on ('remove', ev => {
+        needReload = false;
+        clearTimeout (timeout);
+        legends.forEach (_ => _.remove ());
+        map.pcRemoveTimeSetter (timeSetter);
+        if (zoomChanged) map.off ('zoomend', zoomChanged);
+      });
+    }
 
     return layer;
   }; // L.tileLayer.jma
@@ -4024,8 +4480,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           }
         }
 
-        var maxZoom = 21;
-        var errorTileUrl = this.getAttribute ('noimgsrc') || noImageURL;
+          let maxZoom = 21;
+          let errorTileUrl = this.getAttribute ('noimgsrc') || noImageURL;
+          let noTimestamp = false;
         if (type === 'gsi-standard') {
           let wLayer = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
@@ -4521,7 +4978,6 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           //
         }
 
-        var noTimestamp = false;
         if (this.pcJMANowc_rain) {
           var lNowc = L.tileLayer.jma ({
             maxZoom,
@@ -4622,6 +5078,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         if (this.pc_MLMap) {
           let map = this.pc_MLMap;
           let requested = [];
+          let jmaLayers = [];
           let newStyleURL = null;
           let newStyleMode = null;
 
@@ -4637,8 +5094,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             }
           }
           
-          //var maxZoom = 21;
-          //var errorTileUrl = this.getAttribute ('noimgsrc') || noImageURL;
+          let noTimestamp = false;
           if (type === 'gsi-standard') {
             requested.push ('gsi-standard:8-');
             requested.push ('gsi-standard:9+');
@@ -4674,73 +5130,47 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             newStyleMode = 'overlay';
             requested.push ('gsi-photo:8-');
             requested.push ('gsi-photo:9+');
-            /*XXX
           } else if (type === 'himawari') {
-          let lHimawari = L.tileLayer.jma ({
-            maxZoom,
-            errorTileUrl,
-            type: 'himawari',
-            param1: sTypeParam1,
-            noTimestamp,
-          });
-          layers.push ({layer: lHimawari});
-          noTimestamp = true;
-        } else if (type === 'himawari+gsi-standard') {
-          let lHimawari = L.tileLayer.jma ({
-            maxZoom,
-            errorTileUrl,
-            type: 'himawari',
-            param1: sTypeParam1,
-            noTimestamp,
-          });
-          layers.push ({layer: lHimawari});
-          noTimestamp = true;
-          let lGSI = L.gridLayer.gsiOverlay ({
-            attribution: gsiCreditHTML,
-            errorTileUrl,
-            maxNativeZoom: 18,
-            minNativeZoom: 2,
-            maxZoom,
-          });
-          layers2.push ({layer: lGSI});
-        } else if (type === 'himawari+gsi-optimal_bvmap') {
-          let lHimawari = L.tileLayer.jma ({
-            maxZoom,
-            errorTileUrl,
-            type: 'himawari',
-            param1: sTypeParam1,
-            noTimestamp,
-          });
-          layers.push ({layer: lHimawari});
-          noTimestamp = true;
-
-          let gl = L.GridLayer.gsiOptimalBvmap ({
-            maxZoom,
-          });
-          let lGSI = L.gridLayer.gsiOverlay ({
-            attribution: gsiCreditHTML,
-            errorTileUrl,
-            maxNativeZoom: 18,
-            minNativeZoom: 2,
-            maxZoom,
-          });
-          layers2.push ({layer: gl, fallbackLayer: lGSI});
-        } else if (type === 'jma-umimesh-wind') {
-          let layer = L.tileLayer.jma ({
-            maxZoom,
-            errorTileUrl,
-            type: 'umimeshwind',
-            noTimestamp,
-          });
-          layers.push ({layer: layer});
-          noTimestamp = true;
-          let layerD = L.tileLayer.jma ({
-            maxZoom,
-            type: 'umimeshwinddir',
-            noTimestamp,
-            map,
-          });
-          layers.push ({layer: layerD});
+            jmaLayers.push (L.tileLayer.jma ({
+              //maxZoom,
+              //errorTileUrl,
+              type: 'himawari',
+              param1: sTypeParam1,
+              noTimestamp,
+              mapLibre: true,
+            }));
+            noTimestamp = true;
+          } else if (type === 'himawari+gsi-standard') {
+            // Not implemented
+          } else if (type === 'himawari+gsi-optimal_bvmap') {
+            jmaLayers.push (L.tileLayer.jma ({
+              //maxZoom,
+              //errorTileUrl,
+              type: 'himawari',
+              param1: sTypeParam1,
+              noTimestamp,
+              mapLibre: true,
+            }));
+            noTimestamp = true;
+            newStyleURL = "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json";
+            newStyleMode = 'overlay';
+          } else if (type === 'jma-umimesh-wind') {
+            jmaLayers.push (L.tileLayer.jma ({
+              //maxZoom,
+              //errorTileUrl,
+              type: 'umimeshwind',
+              noTimestamp,
+              mapLibre: true,
+            }));
+            noTimestamp = true;
+            jmaLayers.push (L.tileLayer.jma ({
+              //maxZoom,
+              type: 'umimeshwinddir',
+              noTimestamp,
+              map,
+              mapLibre: true,
+            }));
+            /*XXX
         } else if (type === 'jma-umimesh-wind+gsi-standard') {
           let layer = L.tileLayer.jma ({
             maxZoom,
@@ -4781,86 +5211,77 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             //
           }
 
-          /*XXX
-        var noTimestamp = false;
-        if (this.pcJMANowc_rain) {
-          var lNowc = L.tileLayer.jma ({
-            maxZoom,
-            errorTileUrl,
-            type: 'rain',
-            noTimestamp,
-          });
-          layers.push ({layer: lNowc});
-          noTimestamp = true;
-        }
-        if (this.pcJMANowc_thns) {
-          var lNowc = L.tileLayer.jma ({
-            maxZoom,
-            errorTileUrl,
-            type: 'thns',
-            noTimestamp,
-          });
-          layers.push ({layer: lNowc});
-          noTimestamp = true;
-        }
-        if (this.pcJMANowc_trns) {
-          var lNowc = L.tileLayer.jma ({
-            maxZoom,
-            errorTileUrl,
-            type: 'trns',
-            noTimestamp,
-          });
-          layers.push ({layer: lNowc});
-          noTimestamp = true;
-        }
-        ['precipitation10m', 'precipitation1h', 'precipitation3h',
-         'precipitation24h', 'temp', 'sun1h', 'humidity',
-         'snow', 'snow6h', 'snow12h', 'snow24h'].forEach (k => {
-          if (this['pcJMANowc_' + k]) {
-            let l = L.tileLayer.jma ({
-              maxZoom,
-              errorTileUrl,
-              type: 'amedas',
-              param1: k,
+          if (this.pcJMANowc_rain) {
+            jmaLayers.push (L.tileLayer.jma ({
+              //maxZoom,
+              //errorTileUrl,
+              type: 'rain',
               noTimestamp,
-              map,
-            });
-            layers.push ({layer: l});
+              mapLibre: true,
+            }));
             noTimestamp = true;
           }
-        });
-        if (this.pcJMANowc_wind) {
-          let l = L.tileLayer.jma ({
-            maxZoom,
-            errorTileUrl,
-            type: 'amedas',
-            param1: 'windDirection',
-            noTimestamp,
-            map,
+          if (this.pcJMANowc_thns) {
+            jmaLayers.push (L.tileLayer.jma ({
+              //maxZoom,
+              //errorTileUrl,
+              type: 'thns',
+              noTimestamp,
+              mapLibre: true,
+            }));
+            noTimestamp = true;
+          }
+          if (this.pcJMANowc_trns) {
+            jmaLayers.push (L.tileLayer.jma ({
+              //maxZoom,
+              //errorTileUrl,
+              type: 'trns',
+              noTimestamp,
+              mapLibre: true,
+            }));
+            noTimestamp = true;
+          }
+          ['precipitation10m', 'precipitation1h', 'precipitation3h',
+           'precipitation24h', 'temp', 'sun1h', 'humidity',
+           'snow', 'snow6h', 'snow12h', 'snow24h'].forEach (k => {
+            if (this['pcJMANowc_' + k]) {
+              jmaLayers.push (L.tileLayer.jma ({
+                //maxZoom,
+                //errorTileUrl,
+                type: 'amedas',
+                param1: k,
+                noTimestamp,
+                map,
+                mapLibre: true,
+              }));
+              noTimestamp = true;
+            }
           });
-          layers.push ({layer: l});
-          noTimestamp = true;
-          let m = L.tileLayer.jma ({
-            maxZoom,
-            errorTileUrl,
-            type: 'amedas',
-            param1: 'wind',
-            noTimestamp,
-            map,
-          });
-          layers.push ({layer: m});
-        }
-          */
+          if (this.pcJMANowc_wind) {
+            jmaLayers.push (L.tileLayer.jma ({
+              //maxZoom,
+              //errorTileUrl,
+              type: 'amedas',
+              param1: 'wind',
+              noTimestamp,
+              map,
+              mapLibre: true,
+            }));
+            noTimestamp = true;
+          }
 
           waits.push (Promise.resolve ().then (() => {
             if (this.pc_MLCurrentStyleURL === newStyleURL &&
                 this.pc_MLCurrentStyleMode === newStyleMode) return false;
             if (newStyleURL === null) {
               map.setStyle (null);
+              map.setGlyphs ("https://gsi-cyberjapan.github.io/optimal_bvmap/glyphs/{fontstack}/{range}.pbf");
               this.pc_MLCurrentStyleURL = null;
               this.pc_MLCurrentStyleMode = null;
               this.pc_CurrentMLLayerIds = [];
               this.pc_CurrentMLSourceIds = [];
+              (this.pc_CurrentMLLayerRemoves || []).forEach (_ => _ (this, map));
+              this.pc_CurrentMLLayerRemoves = [];
               this.pc_UpdateAttribution ();
               return true;
             }
@@ -4868,6 +5289,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             this.pc_MLCurrentStyleURL = newStyleURL;
             this.pc_CurrentMLLayerIds = [];
             this.pc_CurrentMLSourceIds = [];
+            (this.pc_CurrentMLLayerRemoves || []).forEach (_ => _ (this, map));
+            this.pc_CurrentMLLayerRemoves = [];
             this.pc_MLCurrentStyleMode = newStyleMode;
             return new Promise ((ok, ng) => {
               //style: 'https://demotiles.maplibre.org/style.json',
@@ -4936,7 +5359,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             map.addSource ("aist-dem", {
               type: 'raster-dem',
               tiles: ['numpng://tiles.gsj.jp/tiles/elev/mixed/{z}/{y}/{x}.png'],
-              attribution: '<a href="https://tiles.gsj.jp/tiles/elev/tiles.html">\u7523\u696D\u6280\u8853\u7DCF\u5408\u7814\u7A76\u6240%20\u30B7\u30FC\u30E0\u30EC\u30B9\u6A19\u9AD8\u30BF\u30A4\u30EB(\u7D71\u5408DEM)</a>',
+              attribution: '<a href="https://tiles.gsj.jp/tiles/elev/tiles.html">\u7523\u696D\u6280\u8853\u7DCF\u5408\u7814\u7A76\u6240 \u30B7\u30FC\u30E0\u30EC\u30B9\u6A19\u9AD8\u30BF\u30A4\u30EB(\u7D71\u5408DEM)</a>',
               tileSize: 256,
             });
             map.setTerrain ({source: 'aist-dem', 'exaggeration': 1});
@@ -4955,6 +5378,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                 console.log (e);
               }
             });
+            (this.pc_CurrentMLLayerRemoves || []).forEach (_ => _ (this, map));
+            this.pc_CurrentMLLayerRemoves = [];
 
             let sources = [];
             let layers = [];
@@ -5179,6 +5604,21 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                 throw new Error ("Bad layer ID |"+id+"|");
               }
             });
+
+            let ll = map.getStyle ().layers;
+            jmaLayers.forEach (lx => {
+              if (lx.sourceId) {
+                map.addSource (lx.sourceId, lx.source);
+                sources.push (lx.sourceId);
+              }
+              lx.layers.forEach (l => {
+                map.addLayer (l.layer, l.background ? ll[0].id : undefined);
+                layers.push (l.layerId);
+              });
+              if (lx.onAdd) lx.onAdd (this, map);
+              if (lx.onRemove) this.pc_CurrentMLLayerRemoves.push (lx.onRemove);
+            });
+            
             this.pc_CurrentMLLayerIds = layers;
             this.pc_CurrentMLSourceIds = sources;
           }));
