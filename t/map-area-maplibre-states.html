@@ -11,7 +11,6 @@
 </head>
 <body id=for-screenshot>
 
-  <!-- XXX
   <test-code name="map-area timestamp tzoffset">
     /*
       <map-area engine=maplibre lat=20.33 lon=-120.7013 controls jma tzoffset=-3600 lang=ja></map-area>
@@ -28,12 +27,13 @@
     this.assert.equal (input.parentNode.querySelector ('span').textContent, '雨雲の動き');
 
     input.click ();
+    await this.wait (100);
+    
     var ts = e.querySelector ('.paco-jma-timestamp-control');
     this.assert.equal (!!ts.offsetWidth, true);
     this.assert.equal (!!ts.querySelector ('time').textContent, true);
     this.assert.equal (ts.querySelector ('time').getAttribute ('data-tzoffset'), '-3600');
   </test-code>
-  -->
 
   <test-code name="formdata 1">
     /*
