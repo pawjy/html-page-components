@@ -1667,10 +1667,12 @@ The following content attributes are available:
     If specified, the marker for the "value" point coordinates of the
     map is not draggable.
 
-  <map-area terrain=""> : boolean
+  <map-area terrain=""> : float
 
-    Whether the map should be rendered in the 3D mode using the
-    elevation data as terrain sources.
+    If a positive value is specified, the map is rendered in the 3D
+    mode using the elevation data as terrain sources.  The value is
+    interpreted as the factor of exaggeration.  If zero (0), the
+    default, is specified, the map is rendered in the 2D mode.
 
     The 産業技術総合研究所's シームレス標高タイル
     <https://tiles.gsj.jp/tiles/elev/tiles.html> is used as the
