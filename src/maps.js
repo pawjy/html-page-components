@@ -3072,7 +3072,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
               this.pc_NewView.bearing = this.maAttrFloat ('bearing', 0);
               this.maRedraw ({view: true});
             } else if (mr.attributeName === 'terrain') {
-              this.pc_NewView.terrain = this.hasAttribute ('terrain');
+              this.pc_NewView.terrain = this.maAttrFloat ('terrain', 0);
               this.maRedraw ({view: true});
             } else if (mr.attributeName === 'readonly') {
               this.maRedraw ({readonly: true});
@@ -3709,11 +3709,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         }
 
         if (this.pc_NewView && this.pc_NewView.terrain != null) {
-          if (this.pc_Terrain && this.pc_NewView.terrain) {
-            //
-          } else if (!this.pc_Terrain && !this.pc_NewView.terrain) {
-            //
-          } else {
+          if (this.pc_Terrain !== this.pc_NewView.terrain) {
             this.pc_Terrain = this.pc_NewView.terrain;
             this.maRedrawNeedUpdated.mapType = true;
 
@@ -5350,7 +5346,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
               attribution: '<a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md">Tilezen Joerd: Attribution</a>',
               encoding: "terrarium",
             });
-            map.setTerrain({source:"joerd", 'exaggeration': 1});
+            map.setTerrain({source:"joerd", 'exaggeration': this.pc_Terrain});
             */
 
             /*
@@ -5362,7 +5358,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
               attribution: gsiCreditHTML,
               tileSize: 256,
             });
-            map.setTerrain ({'source': 'gsidem', 'exaggeration': 1});
+            map.setTerrain ({'source': 'gsidem', 'exaggeration': this.pc_Terrain});
             */
 
             map.addSource ("aist-dem", {
@@ -5371,7 +5367,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
               attribution: '<a href="https://tiles.gsj.jp/tiles/elev/tiles.html">\u7523\u696D\u6280\u8853\u7DCF\u5408\u7814\u7A76\u6240 \u30B7\u30FC\u30E0\u30EC\u30B9\u6A19\u9AD8\u30BF\u30A4\u30EB(\u7D71\u5408DEM)</a>',
               tileSize: 256,
             });
-            map.setTerrain ({source: 'aist-dem', 'exaggeration': 1});
+            map.setTerrain ({source: 'aist-dem', 'exaggeration': this.pc_Terrain});
           }).then (() => {
             (this.pc_CurrentMLLayerIds || []).forEach (id => {
               try {
