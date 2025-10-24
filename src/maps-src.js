@@ -3178,7 +3178,7 @@
                                   mlMoveHandlers: [], gmItems: []};
               return;
             }
-
+            
             let mk = this[markerName] = {lItems: [], mlItems: [],
                                          mlMoveHandlers: [], gmItems: []};
             for (let v of w.split (/\s\/\s/)) {
@@ -3334,6 +3334,7 @@
                   let mm = L.circle (pos, {
                     fill: true,
                     fillColor: fill,
+                    fillOpacity: 1,
                     radius: radius,
                     color: stroke,
                     weight: strokeSize,
@@ -3399,8 +3400,9 @@
           if (updates.currentPositionMarker || updates.all) {
             if (this.pcCurrentPosition) {
               updateMarker ('pcCurrentPositionMarker', '--paco-marker-currentposition', this.pcCurrentPosition, {
-                redraw: updates.redrawMarkers,
+                redraw: updates.redrawMarkers || this.pcCurrentPosition.needRedraw,
               });
+              delete this.pcCurrentPosition.needRedraw;
             }
           } // currentPositionMarker
 
@@ -4995,6 +4997,7 @@
             lat: p.coords.latitude,
             lon: p.coords.longitude,
             latLonAccuracy: p.coords.accuracy,
+            needRedraw: true,
           };
           this.style.setProperty
               ('--paco-geolocation-latlonaccuracy',
