@@ -518,6 +518,14 @@
           glmap.setPaintProperty (layerId + 3, "line-opacity", 0.3);
           glmap.setPaintProperty (layerId + 4, "line-opacity", 0.3);
         });
+        if (!opts.contour) {
+          glmap.getStyle ().layers.forEach (layer => {
+            // 等高線 等深線
+            if (/\u7B49(?:\u9AD8|\u6DF1)\u7DDA/.test (layer.id)) {
+              glmap.setLayoutProperty (layer.id, "visibility", 'none');
+            }
+          });
+        }
       });
     });
     return gl;
@@ -863,6 +871,7 @@
     };
     let ml = class extends MLElementControl {
       constructor (opts) {
+        opts.mapLibre = true;
         code (opts);
         return super (opts.element, opts);
       };
@@ -1048,13 +1057,23 @@
       } // jma=""
 
       let gsh = 'gsi-standard-hillshade';
+      let gshFalse = 'gsi-lang';
       let gph = 'gsi-photo-optimal_bvmap'; // gsi-photo-standard
-      let ghs = 'gsi-hillshade-optimal_bvmap'; // 'gsi-hillshade-standard';
+      let gphFalse = 'gsi-photo';
+      let ghs = 'gsi-hillshade-optimal_bvmap-nocontour'; // 'gsi-hillshade-standard';
       let hig = 'himawari+gsi-optimal_bvmap'; // himawari+gsi-standard
+      let osmTrue = 'osm-gsi-hillshade';
+      let osmFalse = 'osm';
+      if (opts.mapLibre) {
+        gsh = 'gsi-optimal_bvmap-nocontour-hillshade';
+        gshFalse = 'gsi-optimal_bvmap';
+        gph = 'gsi-photo-optimal_bvmap-nocontour';
+        osmTrue = 'osm-gsi-hillshade+gsi-optimal_bvmap-label';
+      }
       if (e.hasAttribute ('gsi')) {
         var mm = m.querySelector ('menu-main');
         var nodes = document.createElement ('div');
-        nodes.innerHTML = '<menu-item><popup-menu data-true='+gsh+' data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main class=paco-map-menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true='+gph+' data-false=gsi-photo data-label=photo><button type=button class=paco-control-button>Photo</button><menu-main class=paco-photo-menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true='+ghs+' data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><button type=button class=paco-maptype-button data-true=none>None</button></menu-item><hr>';
+        nodes.innerHTML = '<menu-item><popup-menu data-true='+gsh+' data-false='+gshFalse+'><button type=button class=paco-control-button>Map</button><menu-main class=paco-map-menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true='+gph+' data-false='+gphFalse+' data-label=photo><button type=button class=paco-control-button>Photo</button><menu-main class=paco-photo-menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><popup-menu data-true='+ghs+' data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu></menu-item><menu-item><button type=button class=paco-maptype-button data-true=none>None</button></menu-item><hr>';
         let nb = nodes.querySelector ('menu-item:last-of-type button');
         let nps = [nodes.querySelector ('.paco-photo-menu-main')];
         let mps = [nodes.querySelector ('.paco-map-menu-main')];
@@ -1065,7 +1084,7 @@
         if (opts.buttons) {
           var n = document.createElement ('span');
           n.className = 'paco-menu-button-container';
-          n.innerHTML = '<popup-menu data-true='+gsh+' data-false=gsi-lang><button type=button class=paco-control-button>Map</button><menu-main class=paco-map-menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu><popup-menu data-true='+gph+' data-false=gsi-photo data-label=photo><button type=button class=paco-control-button>Photo</button><menu-main class=paco-photo-menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu><popup-menu data-true='+ghs+' data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu>';
+          n.innerHTML = '<popup-menu data-true='+gsh+' data-false='+gshFalse+'><button type=button class=paco-control-button>Map</button><menu-main class=paco-map-menu-main><menu-item><label><input type=checkbox> <span>Hillshade</span></label></menu-item></menu-main></popup-menu><popup-menu data-true='+gph+' data-false='+gphFalse+' data-label=photo><button type=button class=paco-control-button>Photo</button><menu-main class=paco-photo-menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu><popup-menu data-true='+ghs+' data-false=gsi-hillshade><button type=button class=paco-control-button>Hillshade</button><menu-main><menu-item><label><input type=checkbox> <span>Labels</span></label></menu-item></menu-main></popup-menu>';
           pms = pms.concat (Array.prototype.slice.call (n.querySelectorAll ('popup-menu')));
 
           c.insertBefore (n, c.firstChild);
@@ -1079,9 +1098,9 @@
         var sHillshade = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-hillshade-text'), 'Hillshade');
         var sNone = e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-none-text'), 'None');
         var buttonLabels = {
-          'gsi-lang': sMap,
+          [gshFalse]: sMap,
           'photo': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-photo-text'), 'Photo'),
-          'gsi-photo': e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-gsi-photo-text'), 'Photo'),
+          [gphFalse]: e.pcInternal.parseCSSString (s.getPropertyValue ('--paco-maptype-gsi-photo-text'), 'Photo'),
           'gsi-hillshade': sHillshade,
           [gsh]: sHillshade,
           [gph]: sMapLabel,
@@ -1099,7 +1118,7 @@
           nps.forEach (p => {
             let m = document.createElement ('menu-item');
             p.appendChild (m);
-            m.outerHTML = '<menu-item><button type=button data-false=gsi-photo data-true='+gph+'>Photo</button></menu-item><menu-item><button type=button data-false=himawari:B13/TBB data-true='+hig+':B13/TBB>Himawari (B13/TBB)</button></menu-item><menu-item><button type=button data-false=himawari:B03/ALBD data-true='+hig+':B03/ALBD>Himawari (B03/ALBD)</button></menu-item><menu-item><button type=button data-false=himawari:B08/TBB data-true='+hig+':B08/TBB>Himawari (B08/TBB)</button></menu-item><menu-item><button type=button data-false=himawari:REP/ETC data-true='+hig+':REP/ETC>Himawari (REP/ETC)</button></menu-item><menu-item><button type=button data-false=himawari:SND/ETC data-true='+hig+':SND/ETC>Himawari (SND/ETC)</button></menu-item>';
+            m.outerHTML = '<menu-item><button type=button data-false='+gphFalse+' data-true='+gph+'>Photo</button></menu-item><menu-item><button type=button data-false=himawari:B13/TBB data-true='+hig+':B13/TBB>Himawari (B13/TBB)</button></menu-item><menu-item><button type=button data-false=himawari:B03/ALBD data-true='+hig+':B03/ALBD>Himawari (B03/ALBD)</button></menu-item><menu-item><button type=button data-false=himawari:B08/TBB data-true='+hig+':B08/TBB>Himawari (B08/TBB)</button></menu-item><menu-item><button type=button data-false=himawari:REP/ETC data-true='+hig+':REP/ETC>Himawari (REP/ETC)</button></menu-item><menu-item><button type=button data-false=himawari:SND/ETC data-true='+hig+':SND/ETC>Himawari (SND/ETC)</button></menu-item>';
           });
         }
 
@@ -1107,7 +1126,7 @@
           mps.forEach (p => {
             let m = document.createElement ('menu-item');
             p.appendChild (m);
-            m.outerHTML = '<menu-item><button type=button data-true='+gsh+' data-false=gsi-lang data-label=gsi></button></menu-item><menu-item><button type=button data-true=osm-gsi-hillshade data-false=osm data-label=osm></button></menu-item>';
+            m.outerHTML = '<menu-item><button type=button data-true='+gsh+' data-false='+gshFalse+' data-label=gsi></button></menu-item><menu-item><button type=button data-true='+osmTrue+' data-false='+osmFalse+' data-label=osm></button></menu-item>';
           });
         }
 
@@ -3989,7 +4008,8 @@
               (jpGSI, {boundary: JPGSIMapBoundary});
               layers.push ({layer: jpGSIClipped});
           */
-        } else if (type === 'gsi-hillshade-optimal_bvmap') {
+        } else if (type === 'gsi-hillshade-optimal_bvmap' ||
+                   type === 'gsi-hillshade-optimal_bvmap-nocontour') {
           let wLayer = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png', {
                 attribution: gsiCreditHTML,
@@ -4028,6 +4048,7 @@
 
           let gl = L.GridLayer.gsiOptimalBvmap ({
             maxZoom,
+            contour: type === 'gsi-hillshade-optimal_bvmap',
           });
           let jpGSI = L.gridLayer.gsiOverlay ({
             //attribution: gsiCreditHTML,
@@ -4036,6 +4057,7 @@
             minNativeZoom: 2,
             maxZoom,
             //minZoom: 9,
+            //contour: false, (true not implemented)
           });
           layers2.push ({layer: gl, fallbackLayer: jpGSI});
         } else if (type === 'gsi-photo') {
@@ -4091,7 +4113,8 @@
             maxZoom,
           });
           layers2.push ({layer: lGSI});
-        } else if (type === 'gsi-photo-optimal_bvmap') {
+        } else if (type === 'gsi-photo-optimal_bvmap' ||
+                   type === 'gsi-photo-optimal_bvmap-nocontour') {
           let wLayer = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
                 attribution: gsiPhotoCreditHTML,
@@ -4115,6 +4138,7 @@
 
           let gl = L.GridLayer.gsiOptimalBvmap ({
             maxZoom,
+            contour: type === 'gsi-photo-optimal_bvmap',
           });
           let lGSI = L.gridLayer.gsiOverlay ({
             //attribution: gsiCreditHTML,
@@ -4122,6 +4146,7 @@
             maxNativeZoom: 18,
             minNativeZoom: 2,
             maxZoom,
+            //contour: false only
           });
           layers2.push ({layer: gl, fallbackLayer: lGSI});
         } else if (type === 'himawari') {
@@ -4225,7 +4250,9 @@
                 maxZoom,
               });
           layers.push ({layer: wLayer});
-        } else if (type === 'osm-gsi-hillshade') {
+        } else if (type === 'osm-gsi-hillshade' ||
+                   type === 'osm-gsi-hillshade+gsi-optimal_bvmap-label' ||
+                   type === 'osm-gsi-hillshade+gsi-optimal_bvmap-contour-label') {
           let lShade = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
                 attribution: gsiCreditHTML,
@@ -4245,12 +4272,20 @@
                 opacity: 0.8,
               });
           layers.push ({layer: wLayer});
-        } else if (type === 'gsi-optimal_bvmap') {
+          // osm-gsi-hillshade+gsi-optimal_bvmap-label and
+          // osm-gsi-hillshade+gsi-optimal_bvmap-contour-label not
+          // supported, fallbacked here.
+        } else if (type === 'gsi-optimal_bvmap' ||
+                   type === 'gsi-optimal_bvmap-hillshade' ||
+                   type === 'gsi-optimal_bvmap-nocontour-hillshade') {
           let gl = L.maplibreGL ({
             style: "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json",
             maxZoom,
           });
           layers.push ({layer: gl});
+          // gsi-optimal_bvmap-hillshade and
+          // gsi-optimal_bvmap-nocontour-hillshade not supported,
+          // fallbacked to here.
         } else if (type === 'none') {
           //
         }
@@ -4397,6 +4432,11 @@
             newStyleMode = 'overlay';
             requested.push ('gsi-hillshade:8-');
             requested.push ('gsi-hillshade:9+');
+          } else if (type === 'gsi-hillshade-optimal_bvmap-nocontour') {
+            newStyleURL = "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json";
+            newStyleMode = 'overlay-contour';
+            requested.push ('gsi-hillshade:8-');
+            requested.push ('gsi-hillshade:9+');
           } else if (type === 'gsi-photo') {
             requested.push ('gsi-photo:8-');
             requested.push ('gsi-photo:9+');
@@ -4407,6 +4447,26 @@
             newStyleMode = 'overlay';
             requested.push ('gsi-photo:8-');
             requested.push ('gsi-photo:9+');
+          } else if (type === 'gsi-photo-optimal_bvmap-nocontour') {
+            newStyleURL = "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json";
+            newStyleMode = 'overlay-contour';
+            requested.push ('gsi-photo:8-');
+            requested.push ('gsi-photo:9+');
+          } else if (type === 'gsi-optimal_bvmap') {
+            newStyleURL = "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json";
+            requested.push ('gsi-standard:background');
+          } else if (type === 'gsi-optimal_bvmap-hillshade') {
+            newStyleURL = "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json";
+            //newStyleMode = 'overlay';
+            requested.push ('gsi-standard:background');
+            requested.push ('gsi-hillshade:8-:shadow');
+            requested.push ('gsi-hillshade:9+:shadow');
+          } else if (type === 'gsi-optimal_bvmap-nocontour-hillshade') {
+            newStyleURL = "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json";
+            newStyleMode = '-contour';
+            requested.push ('gsi-standard:background');
+            requested.push ('gsi-hillshade:8-:shadow');
+            requested.push ('gsi-hillshade:9+:shadow');
           } else if (type === 'himawari') {
             jmaLayers.push (L.tileLayer.jma ({
               //maxZoom,
@@ -4457,9 +4517,18 @@
             requested.push ('gsi-hillshade:8-:overlay');
             requested.push ('gsi-hillshade:9+:overlay');
             requested.push ('osm:overlay');
-          } else if (type === 'gsi-optimal_bvmap') {
+          } else if (type === 'osm-gsi-hillshade+gsi-optimal_bvmap-label') {
             newStyleURL = "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json";
-            requested.push ('gsi-standard:background');
+            newStyleMode = 'label';
+            requested.push ('gsi-hillshade:8-:overlay');
+            requested.push ('gsi-hillshade:9+:overlay');
+            requested.push ('osm:overlay');
+          } else if (type === 'osm-gsi-hillshade+gsi-optimal_bvmap-contour-label') {
+            newStyleURL = "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json";
+            newStyleMode = 'contour+label';
+            requested.push ('gsi-hillshade:8-:overlay');
+            requested.push ('gsi-hillshade:9+:overlay');
+            requested.push ('osm:overlay');
           } else if (type === 'none') {
             //
           }
@@ -4555,13 +4624,14 @@
               });
             }).then (() => {
               map.setLayoutProperty ("background", "visibility", 'none');
-              if (newStyleMode === 'overlay') {
+              if (newStyleMode === 'overlay' ||
+                  newStyleMode === 'overlay-contour') {
                 [
-          '\u884C\u653F\u533A\u753B', '\u6C34\u57DF', '\u5730\u5F62\u8868\u8A18\u9762',
-          '\u5EFA\u7BC9\u72690', '\u5EFA\u7BC9\u72691', '\u5EFA\u7BC9\u72692', '\u5EFA\u7BC9\u72693', '\u5EFA\u7BC9\u72694',
-        ].forEach (layerId => {
-          map.setLayoutProperty (layerId, "visibility", 'none');
-        });
+                  '\u884C\u653F\u533A\u753B', '\u6C34\u57DF', '\u5730\u5F62\u8868\u8A18\u9762',
+                  '\u5EFA\u7BC9\u72690', '\u5EFA\u7BC9\u72691', '\u5EFA\u7BC9\u72692', '\u5EFA\u7BC9\u72693', '\u5EFA\u7BC9\u72694',
+                ].forEach (layerId => {
+                  map.setLayoutProperty (layerId, "visibility", 'none');
+                });
         [
           '\u9053\u8DEF\u4E2D\u5FC3\u7DDA\u8272',
           '\u9053\u8DEF\u4E2D\u5FC3\u7DDA\u30AF\u30AF\u30EA',
@@ -4574,6 +4644,35 @@
           map.setPaintProperty (layerId + 3, "line-opacity", 0.3);
           map.setPaintProperty (layerId + 4, "line-opacity", 0.3);
         });
+                if (newStyleMode === 'overlay-contour') {
+                  map.getStyle ().layers.forEach (layer => {
+                    // 等高線 等深線
+                    if (/\u7B49(?:\u9AD8|\u6DF1)\u7DDA/.test (layer.id)) {
+                      map.setLayoutProperty (layer.id, "visibility", 'none');
+                    }
+                  });
+                }
+              } else if (newStyleMode === 'label') {
+                map.getStyle ().layers.forEach (layer => {
+                  // 注記
+                  if (!/\u6CE8\u8A18/.test (layer.id)) {
+                    map.setLayoutProperty (layer.id, "visibility", 'none');
+                  }
+                });
+              } else if (newStyleMode === '-contour') {
+                map.getStyle ().layers.forEach (layer => {
+                  // 等高線 等深線
+                  if (/\u7B49(?:\u9AD8|\u6DF1)\u7DDA/.test (layer.id)) {
+                    map.setLayoutProperty (layer.id, "visibility", 'none');
+                  }
+                });
+              } else if (newStyleMode === 'contour+label') {
+                map.getStyle ().layers.forEach (layer => {
+                  // 等高線 等深線 | 注記
+                  if (!/\u7B49(?:\u9AD8|\u6DF1)\u7DDA|\u6CE8\u8A18/.test (layer.id)) {
+                    map.setLayoutProperty (layer.id, "visibility", 'none');
+                  }
+                });
               } else {
                 map.setPaintProperty ('\u6C34\u57DF', "fill-color", "rgba(190,210,255,0.3)");
               }
@@ -4792,7 +4891,8 @@
                   maxzoom: 8,
                 });
                 let before = newStyleURL ? 'background' : undefined;
-                map.addLayer ({id: id, type: "raster", source: id}, before);
+                map.addLayer ({id: id, type: "raster", source: id, paint: {
+                }}, before);
                 sources.push (id);
                 layers.push (id);
               } else if (id === 'gsi-hillshade:8-:overlay') {
@@ -4803,9 +4903,24 @@
                   attribution: gsiCreditHTML,
                   maxzoom: 8,
                 });
+                let before = newStyleURL ? 'background' : undefined;
                 map.addLayer ({id: id, type: "raster", source: id, paint: {
                   'raster-opacity': 0.8,
-                }});
+                }}, before);
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-hillshade:8-:shadow') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['paco-clipped:///{x};{y};{z};all,ededed;https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: gsiCreditHTML,
+                  maxzoom: 8,
+                });
+                let before = newStyleURL ? '\u5730\u5F62\u8868\u8A18\u9762': undefined;
+                map.addLayer ({id: id, type: "raster", source: id, paint: {
+                  'raster-opacity': 0.05,
+                }}, before);
                 sources.push (id);
                 layers.push (id);
               } else if (id === 'gsi-hillshade:9+') {
@@ -4824,11 +4939,27 @@
                   type: 'raster',
                   tiles: ['paco-clipped:///{x};{y};{z};jp,ededed;https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png'],
                   tileSize: 256,
+                  maxzoom: 16,
                   attribution: gsiCreditHTML,
                 });
+                let before = newStyleURL ? 'background' : undefined;
                 map.addLayer({id: id, type: "raster", source: id, paint: {
                   'raster-opacity': 0.8,
-                }, minzoom: 9});
+                }, minzoom: 9}, before);
+                sources.push (id);
+                layers.push (id);
+              } else if (id === 'gsi-hillshade:9+:shadow') {
+                map.addSource (id, {
+                  type: 'raster',
+                  tiles: ['paco-clipped:///{x};{y};{z};jp,ededed;https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  maxzoom: 16,
+                  attribution: gsiCreditHTML,
+                });
+                let before = newStyleURL ? '\u5730\u5F62\u8868\u8A18\u9762': undefined;
+                map.addLayer({id: id, type: "raster", source: id, paint: {
+                  'raster-opacity': 0.2,
+                }, minzoom: 9}, before);
                 sources.push (id);
                 layers.push (id);
               } else if (id === 'osm') {
@@ -4848,9 +4979,10 @@
                   tileSize: 256,
                   attribution: osmCreditHTML,
                 });
+                let before = newStyleURL ? 'background' : undefined;
                 map.addLayer ({id: id, type: "raster", source: id, paint: {
                   'raster-opacity': 0.8,
-                }});
+                }}, before);
                 sources.push (id);
                 layers.push (id);
               } else {

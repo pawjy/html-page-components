@@ -1830,6 +1830,9 @@ The following properties are available:
 
         The GSI's standard map, rendered on Himawari photo.
 
+        If the map's engine is MapLibre GL, this map type is not
+        supported.
+
       himawari+gsi-optimal_bvmap:B13/TBB
       himawari+gsi-optimal_bvmap:B03/ALBD
       himawari+gsi-optimal_bvmap:B08/TBB
@@ -1848,6 +1851,9 @@ The following properties are available:
         The GSI's standard map, rendered on the |jma-umimesh-wind|
         map.
 
+        If the map's engine is MapLibre GL, this map type is not
+        supported.
+
       gsi-english
 
         The GSI's English map
@@ -1865,12 +1871,18 @@ The following properties are available:
         <https://maps.gsi.go.jp/development/ichiran.html#hillshademap>.
 
       gsi-hillshade-optimal_bvmap
+      gsi-hillshade-optimal_bvmap-nocontour
 
         The |gsi-optimal_bvmap|, rendered on the GSI's hillshade map.
+        For |gsi-hillshade-optimal_bvmap-nocontour|, contours are not
+        rendered.
 
       gsi-hillshade-standard
 
         The GSI's standard map, rendered on the GSI's hillshade map.
+
+        If the map's engine is MapLibre GL, this map type is not
+        supported.
 
       gsi-lang
 
@@ -1883,18 +1895,34 @@ The following properties are available:
         国土地理院最適化ベクトルタイル(標準地図風スタイル) (PMTiles版)
         <https://github.com/gsi-cyberjapan/optimal_bvmap>.
 
+      gsi-optimal_bvmap-hillshade
+      gsi-optimal_bvmap-nocontour-hillshade
+
+        The |gsi-optimal_bvmap|, blended with |gsi-hillshade|.  For
+        |gsi-optimal_bvmap-nocontour-hillshade|, contours are not
+        rendered.
+
+        If the map's engine is Leaflet, these map types are not
+        supported.
+
       gsi-photo
 
         The GSI's photo
         <https://maps.gsi.go.jp/development/ichiran.html#seamlessphoto>.
 
       gsi-photo-optimal_bvmap
+      gsi-photo-optimal_bvmap-nocontour
 
-        The |gsi-optimal_bvmap|, rendered on the GSI's photo.
+        The |gsi-optimal_bvmap|, rendered on the GSI's photo.  For
+        |gsi-photo-optimal_bvmap-nocontour|, contours are not
+        rendered.
 
       gsi-photo-standard
 
         The GSI's standard map, rendered on the GSI's photo.
+
+        If the map's engine is MapLibre GL, this map type is not
+        supported.
 
       gsi-standard
 
@@ -1914,6 +1942,16 @@ The following properties are available:
       osm-gsi-hillshade
 
         The OpenStreetMap, overlayed on the GSI's hillshade map.
+
+      osm-gsi-hillshade+gsi-optimal_bvmap-label
+      osm-gsi-hillshade+gsi-optimal_bvmap-contour-label
+
+        The |osm-gsi-hillshade| with the labels, and with the contours
+        for |osm-gsi-hillshade+gsi-optimal_bvmap-contour-label|, from
+        the |gsi-optimal_bvmap|.
+
+        If the map's engine is Leaflet, these map types are not
+        supported.
 
       none
 
