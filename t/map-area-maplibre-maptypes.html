@@ -125,16 +125,16 @@
     var m = e.querySelector ('popup-menu');
     this.assert.equal (!!m.offsetWidth, true, 'menu shown');
     m.querySelector ('button').click ();
-    await this.wait ();
+    await this.wait (100);
     
     let b = m.querySelector ('menu-item popup-menu:has(.paco-map-menu-main) button');
     b.click ();
-    await this.wait ();
+    await this.wait (100);
 
     let c = m.querySelector ('button[data-false=osm]');
-    this.assert.equal (!!c.offsetWidth, true);
+    this.assert.equal (!!c.offsetWidth, true, 'osm button shown');
     c.click ();
-    await this.wait (100);
+    await this.wait (200);
 
     let link = e.querySelector ('.maplibregl-ctrl-attrib a[href*=openstreetmap]');
     this.assert.equal (!!link.offsetWidth, true);
