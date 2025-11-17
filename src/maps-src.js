@@ -2324,22 +2324,28 @@
             if (mr.attributeName === 'lat') {
               this.pcValue.lat = 
               this.pc_NewView.lat = this.maAttrFloat ('lat', 0);
+              this.pc_NewView.noAnimation = true;
               this.maRedraw ({view: true, valueMarker: true});
             } else if (mr.attributeName === 'lon') {
               this.pcValue.lon = 
               this.pc_NewView.lon = this.maAttrFloat ('lon', 0);
+              this.pc_NewView.noAnimation = true;
               this.maRedraw ({view: true, valueMarker: true});
             } else if (mr.attributeName === 'zoom') {
               this.pc_NewView.zoom = this.maAttrFloat ('zoom', 8);
+              this.pc_NewView.noAnimation = true;
               this.maRedraw ({view: true});
             } else if (mr.attributeName === 'pitch') {
               this.pc_NewView.pitch = this.maAttrFloat ('pitch', 0);
+              this.pc_NewView.noAnimation = true;
               this.maRedraw ({view: true});
             } else if (mr.attributeName === 'bearing') {
               this.pc_NewView.bearing = this.maAttrFloat ('bearing', 0);
+              this.pc_NewView.noAnimation = true;
               this.maRedraw ({view: true});
             } else if (mr.attributeName === 'terrain') {
               this.pc_NewView.terrain = this.maAttrFloat ('terrain', 0);
+              this.pc_NewView.noAnimation = true;
               this.maRedraw ({view: true});
             } else if (mr.attributeName === 'readonly') {
               this.maRedraw ({readonly: true});

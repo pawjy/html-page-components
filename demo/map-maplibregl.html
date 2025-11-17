@@ -41,7 +41,7 @@
 <script src=https://pawjy.github.io/html-unit-number/src/unit-number.js async></script>
 
   <section id=map-section-1 lang=ja>
-    <map-area engine=maplibre controls="type typebuttons scale fullscreen currentposition zoom streetview togglelegend coordinates pitch" maptype=gsi-photo-optimal_bvmap pitch=35 terrain gsi jma osm lat=35.2 lon=135.4 zoom=12 formcontrol>
+    <map-area engine=maplibre controls="type typebuttons scale fullscreen currentposition zoom streetview togglelegend coordinates pitch" maptype=osm-gsi-hillshade+gsi-optimal_bvmap-label pitch=35 terrain=1.2 gsi jma osm lat=35.2 lon=135.4 zoom=12 formcontrol>
       <map-controls>ABC</map-controls>
       <map-controls position=top-left>XYZ</map-controls>
       <map-controls position=top-left><button>xyz</button></map-controls>
@@ -123,15 +123,33 @@
       <button value=osm-gsi-hillshade onclick="
         document.querySelector('map-area').setMapType(this.value);
       ">osm-gsi-hillshade</button>
+      <button value=osm-gsi-hillshade+gsi-optimal_bvmap-label onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">osm-gsi-hillshade+gsi-optimal_bvmap-label</button>
+      <button value=osm-gsi-hillshade+gsi-optimal_bvmap-contour-label onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">osm-gsi-hillshade+gsi-optimal_bvmap-contour-label</button>
       <button value=gsi-optimal_bvmap onclick="
         document.querySelector('map-area').setMapType(this.value);
       ">gsi-optimal_bvmap</button>
+      <button value=gsi-optimal_bvmap-hillshade onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">gsi-optimal_bvmap-hillshade</button>
+      <button value=gsi-optimal_bvmap-nocontour-hillshade onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">gsi-optimal_bvmap-nocontour-hillshade</button>
       <button value=gsi-photo-optimal_bvmap onclick="
         document.querySelector('map-area').setMapType(this.value);
       ">gsi-photo-optimal_bvmap</button>
+      <button value=gsi-photo-optimal_bvmap-nocontour onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">gsi-photo-optimal_bvmap-nocontour</button>
       <button value=gsi-hillshade-optimal_bvmap onclick="
         document.querySelector('map-area').setMapType(this.value);
       ">gsi-hillshade-optimal_bvmap</button>
+      <button value=gsi-hillshade-optimal_bvmap-nocontour onclick="
+        document.querySelector('map-area').setMapType(this.value);
+      ">gsi-hillshade-optimal_bvmap-nocontour</button>
       <button value=SND/ETC onclick="
         document.querySelector('map-area').setMapType('himawari+gsi-optimal_bvmap:'+this.value);
       ">himawari+gsi-optimal_bvmap (SND/ETC)</button>
@@ -227,6 +245,11 @@
         <input type=date>
         <input type=time>
       </input-datetime>
+
+      <input type=range min=0 value=1.2 max=5 step=0.1 oninput="
+        var map = document.querySelector ('map-area');
+        map.setAttribute ('terrain', this.value);
+      ">
       
     <hr style="margin-top: 10em">
 

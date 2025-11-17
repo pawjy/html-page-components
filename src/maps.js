@@ -3076,22 +3076,28 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             if (mr.attributeName === 'lat') {
               this.pcValue.lat = 
               this.pc_NewView.lat = this.maAttrFloat ('lat', 0);
+              this.pc_NewView.noAnimation = true;
               this.maRedraw ({view: true, valueMarker: true});
             } else if (mr.attributeName === 'lon') {
               this.pcValue.lon = 
               this.pc_NewView.lon = this.maAttrFloat ('lon', 0);
+              this.pc_NewView.noAnimation = true;
               this.maRedraw ({view: true, valueMarker: true});
             } else if (mr.attributeName === 'zoom') {
               this.pc_NewView.zoom = this.maAttrFloat ('zoom', 8);
+              this.pc_NewView.noAnimation = true;
               this.maRedraw ({view: true});
             } else if (mr.attributeName === 'pitch') {
               this.pc_NewView.pitch = this.maAttrFloat ('pitch', 0);
+              this.pc_NewView.noAnimation = true;
               this.maRedraw ({view: true});
             } else if (mr.attributeName === 'bearing') {
               this.pc_NewView.bearing = this.maAttrFloat ('bearing', 0);
+              this.pc_NewView.noAnimation = true;
               this.maRedraw ({view: true});
             } else if (mr.attributeName === 'terrain') {
               this.pc_NewView.terrain = this.maAttrFloat ('terrain', 0);
+              this.pc_NewView.noAnimation = true;
               this.maRedraw ({view: true});
             } else if (mr.attributeName === 'readonly') {
               this.maRedraw ({readonly: true});
@@ -4865,7 +4871,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             maxZoom,
           });
           layers2.push ({layer: lGSI});
-        } else if (type === 'gsi-photo-optimal_bvmap') {
+        } else if (type === 'gsi-photo-optimal_bvmap' ||
+                   type === 'gsi-photo-optimal_bvmap-nocontour') {
           let wLayer = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
                 attribution: gsiPhotoCreditHTML,
@@ -4889,6 +4896,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
 
           let gl = L.GridLayer.gsiOptimalBvmap ({
             maxZoom,
+            contour: type === 'gsi-photo-optimal_bvmap',
           });
           let lGSI = L.gridLayer.gsiOverlay ({
             //attribution: gsiCreditHTML,
@@ -4896,6 +4904,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             maxNativeZoom: 18,
             minNativeZoom: 2,
             maxZoom,
+            //contour: false only
           });
           layers2.push ({layer: gl, fallbackLayer: lGSI});
         } else if (type === 'himawari') {
@@ -4999,7 +5008,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                 maxZoom,
               });
           layers.push ({layer: wLayer});
-        } else if (type === 'osm-gsi-hillshade') {
+        } else if (type === 'osm-gsi-hillshade' ||
+                   type === 'osm-gsi-hillshade+gsi-optimal_bvmap-label' ||
+                   type === 'osm-gsi-hillshade+gsi-optimal_bvmap-contour-label') {
           let lShade = L.tileLayer
               ('https://cyberjapandata.gsi.go.jp/xyz/hillshademap/{z}/{x}/{y}.png', {
                 attribution: gsiCreditHTML,
@@ -5019,12 +5030,20 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                 opacity: 0.8,
               });
           layers.push ({layer: wLayer});
-        } else if (type === 'gsi-optimal_bvmap') {
+          // osm-gsi-hillshade+gsi-optimal_bvmap-label and
+          // osm-gsi-hillshade+gsi-optimal_bvmap-contour-label not
+          // supported, fallbacked here.
+        } else if (type === 'gsi-optimal_bvmap' ||
+                   type === 'gsi-optimal_bvmap-hillshade' ||
+                   type === 'gsi-optimal_bvmap-nocontour-hillshade') {
           let gl = L.maplibreGL ({
             style: "https://raw.githubusercontent.com/gsi-cyberjapan/optimal_bvmap/refs/heads/main/style/std.json",
             maxZoom,
           });
           layers.push ({layer: gl});
+          // gsi-optimal_bvmap-hillshade and
+          // gsi-optimal_bvmap-nocontour-hillshade not supported,
+          // fallbacked to here.
         } else if (type === 'none') {
           //
         }
