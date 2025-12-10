@@ -944,7 +944,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
   /* ------ Caches ------ */
 
   class LRU {
-    constructor(limit = 200) {
+    constructor(limit = 2000) {
       this.limit = limit;
       this.map = new Map();
     }
