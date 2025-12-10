@@ -941,6 +941,44 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     )) * 6378137;
   }; // sphereDistance
 
+  /* ------ Caches ------ */
+
+  class LRU {
+    constructor(limit = 2000) {
+      this.limit = limit;
+      this.map = new Map();
+    }
+
+    get(key) {
+      if (!this.map.has(key)) {
+        return undefined;
+      }
+      
+      const value = this.map.get(key);
+      this.map.delete(key);
+      this.map.set(key, value);
+      return value;
+    }
+
+    set(key, value) {
+      if (this.map.has(key)) {
+        this.map.delete(key);
+        this.map.set(key, value);
+        return;
+      }
+
+      if (this.map.size >= this.limit) {
+        const oldestKey = this.map.keys().next().value;
+        this.map.delete(oldestKey);
+      }
+      
+      this.map.set(key, value);
+    }
+  }
+  let cachedData = new LRU;
+
+  /* ------ Tiles ------ */
+
   L.GridLayer.TileImages = L.GridLayer.extend ({
     createTile: function (coords, done) {
       var img = document.createElement ('img');
@@ -1031,6 +1069,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
   });
 
   maplibregl.addProtocol ('paco-even', (params, signal) => {
+    let cached = cachedData.get (params.url);
+    if (cached) return cached;
+
     let z;
     let url1 = params.url.replace (/^[^:]+:\/\/([0-9]+)\//, (_, a) => {
       z = parseInt (a);
@@ -1065,11 +1106,16 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
 
       return new Promise (ok => canvas.toBlob (ok));
     }).then (async blob => {
-      return {data: await blob.arrayBuffer ()};
+      let data = await blob.arrayBuffer ();
+      cachedData.set (params.url, data);
+      return {data};
     });
   });
 
   maplibregl.addProtocol ('paco-nontransparent', (params, signal) => {
+    let cached = cachedData.get (params.url);
+    if (cached) return cached;
+    
     let url1 = params.url.replace (/^[^:]+:\/\/\//, '');
     return new Promise ((ok, ng) => {
       let img = document.createElement ('img');
@@ -1101,7 +1147,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         return new Promise (ok => canvas.toBlob (ok));
       }
     }).then (async blob => {
-      return {data: await blob.arrayBuffer ()};
+      let data = await blob.arrayBuffer ();
+      cachedData.set (params.url, data);
+      return {data};
     });
   });
   
@@ -1162,7 +1210,6 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     return new L.GridLayer.GSIOverlay (opts);
   };
 
-
   {
     function lonLatToTilePixel(lon, lat, z) {
       const tileSize = 256;
@@ -1174,6 +1221,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     }
     let tileSize = 256;
     maplibregl.addProtocol ('paco-clipped', (params, signal) => {
+      let cached = cachedData.get (params.url);
+      if (cached) return cached;
+
       let [x, y, z, mode, url1] = params.url.replace (/^[^:]+:\/\/\//, '').split (/;/, 5);
       let color = "";
       mode = mode.replace (/,(\w+)$/, (_, c) => {
@@ -1236,7 +1286,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
 
         return new Promise (ok => canvas.toBlob (ok));
       }).then (async blob => {
-        return {data: await blob.arrayBuffer ()};
+        let data = await blob.arrayBuffer ();
+        cachedData.set (params.url, data);
+        return {data};
       });
     });
   }
@@ -1539,6 +1591,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     let factor = 0.01;
     let invalidValue = -( 2 ** 23 );
     maplibregl.addProtocol (protocol, (params, signal) => {
+      let cached = cachedData.get (params.url);
+      if (cached) return cached;
+      
       return new Promise ((ok, ng) => {
 	let img = document.createElement ('img');
 	img.crossOrigin = 'anonymous';
@@ -1564,7 +1619,9 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
 	ctx.putImageData( imageData, 0, 0 );
 	return new Promise (ok => canvas.toBlob (ok));
       }).then (async blob => {
-        return {data: await blob.arrayBuffer ()};
+        let data = await blob.arrayBuffer ();
+        cachedData.set (params.url, data);
+        return {data};
       });
     });
   }
