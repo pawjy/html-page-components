@@ -3558,9 +3558,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         // recompute!
         var s = getComputedStyle (this);
         var w = s.getPropertyValue ('--paco-map-touch-scroll-viewport') || 'auto';
-        var za = s.getPropertyValue ('--paco-map-zoom-animation') || 'auto';
+        //var za = s.getPropertyValue ('--paco-map-zoom-animation') || 'auto';
 
-        if (za.match (/^\s*none\s*$/)) opts.zoomAnimation = false;
         let map = new maplibregl.Map ({
           container: this,
           //center: [1, 0],
