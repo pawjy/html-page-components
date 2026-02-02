@@ -3807,7 +3807,8 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
         }
 
         clearTimeout (this.maRedrawTimer);
-        if (this.maRedrawNeedUpdated.userActivated) {
+        if (this.maRedrawNeedUpdated.userActivated ||
+            this.pc_NewView?.animationState) {
           requestAnimationFrame (() => this.ma_Redraw ());
         } else {
           this.maRedrawTimer = setTimeout (() => this.ma_Redraw (), 300);
@@ -3849,6 +3850,18 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
                 this.pc_NewView.center = p;
                 if (this.pc_NewView.initial || this.pc_NewView.noAnimation) {
                   this.pc_MLMap.jumpTo (this.pc_NewView);
+                } else if (this.pc_NewView.animationState) {
+                  let rect = this.getBoundingClientRect ();
+                  this.pc_MLMAni ??= new MLMapAnimator
+                      (this, this.pc_NewView.animationState);
+                  this.pc_MLMAni.update ({
+                    cameraPoint: this.pc_NewView.center,
+                    cameraFixedArea: this.pc_NewView.cameraFixedArea,
+                    bearing: this.pc_NewView.bearing,
+                    //soon: false
+                    width: rect.width,
+                    height: rect.height,
+                  });
                 } else {
                   this.pc_MLMap.easeTo (this.pc_NewView);
                   //this.pc_MLMap.flyTo (this.pc_NewView);
@@ -4386,6 +4399,7 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
           m.pcScroll ({center})
           m.pcScroll ({center, ifNeeded: true})
           m.pcScroll ({center, setValue: true})
+          m.pcScroll ({center, cameraFixedArea, bearing, animationState})
           m.pcScroll ({intoView: true})
           m.pcScroll ({intoView: true, ifNeeded: true})
         */
@@ -4409,6 +4423,11 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
               this.pc_NewView._source = 'scroll1';
               this.pc_NewView.lat = p.lat;
               this.pc_NewView.lon = p.lon;
+              if (opts.animationState) { // for MLMap only
+                this.pc_NewView.animationState = opts.animationState
+                this.pc_NewView.cameraFixedArea = opts.cameraFixedArea;
+                this.pc_NewView.bearing = opts.bearing;
+              }
               if (opts.noAnimation) this.pc_NewView.noAnimation = true;
               this.maRedraw ({view: true, valueMarker: opts.setValue});
               if (opts.setValue) this.pcValue = p;
@@ -4418,10 +4437,27 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             this.pc_NewView._source = 'scroll2';
             this.pc_NewView.lat = p.lat;
             this.pc_NewView.lon = p.lon;
+            if (opts.animationState) { // for MLMap only
+              this.pc_NewView.animationState = opts.animationState
+              this.pc_NewView.cameraFixedArea = opts.cameraFixedArea;
+              this.pc_NewView.bearing = opts.bearing;
+            }
             if (opts.noAnimation) this.pc_NewView.noAnimation = true;
             this.maRedraw ({view: true, valueMarker: opts.setValue});
             if (opts.setValue) this.pcValue = p;
           }
+        } else if (opts.stop) {
+          if (!this.pc_NewView) this.pc_NewView = {};
+          this.pc_NewView._source = 'stop';
+          this.pc_NewView.stop = opts.stop;
+          if (opts.animationState) { // for MLMap only
+            this.pc_NewView.animationState = opts.animationState
+            this.pc_NewView.cameraFixedArea = opts.cameraFixedArea;
+            this.pc_NewView.bearing = opts.bearing;
+          }
+          if (opts.noAnimation) this.pc_NewView.noAnimation = true;
+          this.maRedraw ({view: true, valueMarker: opts.setValue});
+          if (opts.setValue) this.pcValue = p;
         }
 
         if (opts.bounds || opts.includes) {
@@ -6187,11 +6223,217 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
     },
   }); // <map-area>
 
+  class MLMapAnimator {
+    constructor (ma, state) {
+      let map = ma.pc_MLMap;
+      if (!map) throw new Error ("No MLMap");
+      this.map = map;
+
+      ma.addEventListener ('mousedown', () => {
+        this.dragging = true;
+      }, {capture: true});
+      window.addEventListener ('mouseup', () => {
+        this.dragging = false;
+      }, {capture: true});
+      
+      this.anim = {camera: {}, bearing: {}};
+      this.running = false;
+      this.state = state;
+    } // constructor
+
+    update ({ cameraPoint, bearing, cameraFixedArea = 0, width, height,
+              soon }) {
+      if (soon) {
+        let ease = {};
+        if (cameraPoint) ease.center = cameraPoint;
+        if (bearing != null) ease.bearing = bearing;
+        this.map.jumpTo (ease);
+        this.anim = {camera: {}, bearing: {}};
+        this.running = false;
+        return;
+      }
+    
+      const now = Date.now ();
+
+      if (cameraPoint) {
+        let center = this.map.getCenter ();
+        let logicalCenterPx = this.map.project (center);
+        let targetPx = this.map.project (cameraPoint);
+        let screenCenterPx = { x: width/2, y: height/2 };
+        if (cameraFixedArea > 0) {
+          let allowedX = width * cameraFixedArea / 2;
+          let allowedY = height * cameraFixedArea / 2;
+          let dx = targetPx.x - logicalCenterPx.x;
+          let dy = targetPx.y - logicalCenterPx.y;
+          let overX = 0;
+          let overY = 0;
+          if (dx >  allowedX) overX = +1;
+          if (dx < -allowedX) overX = -1;
+          if (dy >  allowedY) overY = +1;
+          if (dy < -allowedY) overY = -1;
+          if (Math.abs (dx) < allowedX) overX = 0;
+          if (Math.abs (dy) < allowedY) overY = 0;
+          let biasAmountX = width * 0.20;
+          let biasAmountY = height * 0.20;
+          let offsetX = (screenCenterPx.x - logicalCenterPx.x) + -overX * biasAmountX;
+          let offsetY = (screenCenterPx.y - logicalCenterPx.y) + -overY * biasAmountY;
+          if (overX || overY) {
+            //
+          } else {
+            cameraPoint = null;
+          }
+        }
+        if (cameraPoint) {
+          let screenCenter = this.map.unproject (screenCenterPx);
+          let dx = logicalCenterPx.x - screenCenterPx.x;
+          let dy = logicalCenterPx.y - screenCenterPx.y;
+          let correctedCenterPx = {
+            x: targetPx.x + dx,
+            y: targetPx.y + dy,
+          };
+          let cCenter = this.map.unproject (correctedCenterPx);
+          cCenter.lon = cCenter.lng;
+          this.anim.camera.rawTarget = cCenter;
+          if (!this.anim.camera.smooth) {
+            this.anim.camera.smooth = cCenter;
+          }
+          this.anim.camera.vel = this.anim.camera.vel || {x: 0, y: 0};
+        }
+      } // cameraPoint
+
+      if (bearing != null) {
+        this.anim.bearing.start = this.map.getBearing ();
+        this.anim.bearing.end = bearing;
+      }
+
+      if (!this.running) {
+        this.running = true;
+        requestAnimationFrame (this._animate.bind (this));
+      }
+    } // update
+
+    _animate () {
+      const frameMs = 500;
+      let needNextFrame = false;
+      let ease = {};
+
+      if (!this.dragging) {
+        if (this.anim.camera.rawTarget) {
+          const raw = this.anim.camera.rawTarget;
+          let smooth = this.anim.camera.smooth;
+
+          const now = performance.now();
+          const dtMs = now - (this.anim.prevTime ?? now);
+          this.anim.prevTime = now;
+          
+          const dt = dtMs / 1000;
+          function computeAlpha (rawPxDist) {
+            const a_min = 0.1;
+            const a_max_normal = 0.4;
+            const a_max_fast = 0.8;
+            const D_normal = 1000;
+            const D_fast = 3000;
+
+            if (rawPxDist <= 0) return 0;
+            let alpha = a_min + (a_max_normal - a_min) * (1 - Math.min(rawPxDist / D_normal, 1));
+
+            if (rawPxDist > D_normal) {
+              const extraRatio = Math.min((rawPxDist - D_normal) / (D_fast - D_normal), 1);
+              const boostedMax = a_max_normal + (a_max_fast - a_max_normal) * extraRatio;
+              alpha =  boostedMax;
+            }
+
+            return alpha;
+          } // computeAlpha
+
+          const startPx = this.map.project (this.anim.camera.smooth);
+          const endPx   = this.map.project (raw);
+
+          const dx = endPx.x - startPx.x;
+          const dy = endPx.y - startPx.y;
+          const rawPxDist = Math.sqrt (dx*dx + dy*dy);
+
+          let alpha = computeAlpha (rawPxDist);
+          {
+            const W = this.map._canvas.width;
+            const H = this.map._canvas.height;
+            let overflow = 0;
+            const margin = 0.15;
+            const left =  W * margin;
+            const right =  W * (1 - margin);
+            const top =  H * margin;
+            const bottom = H * (1 - margin);
+            
+            if (endPx.x < left) overflow += (left - endPx.x) / W;
+            else if (endPx.x > right) overflow += (endPx.x - right) / W;
+
+            if (endPx.y < top) overflow += (top - endPx.y) / H;
+            else if (endPx.y > bottom) overflow += (endPx.y - bottom) / H;
+            
+            overflow = Math.min(overflow, 1);
+            alpha = alpha + overflow * (0.6 - alpha);
+          }
+
+          smooth = {
+            lat: smooth.lat + (raw.lat - smooth.lat) * alpha,
+            lon: smooth.lon + (raw.lon - smooth.lon) * alpha,
+          };
+          this.anim.camera.smooth = smooth;
+          ease.center = smooth;
+        }
+
+        if (this.anim.bearing.end != null) {
+          function shortestAngleDiff (target, current) {
+            let d = target - current;
+            d = (d + 540) % 360 - 180; 
+            return d;
+          }
+
+          let current = this.map.getBearing ();
+          let diff = shortestAngleDiff (this.anim.bearing.end, current);
+          const MAX_DEG_PER_SEC = 3;
+          const maxStep = MAX_DEG_PER_SEC * (frameMs / 1000);
+          let step;
+          if (Math.abs (diff) <= maxStep) {
+            step = diff;  
+          } else {
+            step = Math.sign (diff) * maxStep;
+          }
+
+          const newBearing = current + step;
+          ease.bearing = newBearing;
+
+          if (Math.abs (diff) > 0.01) {
+            needNextFrame = true;
+          } else {
+            this.anim.bearing.end = null;
+          }
+        }
+      } else {
+        needNextFrame = true;
+      }
+
+      if (Object.keys (ease).length) this.map.easeTo ({
+        ...ease,
+        duration: frameMs,
+        easing: t => t,
+      });
+      
+      if (needNextFrame && !this.state.animated) needNextFrame = false;
+      if (needNextFrame) {
+        //requestAnimationFrame (this._animate.bind(this));
+        setTimeout (this._animate.bind(this), frameMs);
+      } else {
+        this.running = false;
+      }
+    }
+  } // MLMapAnimator
+  
 }) ();
 
 /*
 
-Copyright 2017-2025 Wakaba <wakaba@suikawiki.org>.
+Copyright 2017-2026 Wakaba <wakaba@suikawiki.org>.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as

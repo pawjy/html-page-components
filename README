@@ -1765,10 +1765,36 @@ The following properties are available:
     The argument must be an object with one or more of following
     name/value pairs:
 
+      animationState : Object
+
+        For a MapLibre map, a JavaScript object.  If specified, an
+        animation transition mode is enabled.  In the mode the current
+        state is smoothly transited to the newly specified state.
+
+        The object can have any properties, as well as the following:
+
+          animated : boolean
+
+            Whether the animation is enabled.  The value should be set
+            to a true value when the method is first invoked.  Then
+            when the animation should be terminated before its
+            completion, the value should be set to false.
+
+      bearing : float
+
+        In the animation transition mode, the new bearing value.
+
       bounds : {north: float, south: float, east: float, west: float}
 
         Change the range of the map identified by the latitudes and
         longitudes of the four edges.
+
+      cameraFixedArea : float in [0, 1]
+
+        In the animation transition mode, the center point remains
+        unchanged if the new center point lird within a rectangle
+        centered on the map, scaled by cameraFixedArea from the width
+        and height of the map.
 
       center : {lat: float, lon: float}
 
