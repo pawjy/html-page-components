@@ -2927,6 +2927,30 @@
         });
         //map.on('zoomend', () => { })
 
+        {
+          // For Mac ⌘ buttons
+          const mapContainer = map.getContainer ();
+          mapContainer.addEventListener ('wheel', (e) => {
+            if (e.metaKey && !e.ctrlKey) {
+              const fakeEvent = new WheelEvent (e.type, {
+                ...e,
+                ctrlKey: true
+              });
+              e.preventDefault();
+              mapContainer.dispatchEvent (fakeEvent);
+            }
+          }, {passive: false});
+
+          mapContainer.addEventListener ('keydown', (e) => {
+            if (e.metaKey && !e.ctrlKey && (e.key === '+' || e.key === '-')) {
+              e.preventDefault ();
+              
+              const zoom = map.getZoom ();
+              map.setZoom (e.key === '+' ? zoom + 1 : zoom - 1);
+            }
+          });
+        }
+
         map.on ('click', ev => {
           // recompute!
           let v = s.getPropertyValue ('--paco-map-click-action') || 'none';
