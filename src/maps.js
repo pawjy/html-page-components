@@ -4480,10 +4480,26 @@ L.TileLayer.BoundaryCanvas.createFromLayer = function (layer, options) {
             });
           }
           if (Number.isFinite (bounds.north)) {
-            if (this.pcLMap) this.pcLMap.fitBounds ([
-              [bounds.north, bounds.west],
-              [bounds.south, bounds.east],
-            ]);
+            if (this.pcLMap) {
+              let map = this.pcLMap;
+              let mapBounds = L.latLngBounds ([
+                [bounds.north, bounds.west],
+                [bounds.south, bounds.east],
+              ]);
+              let zoom = map.getBoundsZoom (mapBounds);
+              if (Number.isFinite (zoom)) {
+                // Leaflet rounds both the fitted zoom and the pixel origin.
+                let size = map.getSize ();
+                let sw = map.project (mapBounds.getSouthWest (), zoom);
+                let ne = map.project (mapBounds.getNorthEast (), zoom);
+                let origin = sw.add (ne).subtract (size).divideBy (2).round ();
+                if (sw.x < origin.x || ne.x > origin.x + size.x ||
+                    ne.y < origin.y || sw.y > origin.y + size.y) {
+                  zoom = Math.max (map.getMinZoom (), zoom - (map.options.zoomSnap || 1));
+                }
+              }
+              map.fitBounds (mapBounds, {maxZoom: zoom});
+            }
             if (this.pc_MLMap) this.pc_MLMap.fitBounds ([
               [bounds.west, bounds.south],
               [bounds.east, bounds.north],
