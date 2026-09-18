@@ -216,6 +216,7 @@ map-area:not([hidden]) {
 map-area {
   width: 100%;
   height: 300px;
+  user-select: none;
   --paco-toggle-attribution: "Attribution";
   --paco-fullscreen-title: "Fullscreen";
   --paco-currentposition-title: "Current position";
@@ -911,7 +912,11 @@ map-area.paco-legend-hidden .maplibregl-ctrl-scale {
 
 map-area .leaflet-gl-layer {
   z-index: 1;
-} 
+}
+
+map-controls {
+  user-select: text;
+}
 
 template-set,
 label-set {
