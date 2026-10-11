@@ -44,6 +44,7 @@ my $HTTPHost = '0';
 my $HTTPPort = find_listenable_port;
 my $HTTPServer = server ($HTTPHost, $HTTPPort);
 my $BrowserHTTPHost = $ENV{TEST_HTTP_HOST} || $HTTPHost;
+warn "Server: $HTTPHost:$HTTPPort\n";
 
 sub run_tests {
   my $test_wd_url = $ENV{TEST_WD_URL} || die 'Environment variable `TEST_WD_URL` must be set`';
