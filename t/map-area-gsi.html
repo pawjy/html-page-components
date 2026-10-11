@@ -44,8 +44,8 @@
 
     var credit = e.querySelector ('map-credit');
 
-    this.assert.equal (credit.hidden, true);
-    this.assert.equal (credit.textContent, '国土地理院');
+    this.assert.equal (credit?.hidden, true);
+    this.assert.equal (credit?.textContent, '国土地理院');
   </test-code>
 
   <test-code name="gsi mode selected, img">
@@ -64,8 +64,8 @@
 
     var credit = e.querySelector ('map-credit');
 
-    this.assert.equal (credit.hidden, false);
-    this.assert.equal (credit.textContent, '国土地理院');
+    this.assert.equal (credit?.hidden, false);
+    this.assert.equal (credit?.textContent, '国土地理院');
   </test-code>
   
   <test-code name="gsi attribute value">
@@ -80,8 +80,8 @@
 
     var credit = e.querySelector ('map-credit');
 
-    this.assert.equal (credit.hidden, true);
-    this.assert.equal (credit.textContent, '国土地理院');
+    this.assert.equal (credit?.hidden, true);
+    this.assert.equal (credit?.textContent, '国土地理院');
 
     var v = e.querySelector ('[title="国土地理院の地理院タイル (標準地図) を見る"]');
     this.assert.equal (!!v, true);
@@ -99,8 +99,8 @@
 
     var credit = e.querySelector ('map-credit');
 
-    this.assert.equal (credit.hidden, true);
-    this.assert.equal (credit.textContent, '国土地理院');
+    this.assert.equal (credit?.hidden, true);
+    this.assert.equal (credit?.textContent, '国土地理院');
 
     var v = e.querySelector ('[title=h4q344tgqterew5]');
     this.assert.equal (!!v, true);

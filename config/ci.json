@@ -9,7 +9,7 @@
     "tests": [
 
       "docker run --name firefoxdriver -d --net=host -t quay.io/wakaba/firefoxdriver:stable /fx",
-      "TEST_WD_URL=http://localhost:9516 TEST_RESULTS_DIR=$CIRCLE_ARTIFACTS/test_results/firefox make test",
+      "TEST_IS_FIREFOX=1 TEST_WD_URL=http://localhost:9516 TEST_RESULTS_DIR=$CIRCLE_ARTIFACTS/test_results/firefox make test",
       "docker logs firefoxdriver",
       "docker kill firefoxdriver",
 

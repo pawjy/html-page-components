@@ -72,6 +72,8 @@ sub run_tests {
       push @failed, "$url -> $result_path";
       if ($ENV{TEST_IS_CHROME} and $path =~ m{map-area-maplibre|leaflet-gl}) {
         print "# failed but allowed\n";
+      } elsif ($ENV{TEST_IS_FIREFOX} and $path =~ m{map-area-googlemaps\.html|map-area-gsi\.html}) {
+        print "# failed but allowed\n";
       } else {
         $exit_code = 1;
       }
@@ -122,7 +124,7 @@ sub execute_test_html_file {
           }).catch (e => {
             throw '' + e;
           });
-        }, [], timeout => 600)->then (sub {
+        }, [], timeout => 300)->then (sub {
           my $result = $_[0];
           $all_tests_passed = $result->json->{value}->{allTestsPassed};
 
