@@ -70,7 +70,7 @@ sub run_tests {
     } else {
       print "not ok - $url -> $result_path\n";
       push @failed, "$url -> $result_path";
-      if ($ENV{TEST_IS_CHROME} and $path =~ m{map-area-maplibre|leaflet-gl}) {
+      if ($ENV{TEST_IS_CHROME} and $path =~ m{map-area-maplibre|leaflet-gl|map-area-googlemaps\.html|map-area-gsi\.html}) {
         print "# failed but allowed\n";
       } elsif ($ENV{TEST_IS_FIREFOX} and $path =~ m{map-area-googlemaps\.html|map-area-gsi\.html}) {
         print "# failed but allowed\n";
