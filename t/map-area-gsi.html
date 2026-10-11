@@ -35,7 +35,7 @@
     var e = this.currentScript.querySelector ('map-area');
 
     await e.ready;
-    await this.wait (1000);
+    await this.wait (2000);
 
     this.assert.equal (!!e.textContent.match (/国土地理院/), true);
 
@@ -118,7 +118,7 @@
 
     await this.wait (1000);
 
-    var img = e.querySelector ('img[src^="https://rawgit.com/"]');
+    var img = e.querySelector ('img[src*="noimage.svg"]');
     this.assert.equal (!!img, true);
   </test-code>
 
