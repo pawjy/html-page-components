@@ -40,7 +40,7 @@ require scalar $root_path->child ('t_deps/server.pl')->absolute;
   } # find_listenable_port
 }
 
-my $HTTPHost = '0';
+my $HTTPHost = '127.0.0.1';
 my $HTTPPort = find_listenable_port;
 my $HTTPServer = server ($HTTPHost, $HTTPPort);
 my $BrowserHTTPHost = $ENV{TEST_HTTP_HOST} || $HTTPHost;
